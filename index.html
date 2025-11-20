@@ -6,6 +6,7 @@
     <title>Island Gas Station - Fuel Order System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Your existing CSS styles remain unchanged */
         * {
             margin: 0;
             padding: 0;
@@ -719,7 +720,7 @@
         </div>
 
         <footer>
-            <p>&copy; 2023 Island Gas Station - Maldives. All rights reserved.</p>
+            <p>&copy; 2025 Island Gas Station - Maldives. All rights reserved.</p>
         </footer>
     </div>
 
@@ -732,6 +733,18 @@
             // Check if user is logged in
             let isLoggedIn = localStorage.getItem('adminLoggedIn') === 'true';
             
+            // Load orders from localStorage or initialize with sample data
+            let orders = JSON.parse(localStorage.getItem('gasStationOrders')) || [
+                { id: 1, name: "Ahmed Hassan", location: "T-Jetty", liters: 25.5, pricePerLiter: 18.50, total: 471.75, type: "In-Person", status: "Completed" },
+                { id: 2, name: "Aishath Ali", location: "Jetty No. 6", liters: 40.0, pricePerLiter: 18.50, total: 740.00, type: "Online", status: "Pending" },
+                { id: 3, name: "Mohamed Ibrahim", location: "T-Jetty", liters: 15.0, pricePerLiter: 18.50, total: 277.50, type: "In-Person", status: "Completed" }
+            ];
+
+            // Save orders to localStorage
+            function saveOrders() {
+                localStorage.setItem('gasStationOrders', JSON.stringify(orders));
+            }
+
             // Tab switching functionality
             const tabs = document.querySelectorAll('.tab');
             tabs.forEach(tab => {
@@ -755,6 +768,9 @@
                     } else if (targetTab === 'admin' && isLoggedIn) {
                         document.getElementById('adminLogin').classList.add('hidden');
                         document.getElementById('adminDashboard').classList.remove('hidden');
+                        // Update dashboard when switching to admin tab
+                        updateStats();
+                        renderOrdersTable();
                     }
                 });
             });
@@ -820,8 +836,15 @@
             const totalAmount = document.getElementById('totalAmount');
             
             calculateBtn.addEventListener('click', function() {
+                const customerName = document.getElementById('customerName').value;
+                const location = document.getElementById('location').value;
                 const liters = parseFloat(document.getElementById('liters').value);
                 const pricePerLiter = parseFloat(document.getElementById('pricePerLiter').value);
+                
+                if (!customerName || !location) {
+                    alert('Please enter customer name and select location');
+                    return;
+                }
                 
                 if (isNaN(liters) || isNaN(pricePerLiter)) {
                     alert('Please enter valid values for liters and price per liter');
@@ -834,14 +857,28 @@
                 
                 // Add to orders in admin dashboard
                 addOrder(
-                    document.getElementById('customerName').value,
-                    document.getElementById('location').value,
+                    customerName,
+                    location,
                     liters,
                     pricePerLiter,
                     total,
                     'In-Person',
                     'Completed'
                 );
+                
+                // Reset form
+                document.getElementById('inPersonForm').reset();
+                
+                // Show success message
+                const successMessage = document.createElement('div');
+                successMessage.className = 'success-message';
+                successMessage.innerHTML = '<i class="fas fa-check-circle"></i> Order calculated and added to system!';
+                document.getElementById('inPersonForm').appendChild(successMessage);
+                
+                // Hide success message after 5 seconds
+                setTimeout(function() {
+                    successMessage.remove();
+                }, 5000);
             });
             
             // Online request form submission
@@ -880,13 +917,6 @@
                 }, 5000);
             });
 
-            // Admin Dashboard Data
-            let orders = [
-                { id: 1, name: "Ahmed Hassan", location: "T-Jetty", liters: 25.5, pricePerLiter: 18.50, total: 471.75, type: "In-Person", status: "Completed" },
-                { id: 2, name: "Aishath Ali", location: "Jetty No. 6", liters: 40.0, pricePerLiter: 18.50, total: 740.00, type: "Online", status: "Pending" },
-                { id: 3, name: "Mohamed Ibrahim", location: "T-Jetty", liters: 15.0, pricePerLiter: 18.50, total: 277.50, type: "In-Person", status: "Completed" }
-            ];
-
             // Initialize dashboard
             function initializeDashboard() {
                 updateStats();
@@ -909,7 +939,10 @@
                 const tableBody = document.getElementById('ordersTableBody');
                 tableBody.innerHTML = '';
                 
-                orders.forEach(order => {
+                // Sort orders by ID in descending order (newest first)
+                const sortedOrders = [...orders].sort((a, b) => b.id - a.id);
+                
+                sortedOrders.forEach(order => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${order.id}</td>
@@ -943,9 +976,10 @@
                 };
                 
                 orders.push(newOrder);
+                saveOrders();
                 
-                // Only update dashboard if admin is logged in
-                if (isLoggedIn) {
+                // Only update dashboard if admin is logged in and on the admin tab
+                if (isLoggedIn && document.getElementById('admin-tab').classList.contains('active')) {
                     updateStats();
                     renderOrdersTable();
                 }
@@ -953,16 +987,29 @@
 
             // Edit order (placeholder function)
             window.editOrder = function(id) {
-                alert(`Edit order with ID: ${id}`);
-                // In a real application, this would open a modal or form to edit the order
+                const order = orders.find(o => o.id === id);
+                if (order) {
+                    const newStatus = order.status === 'Completed' ? 'Pending' : 'Completed';
+                    order.status = newStatus;
+                    saveOrders();
+                    
+                    if (isLoggedIn && document.getElementById('admin-tab').classList.contains('active')) {
+                        updateStats();
+                        renderOrdersTable();
+                    }
+                }
             };
 
             // Delete order
             window.deleteOrder = function(id) {
                 if (confirm('Are you sure you want to delete this order?')) {
                     orders = orders.filter(order => order.id !== id);
-                    updateStats();
-                    renderOrdersTable();
+                    saveOrders();
+                    
+                    if (isLoggedIn && document.getElementById('admin-tab').classList.contains('active')) {
+                        updateStats();
+                        renderOrdersTable();
+                    }
                 }
             };
         });
