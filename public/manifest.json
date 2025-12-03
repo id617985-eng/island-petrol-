@@ -1,0 +1,23 @@
+{
+  "name": "Ai-Maize-ing Nachos",
+  "short_name": "Nachos Orders",
+  "description": "Nachos ordering system with real-time notifications",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fff8e1",
+  "theme_color": "#8b4513",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "badge": "/badge-72x72.png"
+}
