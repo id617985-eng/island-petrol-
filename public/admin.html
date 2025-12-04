@@ -377,6 +377,19 @@
             padding: 15px;
         }
         
+        .slide-meta {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .slide-status {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
         .slideshow-actions {
             display: flex;
             gap: 10px;
@@ -519,6 +532,49 @@
         .user-role.admin {
             background: #6c757d;
             color: white;
+        }
+        
+        /* Access Log */
+        .access-log {
+            margin-top: 15px;
+        }
+        
+        .log-entry {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .log-user {
+            font-weight: bold;
+        }
+        
+        .log-user.superadmin {
+            color: #FF6A00;
+        }
+        
+        .log-user.admin {
+            color: #6c757d;
+        }
+        
+        .log-time {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .log-body p {
+            margin: 5px 0;
+        }
+        
+        .log-body small {
+            color: #888;
         }
     </style>
 </head>
@@ -739,14 +795,15 @@
         </div>
     </div>
 
-    <!-- Add Slide Modal -->
+    <!-- Add/Edit Slide Modal - UPDATED -->
     <div id="add-slide-modal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
-            <h2>Add New Slide</h2>
-            <input type="text" id="slide-title" placeholder="Slide Title">
+            <h2 id="slide-modal-title">Add New Slide</h2>
+            <input type="text" id="slide-title" placeholder="Slide Title" required>
             <textarea id="slide-description" placeholder="Description (optional)" rows="3"></textarea>
-            <input type="text" id="slide-image-url" placeholder="Image URL">
-            <input type="number" id="slide-order" placeholder="Display Order" value="0">
+            <input type="text" id="slide-image-url" placeholder="Image URL" required>
+            <input type="text" id="slide-promo-badge" placeholder="Promo Badge (e.g., '20% OFF', 'New')">
+            <input type="number" id="slide-order" placeholder="Display Order" value="0" min="0">
             
             <div style="margin: 15px 0;">
                 <label>
@@ -754,8 +811,10 @@
                 </label>
             </div>
             
-            <button id="save-slide-btn" class="action-btn primary">Save Slide</button>
-            <button id="cancel-add-slide" class="action-btn secondary">Cancel</button>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button id="save-slide-btn" class="action-btn primary">Save Slide</button>
+                <button id="cancel-add-slide" class="action-btn secondary">Cancel</button>
+            </div>
         </div>
     </div>
 

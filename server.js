@@ -67,6 +67,22 @@ adminSchema.methods.comparePassword = async function(candidatePassword) {
 
 const Admin = mongoose.model('Admin', adminSchema);
 
+// Menu Items Schema
+const menuItemSchema = new mongoose.Schema({
+    name: { type: String, required: true, unique: true },
+    price: { type: Number, required: true },
+    category: { type: String, enum: ['nachos', 'desserts'], required: true },
+    description: { type: String },
+    ingredients: { type: String },
+    isAvailable: { type: Boolean, default: true },
+    imageUrl: { type: String },
+    displayOrder: { type: Number, default: 0 },
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now }
+});
+
+const MenuItem = mongoose.model('MenuItem', menuItemSchema);
+
 // Initialize default admins
 async function initializeDefaultAdmins() {
     try {
@@ -122,11 +138,9 @@ async function initializeDefaultAdmins() {
             const existingAdmin = await Admin.findOne({ username: adminData.username });
             
             if (!existingAdmin) {
-                // Create new admin - password will be hashed by pre-save hook
                 await Admin.create(adminData);
                 console.log(`✅ Created default admin: ${adminData.username} (${adminData.role})`);
             } else {
-                // Update existing admin with current password
                 const hashedPassword = await bcrypt.hash(adminData.password, 10);
                 existingAdmin.password = hashedPassword;
                 existingAdmin.role = adminData.role;
@@ -140,6 +154,143 @@ async function initializeDefaultAdmins() {
         console.log('✅ All default admin accounts initialized/updated');
     } catch (error) {
         console.error('❌ Error initializing default admins:', error);
+    }
+}
+
+// Initialize menu items
+async function initializeMenuItems() {
+    try {
+        const menuItems = [
+            // Nachos
+            {
+                name: 'Regular Nachos',
+                price: 35,
+                category: 'nachos',
+                description: 'Classic nachos with delicious toppings',
+                ingredients: 'Chips, beef, cucumber, white onions, tomatoes, carrots, cheesy sauce, garlic sauce, sesame seeds.',
+                isAvailable: true,
+                imageUrl: '/image/classic nachos.jpg'
+            },
+            {
+                name: 'Veggie Nachos',
+                price: 65,
+                category: 'nachos',
+                description: 'Vegetarian delight',
+                ingredients: 'Corn chips, bell peppers, onions, olives, melted cheese, guacamole.',
+                isAvailable: true,
+                imageUrl: '/image/veggie nachos.jpg'
+            },
+            {
+                name: 'Overload Cheesy Nachos',
+                price: 95,
+                category: 'nachos',
+                description: 'Extra cheesy goodness',
+                ingredients: 'Chips, beef, cucumber, white onions, tomatoes, carrots, black olives, cheesy sauce, garlic sauce, sesame seeds, Cheese.',
+                isAvailable: true,
+                imageUrl: '/image/overload chees nachos.jpg'
+            },
+            {
+                name: 'Nacho Combo',
+                price: 75,
+                category: 'nachos',
+                description: 'Nachos with drink',
+                ingredients: 'Chips, beef, cucumber, white onions, tomatoes, carrots, cheesy sauce, garlic sauce, sesame seeds, Drinks.',
+                isAvailable: true,
+                imageUrl: '/image/combo.png'
+            },
+            {
+                name: 'Nacho Fries',
+                price: 85,
+                category: 'nachos',
+                description: 'Nachos with fries',
+                ingredients: 'Fries, Chips, beef, cucumber, white onions, tomatoes, carrots, black olives, cheesy sauce, garlic sauce, sesame seeds.',
+                isAvailable: true,
+                imageUrl: '/image/nacho fries.jpg'
+            },
+            {
+                name: 'Supreme Nachos',
+                price: 180,
+                category: 'nachos',
+                description: 'Premium nachos experience',
+                ingredients: 'Corn chips, beef, tomatoes, onions, triple cheese, guacamole.',
+                isAvailable: true,
+                imageUrl: '/image/Supreme Nachos.png'
+            },
+            {
+                name: 'Shawarma fries',
+                price: 120,
+                category: 'nachos',
+                description: 'Shawarma style fries',
+                ingredients: 'Fries, beef, cucumber, white onions, tomatoes, carrots, black olives, cheesy sauce, garlic sauce, sesame seeds, cheese, guacamole.',
+                isAvailable: true,
+                imageUrl: '/image/shawarma fries.jpeg'
+            },
+            // Desserts
+            {
+                name: 'Mango Graham',
+                price: 40,
+                category: 'desserts',
+                description: 'Sweet mango graham dessert',
+                ingredients: 'Mango slices, graham crackers, cream, condensed milk.',
+                isAvailable: true,
+                imageUrl: '/image/mango.gif'
+            },
+            {
+                name: 'Mango tiramisu on tube',
+                price: 100,
+                category: 'desserts',
+                description: 'Mango tiramisu in a tube',
+                ingredients: 'Mango puree, mascarpone, ladyfingers, cream, cocoa dust.',
+                isAvailable: true,
+                imageUrl: '/image/mango tiramisu on tub-price 100.jpeg'
+            },
+            {
+                name: 'Biscoff',
+                price: 159,
+                category: 'desserts',
+                description: 'Biscoff cookie dessert',
+                ingredients: 'Biscoff spread, crushed cookies, cream, condensed milk.',
+                isAvailable: true,
+                imageUrl: '/image/biscoff.jpeg'
+            },
+            {
+                name: 'Oreo',
+                price: 149,
+                category: 'desserts',
+                description: 'Oreo cookie delight',
+                ingredients: 'Oreo cookies, whipped cream, chocolate syrup, condensed milk.',
+                isAvailable: true,
+                imageUrl: '/image/oreo and bisscoff.png'
+            },
+            {
+                name: 'Mango Graham Float',
+                price: 40,
+                category: 'desserts',
+                description: 'Mango graham float dessert',
+                ingredients: 'Mango, graham crackers, cream, condensed milk, and other delicious ingredients.',
+                isAvailable: true,
+                imageUrl: '/image/Mango Graham Floa.jpg'
+            }
+        ];
+
+        for (const itemData of menuItems) {
+            const existingItem = await MenuItem.findOne({ name: itemData.name });
+            
+            if (!existingItem) {
+                await MenuItem.create(itemData);
+                console.log(`✅ Created menu item: ${itemData.name}`);
+            } else {
+                existingItem.price = itemData.price;
+                existingItem.isAvailable = itemData.isAvailable;
+                existingItem.imageUrl = itemData.imageUrl;
+                await existingItem.save();
+                console.log(`✅ Updated menu item: ${itemData.name}`);
+            }
+        }
+        
+        console.log('✅ All menu items initialized/updated');
+    } catch (error) {
+        console.error('❌ Error initializing menu items:', error);
     }
 }
 
@@ -178,7 +329,7 @@ app.get('/api/health', (req, res) => {
     });
 });
 
-// Admin Login - FIXED ENDPOINT
+// Admin Login
 app.post('/api/admin/login', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -321,7 +472,6 @@ app.get('/api/admin/me', authenticateToken, async (req, res) => {
 // Dashboard stats
 app.get('/api/admin/dashboard-stats', authenticateToken, async (req, res) => {
     try {
-        // For demo purposes - you should implement actual database queries here
         const stats = {
             totalOrders: 24,
             totalSales: 5240,
@@ -362,6 +512,137 @@ app.get('/api/admin/admins', authenticateToken, async (req, res) => {
     }
 });
 
+// Get all menu items (public)
+app.get('/api/menu-items', async (req, res) => {
+    try {
+        const { category } = req.query;
+        let query = {};
+        
+        if (category) {
+            query.category = category;
+        }
+        
+        const menuItems = await MenuItem.find(query).sort({ displayOrder: 1 });
+        res.json(menuItems);
+    } catch (error) {
+        console.error('Get menu items error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Get menu item availability (public)
+app.get('/api/availability', async (req, res) => {
+    try {
+        const menuItems = await MenuItem.find({}, 'name isAvailable category');
+        const availability = {};
+        
+        menuItems.forEach(item => {
+            availability[item.name] = item.isAvailable;
+        });
+        
+        res.json(availability);
+    } catch (error) {
+        console.error('Get availability error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Update item availability (admin only)
+app.put('/api/admin/menu-items/:name/availability', authenticateToken, async (req, res) => {
+    try {
+        const { name } = req.params;
+        const { isAvailable } = req.body;
+        
+        if (typeof isAvailable !== 'boolean') {
+            return res.status(400).json({ message: 'isAvailable must be boolean' });
+        }
+        
+        const menuItem = await MenuItem.findOne({ name });
+        
+        if (!menuItem) {
+            return res.status(404).json({ message: 'Menu item not found' });
+        }
+        
+        menuItem.isAvailable = isAvailable;
+        menuItem.updatedAt = new Date();
+        await menuItem.save();
+        
+        console.log(`✅ Updated availability: ${name} = ${isAvailable} by ${req.user.username}`);
+        
+        // Broadcast to all connected clients via WebSocket would be better
+        // For now, we'll rely on polling
+        
+        res.json({
+            success: true,
+            message: `${name} availability updated to ${isAvailable ? 'available' : 'out of stock'}`,
+            item: {
+                name: menuItem.name,
+                isAvailable: menuItem.isAvailable,
+                category: menuItem.category
+            }
+        });
+    } catch (error) {
+        console.error('Update availability error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Batch update availability (admin only)
+app.put('/api/admin/menu-items/availability/batch', authenticateToken, async (req, res) => {
+    try {
+        const { updates } = req.body; // Array of { name, isAvailable }
+        
+        if (!Array.isArray(updates)) {
+            return res.status(400).json({ message: 'updates must be an array' });
+        }
+        
+        const results = [];
+        
+        for (const update of updates) {
+            const menuItem = await MenuItem.findOne({ name: update.name });
+            
+            if (menuItem) {
+                menuItem.isAvailable = update.isAvailable;
+                menuItem.updatedAt = new Date();
+                await menuItem.save();
+                results.push({
+                    name: menuItem.name,
+                    success: true,
+                    isAvailable: menuItem.isAvailable
+                });
+            } else {
+                results.push({
+                    name: update.name,
+                    success: false,
+                    error: 'Item not found'
+                });
+            }
+        }
+        
+        console.log(`✅ Batch updated ${results.length} items by ${req.user.username}`);
+        
+        res.json({
+            success: true,
+            message: `Batch updated ${results.length} items`,
+            results
+        });
+    } catch (error) {
+        console.error('Batch update availability error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Get all menu items for admin (with details)
+app.get('/api/admin/menu-items', authenticateToken, async (req, res) => {
+    try {
+        const menuItems = await MenuItem.find().sort({ category: 1, displayOrder: 1 });
+        res.json(menuItems);
+    } catch (error) {
+        console.error('Get admin menu items error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
 // Public endpoints for frontend
 app.get('/api/slideshow', (req, res) => {
     const slides = [
@@ -394,29 +675,9 @@ app.get('/api/slideshow', (req, res) => {
     res.json(slides);
 });
 
-app.get('/api/availability', (req, res) => {
-    const availability = {
-        'Regular Nachos': true,
-        'Veggie Nachos': true,
-        'Overload Cheesy Nachos': true,
-        'Nacho Combo': true,
-        'Nacho Fries': true,
-        'Supreme Nachos': true,
-        'Shawarma Fries': true,
-        'Mango Graham': true,
-        'Mango tiramisu on tube': true,
-        'Biscoff': true,
-        'Oreo': true,
-        'Mango Graham Float': true
-    };
-    
-    res.json(availability);
-});
-
 // Orders endpoints
 app.get('/api/admin/orders', authenticateToken, async (req, res) => {
     try {
-        // For demo - in real app, fetch from database
         const demoOrders = [
             {
                 _id: 'order_001',
@@ -497,6 +758,7 @@ app.listen(PORT, async () => {
     console.log(`🌐 Health: http://localhost:${PORT}/api/health`);
     console.log(`🔐 Admin Login: http://localhost:${PORT}`);
     
-    // Initialize default admins
+    // Initialize default admins AND menu items
     await initializeDefaultAdmins();
+    await initializeMenuItems();
 });

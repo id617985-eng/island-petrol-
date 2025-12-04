@@ -8,6 +8,7 @@ let adminToken = localStorage.getItem('adminToken');
 let adminRole = localStorage.getItem('adminRole') || 'admin';
 let currentSection = 'dashboard';
 let superAdminSettings = JSON.parse(localStorage.getItem('superAdminSettings') || '{"showAdminButton": true}');
+let currentEditingSlideId = null;
 
 // ================================
 // INITIALIZATION
@@ -25,6 +26,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize admin panel
     initializeAdminPanel();
+    
+    // Setup event listeners after a small delay to ensure DOM is ready
+    setTimeout(setupAdminEventListeners, 200);
 });
 
 function showLoginModal() {
@@ -143,9 +147,6 @@ function initializeAdminPanel() {
     // Show superadmin features if applicable
     showSuperAdminFeatures();
     
-    // Setup all event listeners
-    setupAdminEventListeners();
-    
     // Load initial dashboard
     loadAdminDashboard();
 }
@@ -204,26 +205,8 @@ function setupAdminEventListeners() {
         toggleAllAvailabilityBtn.addEventListener('click', toggleAllAvailability);
     }
     
-    // Slideshow buttons
-    const addSlideBtn = document.getElementById('add-slide-btn');
-    if (addSlideBtn) {
-        addSlideBtn.addEventListener('click', showAddSlideModal);
-    }
-    
-    const refreshSlideshowBtn = document.getElementById('refresh-slideshow');
-    if (refreshSlideshowBtn) {
-        refreshSlideshowBtn.addEventListener('click', refreshSlideshow);
-    }
-    
-    const saveSlideBtn = document.getElementById('save-slide-btn');
-    if (saveSlideBtn) {
-        saveSlideBtn.addEventListener('click', addNewSlide);
-    }
-    
-    const cancelAddSlide = document.getElementById('cancel-add-slide');
-    if (cancelAddSlide) {
-        cancelAddSlide.addEventListener('click', closeAddSlideModal);
-    }
+    // Slideshow buttons - USE EVENT DELEGATION
+    setupSlideshowEventListeners();
     
     // Order filters
     const orderFilter = document.getElementById('order-filter');
@@ -276,7 +259,74 @@ function setupAdminEventListeners() {
         if (resetSuperadminSettings) {
             resetSuperadminSettings.addEventListener('click', resetSuperadminSettingsFunc);
         }
-    }, 100);
+    }, 300);
+}
+
+// NEW FUNCTION: Setup slideshow event listeners with delegation
+function setupSlideshowEventListeners() {
+    console.log('Setting up slideshow event listeners');
+    
+    // Add slide button
+    const addSlideBtn = document.getElementById('add-slide-btn');
+    if (addSlideBtn) {
+        addSlideBtn.addEventListener('click', function() {
+            currentEditingSlideId = null;
+            showAddSlideModal(false);
+        });
+    }
+    
+    // Refresh slideshow button
+    const refreshSlideshowBtn = document.getElementById('refresh-slideshow');
+    if (refreshSlideshowBtn) {
+        refreshSlideshowBtn.addEventListener('click', refreshSlideshow);
+    }
+    
+    // Save slide button (in modal)
+    const saveSlideBtn = document.getElementById('save-slide-btn');
+    if (saveSlideBtn) {
+        saveSlideBtn.addEventListener('click', addNewSlide);
+    }
+    
+    // Cancel add slide button
+    const cancelAddSlide = document.getElementById('cancel-add-slide');
+    if (cancelAddSlide) {
+        cancelAddSlide.addEventListener('click', closeAddSlideModal);
+    }
+    
+    // Use event delegation for dynamically created slide buttons
+    document.addEventListener('click', function(e) {
+        // Check for edit slide buttons
+        if (e.target.closest('.edit-slide-btn')) {
+            const slideId = e.target.closest('.edit-slide-btn').getAttribute('data-id');
+            if (slideId) {
+                editSlide(slideId);
+            }
+        }
+        
+        // Check for delete slide buttons
+        if (e.target.closest('.delete-slide-btn')) {
+            const slideId = e.target.closest('.delete-slide-btn').getAttribute('data-id');
+            if (slideId) {
+                deleteSlide(slideId);
+            }
+        }
+        
+        // Check for edit slide list buttons
+        if (e.target.closest('.edit-slide-list-btn')) {
+            const slideId = e.target.closest('.edit-slide-list-btn').getAttribute('data-id');
+            if (slideId) {
+                editSlide(slideId);
+            }
+        }
+        
+        // Check for delete slide list buttons
+        if (e.target.closest('.delete-slide-list-btn')) {
+            const slideId = e.target.closest('.delete-slide-list-btn').getAttribute('data-id');
+            if (slideId) {
+                deleteSlide(slideId);
+            }
+        }
+    });
 }
 
 // ================================
@@ -838,49 +888,60 @@ async function toggleAllAvailability() {
 }
 
 // ================================
-// SLIDESHOW FUNCTIONS
+// SLIDESHOW FUNCTIONS (updated with proper event handling)
 // ================================
 
 async function loadSlideshow() {
     console.log('Loading slideshow...');
     
-    // Demo slides
-    const demoSlides = [
-        {
-            _id: '1',
-            title: 'Welcome to Ai-Maize-ing Nachos',
-            description: 'Your go-to spot for delicious nachos and desserts',
-            imageUrl: 'image/logo.png',
-            order: 1,
-            active: true,
-            createdAt: new Date()
-        },
-        {
-            _id: '2',
-            title: 'Fresh Ingredients',
-            description: 'We use only the freshest ingredients',
-            imageUrl: 'https://via.placeholder.com/400x200/8b4513/ffffff?text=Fresh+Ingredients',
-            order: 2,
-            active: true,
-            createdAt: new Date(Date.now() - 86400000) // Yesterday
-        },
-        {
-            _id: '3',
-            title: 'Special Offers',
-            description: 'Check out our weekly specials',
-            imageUrl: 'https://via.placeholder.com/400x200/e65100/ffffff?text=Special+Offers',
-            order: 3,
-            active: false,
-            createdAt: new Date(Date.now() - 172800000) // 2 days ago
-        }
-    ];
+    // Try to get slides from localStorage first
+    let slides = JSON.parse(localStorage.getItem('slideshowSlides'));
     
-    renderSlideshow(demoSlides);
+    // If no slides in localStorage, use demo slides
+    if (!slides || slides.length === 0) {
+        slides = [
+            {
+                _id: 'slide_1',
+                title: 'Welcome to Ai-Maize-ing Nachos',
+                description: 'Your go-to spot for delicious nachos and desserts',
+                imageUrl: 'image/logo.png',
+                order: 1,
+                active: true,
+                createdAt: new Date()
+            },
+            {
+                _id: 'slide_2',
+                title: 'Fresh Ingredients',
+                description: 'We use only the freshest ingredients',
+                imageUrl: 'https://via.placeholder.com/400x200/8b4513/ffffff?text=Fresh+Ingredients',
+                order: 2,
+                active: true,
+                createdAt: new Date(Date.now() - 86400000)
+            },
+            {
+                _id: 'slide_3',
+                title: 'Special Offers',
+                description: 'Check out our weekly specials',
+                imageUrl: 'https://via.placeholder.com/400x200/e65100/ffffff?text=Special+Offers',
+                order: 3,
+                active: false,
+                createdAt: new Date(Date.now() - 172800000)
+            }
+        ];
+        
+        // Save demo slides to localStorage
+        localStorage.setItem('slideshowSlides', JSON.stringify(slides));
+    }
+    
+    renderSlideshow(slides);
 }
 
 function renderSlideshow(slides) {
     const currentContainer = document.getElementById('slideshow-current');
     const listContainer = document.getElementById('slideshow-list');
+    
+    // Sort slides by order
+    slides.sort((a, b) => a.order - b.order);
     
     // Filter active slides for preview
     const activeSlides = slides.filter(slide => slide.active);
@@ -888,35 +949,136 @@ function renderSlideshow(slides) {
     // Render current slides preview
     if (currentContainer) {
         if (activeSlides.length === 0) {
-            currentContainer.innerHTML = '<p>No active slides in slideshow</p>';
+            currentContainer.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No active slides in slideshow</p>';
         } else {
             currentContainer.innerHTML = activeSlides.map(slide => `
-                <div class="slide-card active">
+                <div class="slide-card active" data-id="${slide._id}">
                     <img src="${slide.imageUrl}" alt="${slide.title}" class="slide-image" onerror="this.src='https://via.placeholder.com/400x200/8b4513/ffffff?text=${encodeURIComponent(slide.title)}'">
                     <div class="slide-info">
                         <h4>${slide.title}</h4>
                         <p>${slide.description || 'No description'}</p>
                         <div class="slide-meta">
                             <span>Order: ${slide.order}</span>
-                            <span>Active</span>
+                            <span class="slide-status ${slide.active ? 'active' : 'inactive'}">${slide.active ? 'Active' : 'Inactive'}</span>
                         </div>
                         <div class="slide-actions">
                             <button class="edit-slide-btn action-btn secondary" style="padding: 8px 12px; font-size: 12px;" data-id="${slide._id}">
                                 <i class="fas fa-edit"></i> Edit
                             </button>
+                            <button class="delete-slide-btn action-btn danger" style="padding: 8px 12px; font-size: 12px;" data-id="${slide._id}">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
                         </div>
                     </div>
                 </div>
             `).join('');
+            
+            // Add event listeners to the newly created buttons
+            setTimeout(() => {
+                document.querySelectorAll('.edit-slide-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const slideId = this.getAttribute('data-id');
+                        editSlide(slideId);
+                    });
+                });
+                
+                document.querySelectorAll('.delete-slide-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const slideId = this.getAttribute('data-id');
+                        deleteSlide(slideId);
+                    });
+                });
+            }, 100);
+        }
+    }
+    
+    // Render slides list
+    if (listContainer) {
+        if (slides.length === 0) {
+            listContainer.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No slides found</p>';
+        } else {
+            listContainer.innerHTML = slides.map(slide => `
+                <div class="slide-list-item ${slide.active ? 'active' : ''}" data-id="${slide._id}">
+                    <div class="slide-list-preview">
+                        <img src="${slide.imageUrl}" alt="${slide.title}" class="slide-list-image" onerror="this.src='https://via.placeholder.com/60x60/8b4513/ffffff?text=${encodeURIComponent(slide.title.substring(0, 10))}'">
+                        <div class="slide-list-info">
+                            <h5>${slide.title}</h5>
+                            <p>${slide.description ? slide.description.substring(0, 50) + (slide.description.length > 50 ? '...' : '') : 'No description'}</p>
+                            <div class="slide-list-meta">
+                                <small>Order: ${slide.order}</small>
+                                <small>${new Date(slide.createdAt).toLocaleDateString()}</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slide-list-actions">
+                        <label class="toggle-switch small">
+                            <input type="checkbox" class="toggle-slide-active" ${slide.active ? 'checked' : ''} data-id="${slide._id}">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <button class="action-btn icon-btn edit-slide-list-btn" data-id="${slide._id}" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn icon-btn danger delete-slide-list-btn" data-id="${slide._id}" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Add event listeners to the list items
+            setTimeout(() => {
+                document.querySelectorAll('.toggle-slide-active').forEach(toggle => {
+                    toggle.addEventListener('change', function() {
+                        const slideId = this.getAttribute('data-id');
+                        toggleSlideActive(slideId, this.checked);
+                    });
+                });
+                
+                document.querySelectorAll('.edit-slide-list-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const slideId = this.getAttribute('data-id');
+                        editSlide(slideId);
+                    });
+                });
+                
+                document.querySelectorAll('.delete-slide-list-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const slideId = this.getAttribute('data-id');
+                        deleteSlide(slideId);
+                    });
+                });
+            }, 100);
         }
     }
 }
 
-function showAddSlideModal() {
+function showAddSlideModal(editMode = false) {
     const modal = document.getElementById('add-slide-modal');
-    if (modal) {
-        modal.style.display = 'flex';
+    const modalTitle = modal.querySelector('.modal-content h2');
+    const saveBtn = document.getElementById('save-slide-btn');
+    
+    if (editMode) {
+        modalTitle.textContent = 'Edit Slide';
+        saveBtn.textContent = 'Update Slide';
+    } else {
+        modalTitle.textContent = 'Add New Slide';
+        saveBtn.textContent = 'Add Slide';
+        
+        // Reset form
+        const slideTitle = document.getElementById('slide-title');
+        const slideDescription = document.getElementById('slide-description');
+        const slideImageUrl = document.getElementById('slide-image-url');
+        const slideOrder = document.getElementById('slide-order');
+        const slideActive = document.getElementById('slide-active');
+        
+        if (slideTitle) slideTitle.value = '';
+        if (slideDescription) slideDescription.value = '';
+        if (slideImageUrl) slideImageUrl.value = '';
+        if (slideOrder) slideOrder.value = (document.querySelectorAll('.slide-card').length + 1).toString();
+        if (slideActive) slideActive.checked = true;
     }
+    
+    modal.style.display = 'flex';
 }
 
 function closeAddSlideModal() {
@@ -925,18 +1087,8 @@ function closeAddSlideModal() {
         modal.style.display = 'none';
     }
     
-    // Clear form
-    const slideTitle = document.getElementById('slide-title');
-    const slideDescription = document.getElementById('slide-description');
-    const slideImageUrl = document.getElementById('slide-image-url');
-    const slideOrder = document.getElementById('slide-order');
-    const slideActive = document.getElementById('slide-active');
-    
-    if (slideTitle) slideTitle.value = '';
-    if (slideDescription) slideDescription.value = '';
-    if (slideImageUrl) slideImageUrl.value = '';
-    if (slideOrder) slideOrder.value = '0';
-    if (slideActive) slideActive.checked = true;
+    // Reset editing state
+    currentEditingSlideId = null;
 }
 
 async function addNewSlide() {
@@ -954,26 +1106,139 @@ async function addNewSlide() {
     const order = parseInt(slideOrder.value) || 0;
     const active = slideActive.checked;
     
-    if (!title || !imageUrl) {
-        showAlert('Title and Image URL are required');
+    if (!title) {
+        showAlert('Title is required');
         return;
     }
     
-    // Create new slide object
-    const newSlide = {
-        _id: 'slide_' + Date.now(),
-        title,
-        description,
-        imageUrl,
-        order,
-        active,
-        createdAt: new Date()
-    };
+    if (!imageUrl) {
+        showAlert('Image URL is required');
+        return;
+    }
     
-    console.log('Adding new slide:', newSlide);
-    showAlert('✅ Slide added successfully!');
+    // Get existing slides
+    let slides = JSON.parse(localStorage.getItem('slideshowSlides') || '[]');
+    
+    if (currentEditingSlideId) {
+        // Update existing slide
+        slides = slides.map(slide => {
+            if (slide._id === currentEditingSlideId) {
+                return {
+                    ...slide,
+                    title,
+                    description,
+                    imageUrl,
+                    order,
+                    active,
+                    updatedAt: new Date()
+                };
+            }
+            return slide;
+        });
+        showAlert('✅ Slide updated successfully!');
+    } else {
+        // Add new slide
+        const newSlide = {
+            _id: 'slide_' + Date.now(),
+            title,
+            description,
+            imageUrl,
+            order,
+            active,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        };
+        
+        slides.push(newSlide);
+        showAlert('✅ Slide added successfully!');
+    }
+    
+    // Save to localStorage
+    localStorage.setItem('slideshowSlides', JSON.stringify(slides));
+    
+    // Reset and close modal
     closeAddSlideModal();
-    loadSlideshow(); // Refresh slideshow
+    
+    // Refresh slideshow display
+    loadSlideshow();
+}
+
+async function editSlide(slideId) {
+    console.log('Editing slide:', slideId);
+    
+    // Get slides from localStorage
+    let slides = JSON.parse(localStorage.getItem('slideshowSlides') || '[]');
+    
+    // Find the slide to edit
+    const slideToEdit = slides.find(slide => slide._id === slideId);
+    if (!slideToEdit) {
+        showAlert('Slide not found!');
+        return;
+    }
+    
+    // Set editing state
+    currentEditingSlideId = slideId;
+    
+    // Populate form with slide data
+    const slideTitle = document.getElementById('slide-title');
+    const slideDescription = document.getElementById('slide-description');
+    const slideImageUrl = document.getElementById('slide-image-url');
+    const slideOrder = document.getElementById('slide-order');
+    const slideActive = document.getElementById('slide-active');
+    
+    if (slideTitle) slideTitle.value = slideToEdit.title;
+    if (slideDescription) slideDescription.value = slideToEdit.description || '';
+    if (slideImageUrl) slideImageUrl.value = slideToEdit.imageUrl;
+    if (slideOrder) slideOrder.value = slideToEdit.order;
+    if (slideActive) slideActive.checked = slideToEdit.active;
+    
+    // Show modal in edit mode
+    showAddSlideModal(true);
+}
+
+async function deleteSlide(slideId) {
+    if (!confirm('Are you sure you want to delete this slide? This action cannot be undone.')) {
+        return;
+    }
+    
+    // Get slides from localStorage
+    let slides = JSON.parse(localStorage.getItem('slideshowSlides') || '[]');
+    
+    // Filter out the slide to delete
+    const updatedSlides = slides.filter(slide => slide._id !== slideId);
+    
+    // Save to localStorage
+    localStorage.setItem('slideshowSlides', JSON.stringify(updatedSlides));
+    
+    showAlert('✅ Slide deleted successfully!');
+    
+    // Refresh slideshow display
+    loadSlideshow();
+}
+
+async function toggleSlideActive(slideId, active) {
+    // Get slides from localStorage
+    let slides = JSON.parse(localStorage.getItem('slideshowSlides') || '[]');
+    
+    // Update slide active status
+    slides = slides.map(slide => {
+        if (slide._id === slideId) {
+            return {
+                ...slide,
+                active,
+                updatedAt: new Date()
+            };
+        }
+        return slide;
+    });
+    
+    // Save to localStorage
+    localStorage.setItem('slideshowSlides', JSON.stringify(slides));
+    
+    showAlert(`✅ Slide ${active ? 'activated' : 'deactivated'}!`);
+    
+    // Refresh slideshow display
+    loadSlideshow();
 }
 
 function refreshSlideshow() {
@@ -1190,5 +1455,7 @@ function showAlert(message) {
 // Make functions available globally for inline event handlers
 window.showOrderDetails = showOrderDetails;
 window.editSlide = editSlide;
+window.deleteSlide = deleteSlide;
+window.toggleSlideActive = toggleSlideActive;
 window.closeAddSlideModal = closeAddSlideModal;
 window.saveSuperadminSettings = saveSuperadminSettings;

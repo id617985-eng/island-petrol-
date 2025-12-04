@@ -12,7 +12,8 @@ const orderSchema = new mongoose.Schema({
     },
     customerId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Customer'
+        ref: 'Customer',
+        // Customer ID is optional for guest orders
     },
     items: [{
         name: String,
@@ -48,12 +49,12 @@ const orderSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Indexes for optimized queries
+// Index for faster queries
 orderSchema.index({ customerId: 1 });
 orderSchema.index({ status: 1 });
 orderSchema.index({ createdAt: -1 });
 
-// Virtual property for formatted date
+// Virtual for formatted order date
 orderSchema.virtual('formattedDate').get(function() {
     return this.createdAt.toLocaleDateString('en-PH', {
         year: 'numeric',
@@ -64,12 +65,12 @@ orderSchema.virtual('formattedDate').get(function() {
     });
 });
 
-// Static method to find orders by customer
+// Static method to get orders by customer
 orderSchema.statics.findByCustomer = function(customerId) {
     return this.find({ customerId }).sort({ createdAt: -1 });
 };
 
-// Instance method to mark order as completed
+// Instance method to mark as completed
 orderSchema.methods.markAsCompleted = function() {
     this.status = 'completed';
     return this.save();

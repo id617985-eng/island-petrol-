@@ -20,6 +20,7 @@ const CustomerSchema = new mongoose.Schema({
     },
     password: {
         type: String,
+        // Now required for login
         required: true
     },
     loyaltyPoints: {
@@ -38,15 +39,38 @@ const CustomerSchema = new mongoose.Schema({
         name: String,
         count: Number
     }],
+    orderHistory: [{
+        orderId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Order'
+        },
+        items: [{
+            name: String,
+            quantity: Number,
+            price: Number
+        }],
+        total: Number,
+        status: String,
+        orderDate: {
+            type: Date,
+            default: Date.now
+        },
+        pickupTime: String
+    }],
     pushSubscription: {
         type: Object,
         sparse: true
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    },
+    lastOrder: {
+        type: Date
     }
-}, {
-    timestamps: true
 });
 
-// Indexes for optimized queries
+// Add index for faster phone lookups
 CustomerSchema.index({ phone: 1 });
 CustomerSchema.index({ email: 1 }, { sparse: true });
 

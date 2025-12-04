@@ -103,11 +103,15 @@
 
     <script src="script.js"></script>
     <script>
-        // Customer profile specific functions
+        // Navigation function
+        function navigateTo(page) {
+            window.location.href = page;
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             console.log('👤 Customer profile page initialized');
             
-            // Load customer data
+            // Load customer data from localStorage
             loadCustomerData();
             
             // Setup logout button
@@ -136,6 +140,7 @@
             const customerData = JSON.parse(localStorage.getItem('customerData'));
             
             if (!customerData) {
+                // Show login/registration modal
                 showCustomerRegistrationModal();
                 return;
             }
@@ -191,6 +196,7 @@
                 return;
             }
 
+            // Sort by count descending and take top 5
             const topFavorites = favorites.sort((a, b) => (b.count || 0) - (a.count || 0)).slice(0, 5);
             
             container.innerHTML = topFavorites.map(fav => `
@@ -224,6 +230,7 @@
             `;
             document.body.appendChild(modal);
             
+            // Close modal when clicking outside
             modal.addEventListener('click', function(e) {
                 if (e.target === modal) {
                     modal.remove();
@@ -278,6 +285,7 @@
                 return;
             }
 
+            // Create customer data
             const customerData = {
                 id: Date.now().toString(),
                 name: name,
@@ -291,13 +299,16 @@
                 createdAt: new Date().toISOString()
             };
 
+            // Save to localStorage
             localStorage.setItem('customerData', JSON.stringify(customerData));
             localStorage.setItem('customerPassword', password);
             
+            // Close modal
             document.querySelector('.modal-overlay').remove();
             
             showCustomAlert('Account created successfully! Welcome to Ai-Maize-ing Nachos!');
             
+            // Reload customer data
             loadCustomerData();
         }
 
@@ -310,12 +321,17 @@
                 return;
             }
 
+            // Check credentials
             const customerData = localStorage.getItem('customerData');
             const storedPassword = localStorage.getItem('customerPassword');
 
             if (customerData && storedPassword === password) {
+                // Close modal
                 document.querySelector('.modal-overlay').remove();
+                
                 showCustomAlert('Login successful!');
+                
+                // Reload customer data
                 loadCustomerData();
             } else {
                 showCustomAlert('Invalid phone number or password');
@@ -323,6 +339,7 @@
         }
 
         // Make functions available globally
+        window.navigateTo = navigateTo;
         window.showCustomerRegistrationModal = showCustomerRegistrationModal;
         window.showCustomerLoginModal = showCustomerLoginModal;
         window.showCustomerRegistrationModalFromLogin = showCustomerRegistrationModalFromLogin;

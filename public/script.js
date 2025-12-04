@@ -5,6 +5,7 @@
 // Global variables
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 let isAdmin = localStorage.getItem('adminToken') ? true : false;
+let availabilityServiceInitialized = false;
 
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
@@ -24,6 +25,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Setup navigation buttons
     setupNavigationButtons();
+    
+    // Initialize availability system
+    initializeAvailability();
 });
 
 // ================================
@@ -31,9 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // ================================
 
 function setupAddToCartButtons() {
-    // Use event delegation for dynamically loaded or existing buttons
     document.addEventListener('click', function(event) {
-        // Check if click is on an "Add to Cart" button or its child elements
         const addToCartBtn = event.target.closest('.add-to-cart-btn');
         
         if (addToCartBtn) {
@@ -51,7 +53,6 @@ function setupAddToCartButtons() {
 }
 
 function setupNavigationButtons() {
-    // Handle customer profile button
     const customerToggle = document.getElementById('customer-toggle');
     if (customerToggle) {
         customerToggle.addEventListener('click', function() {
@@ -59,7 +60,6 @@ function setupNavigationButtons() {
         });
     }
     
-    // Handle back buttons
     const backButtons = document.querySelectorAll('.back-btn');
     backButtons.forEach(btn => {
         btn.addEventListener('click', function() {
@@ -67,7 +67,6 @@ function setupNavigationButtons() {
         });
     });
     
-    // Handle navigation buttons
     const navButtons = document.querySelectorAll('.nav-btn');
     navButtons.forEach(btn => {
         btn.addEventListener('click', function() {
@@ -80,11 +79,139 @@ function setupNavigationButtons() {
 }
 
 // ================================
+// AVAILABILITY FUNCTIONS
+// ================================
+
+async function initializeAvailability() {
+    console.log('Initializing availability system...');
+    
+    // Wait a bit for services to load
+    setTimeout(async () => {
+        if (window.availabilityService && window.apiService) {
+            availabilityService.init(apiService);
+            availabilityServiceInitialized = true;
+            
+            // Initial fetch
+            await availabilityService.fetchAvailability();
+            
+            // Start polling for updates every 30 seconds
+            availabilityService.startPolling(30000);
+            
+            // Subscribe to changes
+            availabilityService.subscribe(() => {
+                updateMenuItemsAvailability();
+            });
+            
+            console.log('Availability system initialized with server polling');
+        } else {
+            console.warn('Availability services not available, using localStorage fallback');
+            
+            // Fallback to localStorage with periodic checks
+            setInterval(() => {
+                updateMenuItemsAvailability();
+            }, 10000);
+        }
+        
+        // Initial UI update
+        await updateMenuItemsAvailability();
+    }, 500);
+}
+
+async function checkItemAvailability(itemName) {
+    try {
+        if (availabilityServiceInitialized && window.availabilityService) {
+            return availabilityService.isItemAvailable(itemName);
+        }
+        
+        // Fallback to API
+        if (window.apiService) {
+            const availability = await apiService.getAvailability();
+            return availability[itemName] !== false;
+        }
+        
+        // Fallback to localStorage
+        const availability = JSON.parse(localStorage.getItem('itemAvailability') || '{}');
+        return availability[itemName] !== false;
+    } catch (error) {
+        console.error('Error checking availability:', error);
+        return true; // Default to available if error
+    }
+}
+
+async function updateMenuItemsAvailability() {
+    try {
+        let availability = {};
+        
+        if (availabilityServiceInitialized && window.availabilityService) {
+            availability = availabilityService.getAvailability();
+        } else if (window.apiService) {
+            availability = await apiService.getAvailability();
+        } else {
+            // Fallback to localStorage
+            availability = JSON.parse(localStorage.getItem('itemAvailability') || '{}');
+        }
+        
+        const menuItems = document.querySelectorAll('.menu-item');
+        
+        menuItems.forEach(item => {
+            const itemName = item.dataset.name;
+            const isAvailable = availability[itemName] !== false;
+            
+            updateMenuItemUI(item, itemName, isAvailable);
+        });
+        
+    } catch (error) {
+        console.error('Error updating menu items availability:', error);
+    }
+}
+
+function updateMenuItemUI(item, itemName, isAvailable) {
+    if (!isAvailable) {
+        // Mark as out of stock
+        item.classList.add('out-of-stock');
+        
+        // Disable the "Add to Cart" button
+        const addToCartBtn = item.querySelector('.add-to-cart-btn');
+        if (addToCartBtn) {
+            addToCartBtn.disabled = true;
+            addToCartBtn.textContent = 'Out of Stock';
+            addToCartBtn.style.backgroundColor = '#ccc';
+            addToCartBtn.style.cursor = 'not-allowed';
+        }
+        
+        // Add overlay
+        const flipCardFront = item.querySelector('.flip-card-front');
+        if (flipCardFront && !flipCardFront.querySelector('.out-of-stock-overlay')) {
+            const overlay = document.createElement('div');
+            overlay.className = 'out-of-stock-overlay';
+            overlay.innerHTML = '<span>OUT OF STOCK</span>';
+            flipCardFront.appendChild(overlay);
+        }
+    } else {
+        // Mark as available
+        item.classList.remove('out-of-stock');
+        
+        const addToCartBtn = item.querySelector('.add-to-cart-btn');
+        if (addToCartBtn) {
+            addToCartBtn.disabled = false;
+            addToCartBtn.textContent = 'Add to Cart';
+            addToCartBtn.style.backgroundColor = '';
+            addToCartBtn.style.cursor = 'pointer';
+        }
+        
+        // Remove overlay
+        const overlay = item.querySelector('.out-of-stock-overlay');
+        if (overlay) {
+            overlay.remove();
+        }
+    }
+}
+
+// ================================
 // CART FUNCTIONS
 // ================================
 
 function setupCartFunctionality() {
-    // Cart trigger button
     const cartTrigger = document.getElementById('cart-trigger');
     const cartPopup = document.getElementById('cart-popup');
     const closeCartBtn = document.querySelector('.close-btn');
@@ -102,7 +229,6 @@ function setupCartFunctionality() {
             });
         }
         
-        // Close cart when clicking outside
         cartPopup.addEventListener('click', function(e) {
             if (e.target === this) {
                 this.style.display = 'none';
@@ -115,7 +241,15 @@ function setupCartFunctionality() {
     }
 }
 
-function addToCart(itemName, itemPrice) {
+async function addToCart(itemName, itemPrice) {
+    // Check if item is available
+    const isAvailable = await checkItemAvailability(itemName);
+    
+    if (!isAvailable) {
+        showAlert(`❌ ${itemName} is currently out of stock!`);
+        return;
+    }
+    
     // Check if item already in cart
     const existingItem = cart.find(item => item.name === itemName);
     
@@ -215,7 +349,7 @@ function removeFromCart(itemName) {
     updateCartDisplay();
 }
 
-function checkoutOrder() {
+async function checkoutOrder() {
     const customerName = document.getElementById('customer-name');
     const customerPhone = document.getElementById('customer-phone');
     const pickupTime = document.getElementById('pickup-time');
@@ -231,66 +365,87 @@ function checkoutOrder() {
         return;
     }
     
+    // Check all items are still available
+    for (const item of cart) {
+        const isAvailable = await checkItemAvailability(item.name);
+        if (!isAvailable) {
+            showAlert(`❌ ${item.name} is no longer available. Please remove it from your cart.`);
+            return;
+        }
+    }
+    
     // Create order object
     const order = {
-        id: 'order_' + Date.now(),
         customerName: customerName.value,
         customerPhone: customerPhone ? customerPhone.value : '',
         items: [...cart],
         total: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
         paymentMethod: paymentMethod ? paymentMethod.value : 'Cash on Pick-up',
-        pickupTime: pickupTime ? pickupTime.value : 'ASAP',
-        status: 'pending',
-        timestamp: new Date().toISOString()
+        pickupTime: pickupTime ? pickupTime.value : 'ASAP'
     };
     
-    // Save order to localStorage
-    const orders = JSON.parse(localStorage.getItem('orders') || '[]');
-    orders.push(order);
-    localStorage.setItem('orders', JSON.stringify(orders));
-    
-    // Update customer data if exists
-    updateCustomerData(order);
-    
-    // Clear cart
-    cart = [];
-    localStorage.setItem('cart', JSON.stringify(cart));
-    
-    // Hide cart popup
-    const cartPopup = document.getElementById('cart-popup');
-    if (cartPopup) {
-        cartPopup.style.display = 'none';
+    try {
+        // Submit order to server
+        if (window.apiService) {
+            const response = await apiService.submitOrder(order);
+            console.log('Order submitted:', response);
+        }
+        
+        // Save order to localStorage for admin panel
+        const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+        const orderWithId = {
+            ...order,
+            _id: 'order_' + Date.now(),
+            status: 'pending',
+            timestamp: new Date().toISOString()
+        };
+        orders.push(orderWithId);
+        localStorage.setItem('orders', JSON.stringify(orders));
+        
+        // Update customer data if exists
+        updateCustomerData(orderWithId);
+        
+        // Clear cart
+        cart = [];
+        localStorage.setItem('cart', JSON.stringify(cart));
+        
+        // Hide cart popup
+        const cartPopup = document.getElementById('cart-popup');
+        if (cartPopup) {
+            cartPopup.style.display = 'none';
+        }
+        
+        // Show success message
+        showAlert(`✅ Order placed successfully!<br><br>
+            Order ID: #${orderWithId._id.substring(7, 13)}<br>
+            Total: ₱${orderWithId.total.toFixed(2)}<br>
+            Pickup: ${orderWithId.pickupTime}<br><br>
+            Thank you for your order!`);
+        
+        // Reset form
+        if (customerName) customerName.value = '';
+        if (customerPhone) customerPhone.value = '';
+        if (pickupTime) pickupTime.value = '';
+        
+        updateCartDisplay();
+        
+    } catch (error) {
+        console.error('Checkout error:', error);
+        showAlert('❌ Error submitting order. Please try again.');
     }
-    
-    // Show success message
-    showAlert(`✅ Order placed successfully!<br><br>
-        Order ID: #${order.id.substring(7, 13)}<br>
-        Total: ₱${order.total.toFixed(2)}<br>
-        Pickup: ${order.pickupTime}<br><br>
-        Thank you for your order!`);
-    
-    // Reset form
-    if (customerName) customerName.value = '';
-    if (customerPhone) customerPhone.value = '';
-    if (pickupTime) pickupTime.value = '';
-    
-    updateCartDisplay();
 }
 
 function updateCustomerData(order) {
     const customerData = JSON.parse(localStorage.getItem('customerData') || '{}');
     
     if (customerData && customerData.id) {
-        // Update customer stats
         customerData.totalOrders = (customerData.totalOrders || 0) + 1;
         customerData.totalSpent = (customerData.totalSpent || 0) + order.total;
         customerData.loyaltyPoints = (customerData.loyaltyPoints || 0) + Math.floor(order.total / 10);
         
-        // Add to order history
         if (!customerData.orderHistory) customerData.orderHistory = [];
         customerData.orderHistory.unshift(order);
         
-        // Update favorite items
         if (!customerData.favoriteItems) customerData.favoriteItems = [];
         order.items.forEach(item => {
             const existingItem = customerData.favoriteItems.find(fav => fav.name === item.name);
@@ -333,12 +488,10 @@ function showAlert(message) {
         alertMessage.innerHTML = message;
         alertModal.style.display = 'flex';
         
-        // Ensure OK button works
         alertOk.onclick = function() {
             alertModal.style.display = 'none';
         };
         
-        // Close when clicking outside
         alertModal.addEventListener('click', function(e) {
             if (e.target === this) {
                 alertModal.style.display = 'none';
@@ -362,7 +515,6 @@ function setupAdminButton() {
     if (!adminBtn) return;
     
     if (adminToken) {
-        // Admin is logged in
         if (adminBtnText) adminBtnText.textContent = 'Admin Panel';
         if (adminLogoutBtn) adminLogoutBtn.style.display = 'inline-flex';
         
@@ -370,7 +522,6 @@ function setupAdminButton() {
             window.location.href = 'admin.html';
         };
         
-        // Setup logout button
         if (adminLogoutBtn) {
             adminLogoutBtn.onclick = function() {
                 if (confirm('Logout from admin?')) {
@@ -381,7 +532,6 @@ function setupAdminButton() {
             };
         }
     } else {
-        // Admin is not logged in
         if (adminBtnText) adminBtnText.textContent = 'Admin Login';
         
         adminBtn.onclick = function() {
@@ -409,7 +559,6 @@ function setupAdminButton() {
                 </div>
             `;
             
-            // Remove existing modal if any
             const existingModal = document.getElementById('admin-login-modal');
             if (existingModal) {
                 existingModal.remove();
@@ -417,7 +566,6 @@ function setupAdminButton() {
             
             document.body.insertAdjacentHTML('beforeend', modalHTML);
             
-            // Add event listeners
             setTimeout(() => {
                 const loginAdminBtn = document.getElementById('login-admin-btn');
                 const loginSuperadminBtn = document.getElementById('login-superadmin-btn');
@@ -447,7 +595,7 @@ function setupAdminButton() {
     }
 }
 
-function handleAdminLogin(role) {
+async function handleAdminLogin(role) {
     let username, password;
     
     if (role === 'admin') {
@@ -462,25 +610,43 @@ function handleAdminLogin(role) {
     const inputPassword = document.getElementById('admin-password').value;
     
     if (inputUsername === username && inputPassword === password) {
-        if (role === 'admin') {
-            localStorage.setItem('adminToken', 'demo_admin_token_123');
-            localStorage.setItem('adminRole', 'admin');
+        if (window.apiService) {
+            try {
+                const response = await apiService.adminLogin(username, password);
+                apiService.setToken(response.token);
+                localStorage.setItem('adminRole', response.user.role);
+                
+                const modal = document.getElementById('admin-login-modal');
+                if (modal) modal.remove();
+                
+                showAlert(`✅ Welcome, ${response.user.role === 'superadmin' ? 'SuperAdmin' : 'Admin'}! Redirecting...`);
+                
+                setTimeout(() => {
+                    window.location.href = 'admin.html';
+                }, 1000);
+                
+            } catch (error) {
+                showAlert('❌ Login failed. Please check credentials.');
+            }
         } else {
-            localStorage.setItem('adminToken', 'demo_superadmin_token_456');
-            localStorage.setItem('adminRole', 'superadmin');
+            // Fallback to localStorage
+            if (role === 'admin') {
+                localStorage.setItem('adminToken', 'demo_admin_token_123');
+                localStorage.setItem('adminRole', 'admin');
+            } else {
+                localStorage.setItem('adminToken', 'demo_superadmin_token_456');
+                localStorage.setItem('adminRole', 'superadmin');
+            }
+            
+            const modal = document.getElementById('admin-login-modal');
+            if (modal) modal.remove();
+            
+            showAlert(`✅ Welcome, ${role === 'superadmin' ? 'SuperAdmin' : 'Admin'}! Redirecting...`);
+            
+            setTimeout(() => {
+                window.location.href = 'admin.html';
+            }, 1000);
         }
-        
-        // Close modal
-        const modal = document.getElementById('admin-login-modal');
-        if (modal) modal.remove();
-        
-        // Show success message
-        showAlert(`✅ Welcome, ${role === 'superadmin' ? 'SuperAdmin' : 'Admin'}! Redirecting to admin panel...`);
-        
-        // Redirect to admin panel
-        setTimeout(() => {
-            window.location.href = 'admin.html';
-        }, 1000);
     } else {
         showAlert('❌ Invalid username or password!');
     }
@@ -497,7 +663,6 @@ function closeAdminLoginModal() {
 // GLOBAL EXPORTS
 // ================================
 
-// Make functions available globally
 window.addToCart = addToCart;
 window.removeFromCart = removeFromCart;
 window.navigateTo = navigateTo;
@@ -507,3 +672,4 @@ window.increaseQuantity = increaseQuantity;
 window.decreaseQuantity = decreaseQuantity;
 window.handleAdminLogin = handleAdminLogin;
 window.closeAdminLoginModal = closeAdminLoginModal;
+window.updateMenuItemsAvailability = updateMenuItemsAvailability;

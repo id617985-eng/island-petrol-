@@ -4,299 +4,222 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ai-Maize-ing Nachos - Home</title>
-    <link rel="stylesheet" href="styleindex.css">
+    <link rel="stylesheet" href="slideshow.css">
+    <link rel="stylesheet" href="style.css"> <!-- Add slideshow CSS -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Shrikhand&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Web App Manifest -->
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#8b4513">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-status-bar-style" content="default">
-    <meta name="mobile-web-app-title" content="Ai-Maize-ing Nachos">
-    <link rel="icon" href="/icon-192x192.png">
-    
     <style>
-        /* Additional styles for admin buttons */
-        .admin-btn {
-            background: linear-gradient(135deg, #8b4513, #d2691e);
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-        }
-
-        .admin-btn:hover {
-            background: linear-gradient(135deg, #d2691e, #8b4513);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
-        }
-
-        .logout-btn {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-        }
-
-        .logout-btn:hover {
-            background: #c82333;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
-        }
-
-        .customer-btn {
-            background: linear-gradient(135deg, #28a745, #20c997);
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-        }
-
-        .customer-btn:hover {
-            background: linear-gradient(135deg, #20c997, #28a745);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-        }
-
-        .header-buttons {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        #admin-panel, #customer-panel {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        /* Additional home page styles */
+        .home-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
         }
         
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            max-width: 90%;
-            width: 400px;
-            animation: modalSlideIn 0.3s ease;
+        /* Welcome section with slideshow */
+        .welcome-section {
+            margin-bottom: 40px;
         }
         
-        @keyframes modalSlideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .modal-content input {
-            width: 100%;
-            padding: 12px;
-            margin: 8px 0;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
-        
-        .modal-content button {
-            width: 100%;
-            padding: 12px;
-            background: #FF6A00;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-        
-        .modal-content button:hover {
-            background: #e65100;
-        }
-        
-        .modal-content h2 {
+        .page-title {
             text-align: center;
             color: #8b4513;
+            font-size: 2.8rem;
             margin-bottom: 20px;
+            font-family: 'Shrikhand', cursive;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
         }
         
-        /* Slideshow styles */
-        .slideshow-container {
-            overflow: hidden;
-            border-radius: 15px;
-            margin: 20px 0;
+        .page-subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
         }
         
-        .slideshow-track {
-            display: flex;
-            transition: transform 0.5s ease;
-        }
-        
-        .slideshow-slide {
-            min-width: 100%;
-            padding: 15px;
-            box-sizing: border-box;
-        }
-        
-        .slide-image {
-            position: relative;
-            height: 200px;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        
-        .slide-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        .slide-category-badge {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: #FF6A00;
+        /* Promotional Banner */
+        .promo-banner {
+            background: linear-gradient(135deg, #8b4513, #e65100);
             color: white;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 12px;
+            text-align: center;
+            padding: 15px 20px;
+            margin: 30px 0;
+            border-radius: 15px;
+            box-shadow: 0 6px 20px rgba(139, 69, 19, 0.3);
+            border: 2px solid #ffcc00;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .promo-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: shine 3s infinite;
+        }
+        
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+        
+        .promo-banner p {
+            margin: 0;
+            font-size: 1.2rem;
             font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 1;
         }
         
-        .slide-content {
-            padding: 15px;
-            background: white;
-            border-radius: 0 0 10px 10px;
+        .promo-banner .promo-icon {
+            margin-right: 10px;
+            font-size: 1.4rem;
+            animation: bounce 2s infinite;
         }
         
-        .slideshow-indicators {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        
-        .slideshow-indicator {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #ddd;
-            cursor: pointer;
-        }
-        
-        .slideshow-indicator.active {
-            background: #FF6A00;
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-5px); }
+            60% { transform: translateY(-3px); }
         }
     </style>
 </head>
 <body class="index-page">
+    
     <!-- Small Corner Logo -->
     <div class="corner-logo">
         <img src="image/LOGO.jpg" alt="Ai-Maize-ing Nachos Logo" onerror="this.style.display='none'">
     </div>
 
-  
+    <!-- Header Buttons -->
+    <div class="header-buttons">
+        <div id="admin-panel">
+            <button id="admin-toggle"><i class="fas fa-user-shield"></i> Admin</button>
+        </div>
         
+        <div id="customer-panel">
+            <button id="customer-toggle">
+                <i class="fas fa-user"></i> My Profile
+            </button>
+        </div>
+    </div>
 
-        <!-- Available Today Slideshow -->
-        <div class="available-today-slideshow">
-            <div class="slideshow-header">
-                <h2><i class="fas fa-star"></i> Available Today</h2>
+    <!-- Main Content Container -->
+    <div class="home-content">
+        
+        <!-- Welcome Section -->
+        <section class="welcome-section">
+            <h1 class="page-title">Ai-Maize-ing Nachos</h1>
+            <p class="page-subtitle">Serving the most delicious nachos and desserts in town!</p>
+            
+            <!-- Promotional Banner -->
+            <div class="promo-banner">
+                <p>
+                    <i class="fas fa-gift promo-icon"></i>
+                    🎉 Grand Opening Special! 20% OFF on all orders above ₱200! 🎉
+                </p>
             </div>
             
+            <!-- SLIDESHOW SECTION -->
             <div class="slideshow-container">
-                <div class="slideshow-track" id="slideshow-track">
-                    <!-- Slides will be populated by JavaScript -->
+                <div class="slideshow" id="slideshow">
+                    <!-- Slides will be dynamically loaded here -->
+                    <div class="slideshow-loading">
+                        <div class="spinner"></div>
+                        <p>Loading delicious content...</p>
+                    </div>
+                </div>
+                
+                <!-- Slideshow Controls -->
+                <div class="slideshow-controls">
+                    <div class="slideshow-nav">
+                        <button id="prev-slide" title="Previous slide">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button id="next-slide" title="Next slide">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="slideshow-dots" id="slideshow-dots">
+                        <!-- Dots will be dynamically added here -->
+                    </div>
+                </div>
+                
+                <!-- Timer Bar -->
+                <div class="slideshow-timer">
+                    <div class="timer-bar" id="timer-bar"></div>
                 </div>
             </div>
-            
-            <div class="slideshow-indicators" id="slideshow-indicators">
-                <!-- Indicators will be populated by JavaScript -->
-            </div>
-        </div>
+        </section>
 
-        <!-- Category Grid -->
+        <!-- Category Selection -->
         <div class="compact-category-grid">
-            <!-- Nachos Category -->
             <div class="compact-category-card" onclick="navigateTo('nachos.html')">
                 <div class="compact-category-image">
-                    <img src="image/nacho fries.jpg" alt="Nachos" onerror="this.src='https://via.placeholder.com/400x200/FF6A00/ffffff?text=Delicious+Nachos'">
+                    <img src="image/overload chees nachos.jpg" alt="Nachos" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZmY2YTAwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSJ3aGl0ZSI+TmFjaG9zPC90ZXh0Pjwvc3ZnPg=='">
                 </div>
                 <div class="compact-category-content">
-                    <h2>Nachos Menu</h2>
-                    <p>Loaded with cheese, fresh veggies, and your choice of toppings. Perfect for sharing or solo indulgence!</p>
-                    <div class="compact-price-range">₱35 - ₱180</div>
-                    <button class="compact-category-btn">Order Now</button>
+                    <div>
+                        <h2>Our Nachos</h2>
+                        <p>Delicious, cheesy nachos with various toppings and flavors</p>
+                    </div>
+                    <div>
+                        <div class="compact-price-range">₱35 - ₱180</div>
+                        <button class="compact-category-btn">Order Nachos</button>
+                    </div>
                 </div>
             </div>
 
-            <!-- AI Foodies (Desserts) Category -->
             <div class="compact-category-card" onclick="navigateTo('aifoodies.html')">
                 <div class="compact-category-image">
-                    <img src="image/biscoff.jpeg" alt="Desserts" onerror="this.src='https://via.placeholder.com/400x200/8b4513/ffffff?text=Sweet+Desserts'">
+                    <img src="image/mango.gif" alt="AI Foodies" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNGNhZjUwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSJ3aGl0ZSI+QUkgRm9vZGllczwvdGV4dD48L3N2Zz4='">
                 </div>
                 <div class="compact-category-content">
-                    <h2>AI Foodies Desserts</h2>
-                    <p>Sweet treats to satisfy your cravings. From classic favorites to unique creations, we have it all!</p>
-                    <div class="compact-price-range">₱40 - ₱159</div>
-                    <button class="compact-category-btn">Order Now</button>
+                    <div>
+                        <h2>Desserts</h2>
+                        <p>Sweet desserts and treats including mango graham, biscoff, and more</p>
+                    </div>
+                    <div>
+                        <div class="compact-price-range">₱40 - ₱159</div>
+                        <button class="compact-category-btn">Order Desserts</button>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Quick Stats -->
         <div class="compact-quick-stats">
-            <h2><i class="fas fa-chart-line"></i> Store Stats</h2>
+            <h2>Why Choose Us?</h2>
             <div class="compact-stats-grid">
                 <div class="compact-stat-item">
-                    <i class="fas fa-utensils"></i>
-                    <h3>50+</h3>
-                    <p>Items Available</p>
+                    <i class="fas fa-shipping-fast"></i>
+                    <h3>Fast Pickup</h3>
+                    <p>Ready when you are</p>
                 </div>
                 <div class="compact-stat-item">
-                    <i class="fas fa-shipping-fast"></i>
-                    <h3>15-20 min</h3>
-                    <p>Average Prep Time</p>
+                    <i class="fas fa-utensils"></i>
+                    <h3>Fresh Ingredients</h3>
+                    <p>Made with love</p>
+                </div>
+                <div class="compact-stat-item">
+                    <i class="fas fa-tags"></i>
+                    <h3>Best Prices</h3>
+                    <p>Great value</p>
                 </div>
                 <div class="compact-stat-item">
                     <i class="fas fa-star"></i>
-                    <h3>4.8/5</h3>
-                    <p>Customer Rating</p>
-                </div>
-                <div class="compact-stat-item">
-                    <i class="fas fa-users"></i>
-                    <h3>1000+</h3>
-                    <p>Happy Customers</p>
+                    <h3>Loyalty Points</h3>
+                    <p>Earn rewards</p>
                 </div>
             </div>
         </div>
@@ -306,7 +229,7 @@
     <button id="cart-trigger">View Cart (<span id="cart-count">0</span>)</button>
 
     <!-- Cart Popup -->
-    <div id="cart-popup" style="display: none;">
+    <div id="cart-popup">
         <div class="cart-header">
             <h3>Your Order</h3>
             <button class="close-btn">X</button>
@@ -331,7 +254,7 @@
         <button id="checkout-btn">Send Order</button>
     </div>
 
-    <!-- Custom Alert Modal -->
+    <!-- Modals -->
     <div id="custom-alert" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <p id="custom-alert-message"></p>
@@ -339,257 +262,308 @@
         </div>
     </div>
 
-    <!-- Main Script -->
+    <div id="login-modal" class="modal-overlay" style="display: none;">
+        <div class="login-container">
+            <h2>Admin Login</h2>
+            <input type="text" id="admin-username" placeholder="Username">
+            <input type="password" id="admin-password" placeholder="Password">
+            <button id="login-btn">Login</button>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="script.js"></script>
     
+    <!-- Slideshow JavaScript -->
     <script>
-        // Homepage specific initialization
+        // Slideshow functionality
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🏠 Homepage initialized');
-            
-            // Check if admin is logged in to update button
-            const adminToken = localStorage.getItem('adminToken');
-            const adminBtnText = document.getElementById('admin-btn-text');
-            const adminLogoutBtn = document.getElementById('admin-logout-btn');
-            const adminToggleBtn = document.getElementById('admin-toggle');
-            
-            if (adminToken) {
-                if (adminBtnText) adminBtnText.textContent = 'Admin Panel';
-                if (adminLogoutBtn) adminLogoutBtn.style.display = 'inline-flex';
-                if (adminToggleBtn) {
-                    adminToggleBtn.onclick = function() {
-                        window.location.href = 'admin.html';
-                    };
-                }
-            } else {
-                if (adminToggleBtn) {
-                    adminToggleBtn.onclick = function() {
-                        showAdminLoginModal();
-                    };
-                }
-            }
-            
-            // Admin logout button
-            if (adminLogoutBtn) {
-                adminLogoutBtn.onclick = function() {
-                    localStorage.removeItem('adminToken');
-                    localStorage.removeItem('adminRole');
-                    location.reload();
-                };
-            }
+            console.log('🏠 Home page initialized with slideshow');
             
             // Initialize slideshow
-            initializeSlideshow();
+            initSlideshow();
+            
+            // Check if customer is logged in and update button text
+            const customerData = localStorage.getItem('customerData');
+            const customerToggle = document.getElementById('customer-toggle');
+            if (customerData && customerToggle) {
+                customerToggle.innerHTML = '<i class="fas fa-user"></i> My Profile';
+            }
         });
 
-        function initializeSlideshow() {
-            // Demo slideshow items
-            const slides = [
+        // Slideshow variables
+        let currentSlide = 0;
+        let slides = [];
+        let slideInterval;
+        let isPaused = false;
+        const SLIDE_DURATION = 5000; // 5 seconds per slide
+
+        async function initSlideshow() {
+            console.log('Initializing slideshow...');
+            
+            try {
+                // Load slides from localStorage or use demo slides
+                slides = JSON.parse(localStorage.getItem('slideshowSlides') || '[]');
+                
+                // If no slides in localStorage, use demo slides
+                if (!slides || slides.length === 0) {
+                    console.log('No slides found, using demo slides');
+                    slides = getDemoSlides();
+                    localStorage.setItem('slideshowSlides', JSON.stringify(slides));
+                }
+                
+                // Filter only active slides
+                const activeSlides = slides.filter(slide => slide.active);
+                
+                if (activeSlides.length === 0) {
+                    showEmptySlideshow();
+                    return;
+                }
+                
+                // Render slideshow
+                renderSlideshow(activeSlides);
+                
+                // Setup controls
+                setupSlideshowControls();
+                
+                // Start autoplay
+                startSlideshow();
+                
+                // Timer bar animation
+                updateTimerBar();
+                
+            } catch (error) {
+                console.error('Error initializing slideshow:', error);
+                showErrorSlideshow();
+            }
+        }
+
+        function getDemoSlides() {
+            return [
                 {
-                    image: 'image/classic nachos.jpg',
-                    title: 'Regular Nachos',
-                    price: '₱35',
-                    category: 'Nachos',
-                    description: 'Classic favorite with fresh ingredients'
+                    _id: 'slide_1',
+                    title: 'Welcome to Ai-Maize-ing Nachos',
+                    description: 'Your go-to spot for the most delicious nachos and desserts in town!',
+                    imageUrl: 'image/logo.png',
+                    order: 1,
+                    active: true,
+                    createdAt: new Date(),
+                    promoBadge: 'New'
                 },
                 {
-                    image: 'image/overload chees nachos.jpg',
-                    title: 'Overload Cheesy Nachos',
-                    price: '₱95',
-                    category: 'Nachos',
-                    description: 'Extra cheese for cheese lovers!'
+                    _id: 'slide_2',
+                    title: 'Fresh Ingredients Daily',
+                    description: 'We use only the freshest, highest quality ingredients in all our dishes',
+                    imageUrl: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+                    order: 2,
+                    active: true,
+                    createdAt: new Date(Date.now() - 86400000)
                 },
                 {
-                    image: 'image/mango.gif',
-                    title: 'Mango Graham',
-                    price: '₱40',
-                    category: 'Desserts',
-                    description: 'Refreshing mango dessert'
-                },
-                {
-                    image: 'image/biscoff.jpeg',
-                    title: 'Biscoff Dessert',
-                    price: '₱159',
-                    category: 'Desserts',
-                    description: 'Cookie butter delight'
+                    _id: 'slide_3',
+                    title: 'Special Offers Every Week',
+                    description: 'Check out our weekly specials and get amazing discounts',
+                    imageUrl: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+                    order: 3,
+                    active: true,
+                    createdAt: new Date(Date.now() - 172800000),
+                    promoBadge: '20% OFF'
                 }
             ];
+        }
 
-            const track = document.getElementById('slideshow-track');
-            const indicators = document.getElementById('slideshow-indicators');
-
-            slides.forEach((slide, index) => {
-                // Create slide
+        function renderSlideshow(slidesToShow) {
+            const slideshow = document.getElementById('slideshow');
+            const dotsContainer = document.getElementById('slideshow-dots');
+            
+            // Clear existing content
+            slideshow.innerHTML = '';
+            dotsContainer.innerHTML = '';
+            
+            // Sort slides by order
+            slidesToShow.sort((a, b) => a.order - b.order);
+            
+            // Create slides
+            slidesToShow.forEach((slide, index) => {
+                // Create slide element
                 const slideElement = document.createElement('div');
-                slideElement.className = 'slideshow-slide';
+                slideElement.className = 'slide';
+                slideElement.id = `slide-${index}`;
+                
+                // Add promo badge if present
+                let promoBadge = '';
+                if (slide.promoBadge) {
+                    promoBadge = `<div class="promo-badge">${slide.promoBadge}</div>`;
+                }
+                
                 slideElement.innerHTML = `
-                    <div class="slide-image">
-                        <img src="${slide.image}" alt="${slide.title}" onerror="this.src='https://via.placeholder.com/400x200/8b4513/ffffff?text=${encodeURIComponent(slide.title)}'">
-                        <div class="slide-category-badge">${slide.category}</div>
-                    </div>
+                    <img src="${slide.imageUrl}" alt="${slide.title}" class="slide-image" 
+                         onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjM1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjOGI0NTEzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSJ3aGl0ZSI+JHtzbGlkZS50aXRsZX08L3RleHQ+PC9zdmc+'">
                     <div class="slide-content">
-                        <h3>${slide.title}</h3>
-                        <div class="price">${slide.price}</div>
+                        <h2 class="slide-title">${slide.title}</h2>
                         <p class="slide-description">${slide.description}</p>
                     </div>
+                    ${promoBadge}
                 `;
-                track.appendChild(slideElement);
-
-                // Create indicator
-                const indicator = document.createElement('div');
-                indicator.className = `slideshow-indicator ${index === 0 ? 'active' : ''}`;
-                indicator.dataset.index = index;
-                indicator.addEventListener('click', () => goToSlide(index));
-                indicators.appendChild(indicator);
+                
+                slideshow.appendChild(slideElement);
+                
+                // Create dot
+                const dot = document.createElement('div');
+                dot.className = 'dot';
+                dot.dataset.index = index;
+                dot.addEventListener('click', () => goToSlide(index));
+                dotsContainer.appendChild(dot);
             });
-
-            // Auto slide
-            let currentSlide = 0;
-            setInterval(() => {
-                currentSlide = (currentSlide + 1) % slides.length;
-                goToSlide(currentSlide);
-            }, 5000);
-        }
-
-        function goToSlide(index) {
-            const track = document.getElementById('slideshow-track');
-            const slideWidth = document.querySelector('.slideshow-slide').offsetWidth + 20; // 20px gap
-            track.style.transform = `translateX(-${index * slideWidth}px)`;
             
-            // Update indicators
-            document.querySelectorAll('.slideshow-indicator').forEach((ind, i) => {
-                ind.classList.toggle('active', i === index);
-            });
+            // Show first slide
+            if (slidesToShow.length > 0) {
+                goToSlide(0);
+            }
         }
 
-        function navigateTo(page) {
-            window.location.href = page;
+        function setupSlideshowControls() {
+            // Previous button
+            const prevBtn = document.getElementById('prev-slide');
+            if (prevBtn) {
+                prevBtn.addEventListener('click', () => {
+                    pauseSlideshow();
+                    prevSlide();
+                    setTimeout(resumeSlideshow, 3000); // Resume after 3 seconds
+                });
+            }
+            
+            // Next button
+            const nextBtn = document.getElementById('next-slide');
+            if (nextBtn) {
+                nextBtn.addEventListener('click', () => {
+                    pauseSlideshow();
+                    nextSlide();
+                    setTimeout(resumeSlideshow, 3000); // Resume after 3 seconds
+                });
+            }
+            
+            // Pause on hover
+            const slideshowContainer = document.querySelector('.slideshow-container');
+            if (slideshowContainer) {
+                slideshowContainer.addEventListener('mouseenter', pauseSlideshow);
+                slideshowContainer.addEventListener('mouseleave', resumeSlideshow);
+                
+                // Touch events for mobile
+                slideshowContainer.addEventListener('touchstart', pauseSlideshow);
+                slideshowContainer.addEventListener('touchend', () => {
+                    setTimeout(resumeSlideshow, 3000);
+                });
+            }
         }
 
-        function showAdminLoginModal() {
-            const modalHTML = `
-                <div id="admin-login-modal" class="modal-overlay" style="display: flex; z-index: 9999;">
-                    <div class="modal-content" style="max-width: 400px;">
-                        <h2>Admin Login</h2>
-                        <p style="text-align: center; margin-bottom: 20px;">Login to access admin panel</p>
-                        
-                        <input type="text" id="admin-username" placeholder="Username" value="admin">
-                        <input type="password" id="admin-password" placeholder="Password" value="admin123">
-                        
-                        <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
-                            <button id="login-admin-btn" style="background: #FF6A00;">Login as Admin</button>
-                            <button id="login-superadmin-btn" style="background: #8b4513;">Login as SuperAdmin</button>
-                            <button onclick="closeAdminLoginModal()" style="background: #6c757d;">Cancel</button>
-                        </div>
-                        
-                        <div style="margin-top: 20px; font-size: 12px; color: #666; text-align: center;">
-                            <p><strong>Demo Credentials:</strong></p>
-                            <p>Admin: admin / admin123</p>
-                            <p>SuperAdmin: superadmin / superadmin123</p>
-                        </div>
-                    </div>
+        function goToSlide(index, direction = 'right') {
+            const activeSlides = slides.filter(slide => slide.active);
+            if (activeSlides.length === 0) return;
+            
+            const oldIndex = currentSlide;
+            currentSlide = (index + activeSlides.length) % activeSlides.length;
+            
+            // Update slide classes
+            const slidesElements = document.querySelectorAll('.slide');
+            const dots = document.querySelectorAll('.dot');
+            
+            // Remove active classes
+            slidesElements.forEach(slide => slide.classList.remove('active'));
+            dots.forEach(dot => dot.classList.remove('active'));
+            
+            // Add animation class based on direction
+            const currentSlideElement = slidesElements[currentSlide];
+            currentSlideElement.classList.add('active');
+            currentSlideElement.classList.add(`slide-in-${direction}`);
+            
+            // Remove animation class after animation completes
+            setTimeout(() => {
+                currentSlideElement.classList.remove(`slide-in-${direction}`);
+            }, 800);
+            
+            // Update dot
+            if (dots[currentSlide]) {
+                dots[currentSlide].classList.add('active');
+            }
+            
+            // Reset timer bar
+            updateTimerBar();
+        }
+
+        function nextSlide() {
+            goToSlide(currentSlide + 1, 'right');
+        }
+
+        function prevSlide() {
+            goToSlide(currentSlide - 1, 'left');
+        }
+
+        function startSlideshow() {
+            if (slideInterval) clearInterval(slideInterval);
+            slideInterval = setInterval(nextSlide, SLIDE_DURATION);
+            isPaused = false;
+        }
+
+        function pauseSlideshow() {
+            if (slideInterval) {
+                clearInterval(slideInterval);
+                slideInterval = null;
+                isPaused = true;
+            }
+        }
+
+        function resumeSlideshow() {
+            if (isPaused) {
+                startSlideshow();
+            }
+        }
+
+        function updateTimerBar() {
+            const timerBar = document.getElementById('timer-bar');
+            if (!timerBar) return;
+            
+            // Reset timer bar
+            timerBar.style.transition = 'none';
+            timerBar.style.width = '0%';
+            
+            // Force reflow
+            timerBar.offsetWidth;
+            
+            // Start animation
+            timerBar.style.transition = `width ${SLIDE_DURATION}ms linear`;
+            timerBar.style.width = '100%';
+        }
+
+        function showEmptySlideshow() {
+            const slideshow = document.getElementById('slideshow');
+            slideshow.innerHTML = `
+                <div class="slideshow-empty">
+                    <i class="fas fa-images"></i>
+                    <h3>No Slides Available</h3>
+                    <p>Check back soon for promotions and updates!</p>
                 </div>
             `;
             
-            // Remove existing modal if any
-            const existingModal = document.getElementById('admin-login-modal');
-            if (existingModal) {
-                existingModal.remove();
-            }
-            
-            document.body.insertAdjacentHTML('beforeend', modalHTML);
-            
-            // Add event listeners
-            setTimeout(() => {
-                const loginAdminBtn = document.getElementById('login-admin-btn');
-                const loginSuperadminBtn = document.getElementById('login-superadmin-btn');
-                
-                if (loginAdminBtn) {
-                    loginAdminBtn.addEventListener('click', function() {
-                        handleAdminLogin('admin');
-                    });
-                }
-                
-                if (loginSuperadminBtn) {
-                    loginSuperadminBtn.addEventListener('click', function() {
-                        handleAdminLogin('superadmin');
-                    });
-                }
-                
-                // Close modal when clicking outside
-                const modal = document.getElementById('admin-login-modal');
-                if (modal) {
-                    modal.addEventListener('click', function(e) {
-                        if (e.target === this) {
-                            closeAdminLoginModal();
-                        }
-                    });
-                }
-            }, 100);
+            // Hide controls
+            document.querySelector('.slideshow-controls').style.display = 'none';
         }
 
-        function closeAdminLoginModal() {
-            const modal = document.getElementById('admin-login-modal');
-            if (modal) {
-                modal.remove();
-            }
+        function showErrorSlideshow() {
+            const slideshow = document.getElementById('slideshow');
+            slideshow.innerHTML = `
+                <div class="slideshow-empty">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>Unable to Load Slideshow</h3>
+                    <p>Please check your connection and try again.</p>
+                </div>
+            `;
         }
 
-        function handleAdminLogin(role) {
-            let username, password;
-            
-            if (role === 'admin') {
-                username = 'admin';
-                password = 'admin123';
-            } else {
-                username = 'superadmin';
-                password = 'superadmin123';
-            }
-            
-            // Simulate login process
-            if (role === 'admin') {
-                localStorage.setItem('adminToken', 'demo_admin_token_123');
-                localStorage.setItem('adminRole', 'admin');
-            } else {
-                localStorage.setItem('adminToken', 'demo_superadmin_token_456');
-                localStorage.setItem('adminRole', 'superadmin');
-            }
-            
-            // Close modal
-            closeAdminLoginModal();
-            
-            // Show success message
-            showAlert(`✅ Welcome, ${role === 'superadmin' ? 'SuperAdmin' : 'Admin'}! Redirecting to admin panel...`);
-            
-            // Redirect to admin panel
-            setTimeout(() => {
-                window.location.href = 'admin.html';
-            }, 1000);
-        }
-
-        function showAlert(message) {
-            const alertModal = document.getElementById('custom-alert');
-            const alertMessage = document.getElementById('custom-alert-message');
-            const alertOk = document.getElementById('custom-alert-ok');
-            
-            if (alertModal && alertMessage && alertOk) {
-                alertMessage.innerHTML = message;
-                alertModal.style.display = 'flex';
-                
-                // Ensure OK button works
-                alertOk.onclick = function() {
-                    alertModal.style.display = 'none';
-                };
-                
-                // Close when clicking outside
-                alertModal.addEventListener('click', function(e) {
-                    if (e.target === this) {
-                        alertModal.style.display = 'none';
-                    }
-                });
-            } else {
-                alert(message);
-            }
+        // Global function for navigation
+        function navigateTo(page) {
+            window.location.href = page;
         }
     </script>
 </body>
