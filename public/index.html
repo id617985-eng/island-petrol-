@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ai-Maize-ing Nachos - Home</title>
-    <link rel="stylesheet" href="slideshow.css">
-    <link rel="stylesheet" href="style.css"> <!-- Add slideshow CSS -->
+    <link rel="stylesheet" href="menu.css">
+    <link rel="stylesheet" href="slideshow.css"> <!-- Updated slideshow CSS -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Shrikhand&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -26,7 +26,7 @@
             text-align: center;
             color: #8b4513;
             font-size: 2.8rem;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             font-family: 'Shrikhand', cursive;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
         }
@@ -39,6 +39,36 @@
             max-width: 600px;
             margin-left: auto;
             margin-right: auto;
+        }
+        
+        /* Slideshow wrapper */
+        .slideshow-wrapper {
+            position: relative;
+            margin: 30px 0;
+        }
+        
+        /* Current slide title - MOVED OUTSIDE SLIDESHOW */
+        .current-slide-title {
+            text-align: center;
+            color: #8b4513;
+            font-size: 2.2rem;
+            margin-bottom: 20px;
+            font-family: 'Shrikhand', cursive;
+            min-height: 60px;
+            transition: opacity 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 20px;
+        }
+        
+        .current-slide-description {
+            text-align: center;
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            min-height: 40px;
+            padding: 0 20px;
         }
         
         /* Promotional Banner */
@@ -91,6 +121,45 @@
             40% { transform: translateY(-5px); }
             60% { transform: translateY(-3px); }
         }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .current-slide-title {
+                font-size: 1.8rem;
+                min-height: 50px;
+                margin-bottom: 15px;
+            }
+            
+            .current-slide-description {
+                font-size: 1rem;
+                margin-bottom: 15px;
+            }
+            
+            .page-title {
+                font-size: 2.2rem;
+            }
+            
+            .page-subtitle {
+                font-size: 1rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .current-slide-title {
+                font-size: 1.5rem;
+                min-height: 40px;
+                margin-bottom: 10px;
+            }
+            
+            .current-slide-description {
+                font-size: 0.9rem;
+                margin-bottom: 10px;
+            }
+            
+            .page-title {
+                font-size: 1.8rem;
+            }
+        }
     </style>
 </head>
 <body class="index-page">
@@ -100,64 +169,40 @@
         <img src="image/LOGO.jpg" alt="Ai-Maize-ing Nachos Logo" onerror="this.style.display='none'">
     </div>
 
-    <!-- Header Buttons -->
-    <div class="header-buttons">
-        <div id="admin-panel">
-            <button id="admin-toggle"><i class="fas fa-user-shield"></i> Admin</button>
-        </div>
-        
-        <div id="customer-panel">
-            <button id="customer-toggle">
-                <i class="fas fa-user"></i> My Profile
-            </button>
-        </div>
-    </div>
 
-    <!-- Main Content Container -->
-    <div class="home-content">
+
+ 
         
-        <!-- Welcome Section -->
-        <section class="welcome-section">
-            <h1 class="page-title">Ai-Maize-ing Nachos</h1>
-            <p class="page-subtitle">Serving the most delicious nachos and desserts in town!</p>
+
             
-            <!-- Promotional Banner -->
-            <div class="promo-banner">
-                <p>
-                    <i class="fas fa-gift promo-icon"></i>
-                    🎉 Grand Opening Special! 20% OFF on all orders above ₱200! 🎉
-                </p>
-            </div>
+        
             
-            <!-- SLIDESHOW SECTION -->
-            <div class="slideshow-container">
-                <div class="slideshow" id="slideshow">
-                    <!-- Slides will be dynamically loaded here -->
-                    <div class="slideshow-loading">
-                        <div class="spinner"></div>
-                        <p>Loading delicious content...</p>
-                    </div>
-                </div>
+            <!-- SLIDESHOW SECTION - TITLES MOVED OUTSIDE -->
+            <div class="slideshow-wrapper">
+                <!-- Title for current slide (OUTSIDE slideshow) -->
+                <h2 class="current-slide-title" id="current-slide-title">Welcome to Ai-Maize-ing Nachos</h2>
+                <p class="current-slide-description" id="current-slide-description">Your go-to spot for the most delicious nachos and desserts in town!</p>
                 
-                <!-- Slideshow Controls -->
-                <div class="slideshow-controls">
-                    <div class="slideshow-nav">
-                        <button id="prev-slide" title="Previous slide">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <button id="next-slide" title="Next slide">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
+                <!-- Slideshow container -->
+                <div class="slideshow-container">
+                    <div class="slideshow" id="slideshow">
+                        <!-- Slides will be dynamically loaded here WITHOUT TITLES -->
+                        <div class="slideshow-loading">
+                            <div class="spinner"></div>
+                            <p>Loading delicious content...</p>
+                        </div>
                     </div>
                     
-                    <div class="slideshow-dots" id="slideshow-dots">
-                        <!-- Dots will be dynamically added here -->
+                    
+                        <div class="slideshow-dots" id="slideshow-dots">
+                            <!-- Dots will be dynamically added here -->
+                        </div>
                     </div>
-                </div>
-                
-                <!-- Timer Bar -->
-                <div class="slideshow-timer">
-                    <div class="timer-bar" id="timer-bar"></div>
+                    
+                    <!-- Timer Bar -->
+                    <div class="slideshow-timer">
+                        <div class="timer-bar" id="timer-bar"></div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -275,7 +320,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="script.js"></script>
     
-    <!-- Slideshow JavaScript -->
+    <!-- Updated Slideshow JavaScript with external titles -->
     <script>
         // Slideshow functionality
         document.addEventListener('DOMContentLoaded', function() {
@@ -321,7 +366,7 @@
                     return;
                 }
                 
-                // Render slideshow
+                // Render slideshow (without titles in slide content)
                 renderSlideshow(activeSlides);
                 
                 // Setup controls
@@ -332,6 +377,9 @@
                 
                 // Timer bar animation
                 updateTimerBar();
+                
+                // Set initial title and description
+                updateSlideTitleAndDescription(activeSlides[0]);
                 
             } catch (error) {
                 console.error('Error initializing slideshow:', error);
@@ -384,12 +432,14 @@
             // Sort slides by order
             slidesToShow.sort((a, b) => a.order - b.order);
             
-            // Create slides
+            // Create slides WITHOUT TITLES in content
             slidesToShow.forEach((slide, index) => {
                 // Create slide element
                 const slideElement = document.createElement('div');
                 slideElement.className = 'slide';
                 slideElement.id = `slide-${index}`;
+                slideElement.dataset.title = slide.title;
+                slideElement.dataset.description = slide.description;
                 
                 // Add promo badge if present
                 let promoBadge = '';
@@ -397,11 +447,11 @@
                     promoBadge = `<div class="promo-badge">${slide.promoBadge}</div>`;
                 }
                 
+                // Note: No title in slide-content anymore
                 slideElement.innerHTML = `
                     <img src="${slide.imageUrl}" alt="${slide.title}" class="slide-image" 
                          onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjM1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjOGI0NTEzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSJ3aGl0ZSI+JHtzbGlkZS50aXRsZX08L3RleHQ+PC9zdmc+'">
                     <div class="slide-content">
-                        <h2 class="slide-title">${slide.title}</h2>
                         <p class="slide-description">${slide.description}</p>
                     </div>
                     ${promoBadge}
@@ -488,8 +538,24 @@
                 dots[currentSlide].classList.add('active');
             }
             
+            // Update title and description outside slideshow
+            updateSlideTitleAndDescription(activeSlides[currentSlide]);
+            
             // Reset timer bar
             updateTimerBar();
+        }
+
+        function updateSlideTitleAndDescription(slide) {
+            const titleElement = document.getElementById('current-slide-title');
+            const descriptionElement = document.getElementById('current-slide-description');
+            
+            if (titleElement && slide.title) {
+                titleElement.textContent = slide.title;
+            }
+            
+            if (descriptionElement && slide.description) {
+                descriptionElement.textContent = slide.description;
+            }
         }
 
         function nextSlide() {
@@ -548,6 +614,12 @@
             
             // Hide controls
             document.querySelector('.slideshow-controls').style.display = 'none';
+            
+            // Update title and description for empty state
+            const titleElement = document.getElementById('current-slide-title');
+            const descriptionElement = document.getElementById('current-slide-description');
+            if (titleElement) titleElement.textContent = 'Check Back Soon!';
+            if (descriptionElement) descriptionElement.textContent = 'We\'re preparing something special for you!';
         }
 
         function showErrorSlideshow() {
@@ -559,6 +631,12 @@
                     <p>Please check your connection and try again.</p>
                 </div>
             `;
+            
+            // Update title and description for error state
+            const titleElement = document.getElementById('current-slide-title');
+            const descriptionElement = document.getElementById('current-slide-description');
+            if (titleElement) titleElement.textContent = 'Oops! Something went wrong';
+            if (descriptionElement) descriptionElement.textContent = 'Please try refreshing the page';
         }
 
         // Global function for navigation

@@ -10,6 +10,98 @@ let currentSection = 'dashboard';
 let superAdminSettings = JSON.parse(localStorage.getItem('superAdminSettings') || '{"showAdminButton": true}');
 let currentEditingSlideId = null;
 
+// Menu items data from nachos.html and aifoodies.html
+const menuItems = {
+    nachos: [
+        { 
+            name: "Regular Nachos", 
+            price: 35, 
+            image: "image/classic nachos.jpg", 
+            category: "nachos",
+            description: "Classic nachos with delicious toppings"
+        },
+        { 
+            name: "Veggie Nachos", 
+            price: 65, 
+            image: "image/veggie nachos.jpg", 
+            category: "nachos",
+            description: "Fresh vegetable nachos"
+        },
+        { 
+            name: "Overload Cheesy Nachos", 
+            price: 95, 
+            image: "image/overload chees nachos.jpg", 
+            category: "nachos",
+            description: "Extra cheesy nachos overload"
+        },
+        { 
+            name: "Nacho Combo", 
+            price: 75, 
+            image: "image/combo.png", 
+            category: "nachos",
+            description: "Nachos combo meal"
+        },
+        { 
+            name: "Nacho Fries", 
+            price: 85, 
+            image: "image/nacho fries.jpg", 
+            category: "nachos",
+            description: "Nachos with crispy fries"
+        },
+        { 
+            name: "Supreme Nachos", 
+            price: 180, 
+            image: "image/Supreme Nachos.png", 
+            category: "nachos",
+            description: "Supreme nachos special"
+        },
+        { 
+            name: "Shawarma fries", 
+            price: 120, 
+            image: "image/shawarma fries.jpeg", 
+            category: "nachos",
+            description: "Shawarma style fries"
+        }
+    ],
+    desserts: [
+        { 
+            name: "Mango Graham", 
+            price: 40, 
+            image: "image/mango.gif", 
+            category: "desserts",
+            description: "Refreshing mango graham"
+        },
+        { 
+            name: "Mango tiramisu on tube", 
+            price: 100, 
+            image: "image/mango tiramisu on tub-price 100.jpeg", 
+            category: "desserts",
+            description: "Mango tiramisu in a tube"
+        },
+        { 
+            name: "Biscoff", 
+            price: 159, 
+            image: "image/biscoff.jpeg", 
+            category: "desserts",
+            description: "Delicious biscoff dessert"
+        },
+        { 
+            name: "Oreo", 
+            price: 149, 
+            image: "image/oreo and bisscoff.png", 
+            category: "desserts",
+            description: "Creamy oreo dessert"
+        },
+        { 
+            name: "Mango Graham Float", 
+            price: 40, 
+            image: "image/Mango Graham Floa.jpg", 
+            category: "desserts",
+            description: "Mango graham float special"
+        }
+    ]
+};
+
 // ================================
 // INITIALIZATION
 // ================================
@@ -205,7 +297,7 @@ function setupAdminEventListeners() {
         toggleAllAvailabilityBtn.addEventListener('click', toggleAllAvailability);
     }
     
-    // Slideshow buttons - USE EVENT DELEGATION
+    // Slideshow buttons
     setupSlideshowEventListeners();
     
     // Order filters
@@ -262,26 +354,33 @@ function setupAdminEventListeners() {
     }, 300);
 }
 
-// NEW FUNCTION: Setup slideshow event listeners with delegation
+// Setup slideshow event listeners with delegation
 function setupSlideshowEventListeners() {
     console.log('Setting up slideshow event listeners');
     
-    // Add slide button
+    // Add slide button - Updated to show menu items
     const addSlideBtn = document.getElementById('add-slide-btn');
     if (addSlideBtn) {
         addSlideBtn.addEventListener('click', function() {
-            currentEditingSlideId = null;
-            showAddSlideModal(false);
+            showMenuItemsSelectionModal();
         });
     }
     
     // Refresh slideshow button
     const refreshSlideshowBtn = document.getElementById('refresh-slideshow');
     if (refreshSlideshowBtn) {
-        refreshSlideshowBtn.addEventListener('click', refreshSlideshow);
+        refreshSlideshowBtn.addEventListener('click', loadSlideshow);
     }
     
-    // Save slide button (in modal)
+    // Reorder slides button
+    const reorderSlidesBtn = document.getElementById('reorder-slides');
+    if (reorderSlidesBtn) {
+        reorderSlidesBtn.addEventListener('click', function() {
+            showAlert('Drag and drop slides to reorder them.');
+        });
+    }
+    
+    // Save slide button in add-slide-modal
     const saveSlideBtn = document.getElementById('save-slide-btn');
     if (saveSlideBtn) {
         saveSlideBtn.addEventListener('click', addNewSlide);
@@ -293,40 +392,15 @@ function setupSlideshowEventListeners() {
         cancelAddSlide.addEventListener('click', closeAddSlideModal);
     }
     
-    // Use event delegation for dynamically created slide buttons
-    document.addEventListener('click', function(e) {
-        // Check for edit slide buttons
-        if (e.target.closest('.edit-slide-btn')) {
-            const slideId = e.target.closest('.edit-slide-btn').getAttribute('data-id');
-            if (slideId) {
-                editSlide(slideId);
+    // Delete slide button
+    const deleteSlideBtn = document.getElementById('delete-slide-btn');
+    if (deleteSlideBtn) {
+        deleteSlideBtn.addEventListener('click', function() {
+            if (currentEditingSlideId) {
+                deleteSlide(currentEditingSlideId);
             }
-        }
-        
-        // Check for delete slide buttons
-        if (e.target.closest('.delete-slide-btn')) {
-            const slideId = e.target.closest('.delete-slide-btn').getAttribute('data-id');
-            if (slideId) {
-                deleteSlide(slideId);
-            }
-        }
-        
-        // Check for edit slide list buttons
-        if (e.target.closest('.edit-slide-list-btn')) {
-            const slideId = e.target.closest('.edit-slide-list-btn').getAttribute('data-id');
-            if (slideId) {
-                editSlide(slideId);
-            }
-        }
-        
-        // Check for delete slide list buttons
-        if (e.target.closest('.delete-slide-list-btn')) {
-            const slideId = e.target.closest('.delete-slide-list-btn').getAttribute('data-id');
-            if (slideId) {
-                deleteSlide(slideId);
-            }
-        }
-    });
+        });
+    }
 }
 
 // ================================
@@ -888,7 +962,7 @@ async function toggleAllAvailability() {
 }
 
 // ================================
-// SLIDESHOW FUNCTIONS (updated with proper event handling)
+// SLIDESHOW FUNCTIONS (with menu items selection)
 // ================================
 
 async function loadSlideshow() {
@@ -907,15 +981,23 @@ async function loadSlideshow() {
                 imageUrl: 'image/logo.png',
                 order: 1,
                 active: true,
+                originalItem: null,
+                price: null,
+                category: null,
+                promoBadge: 'WELCOME',
                 createdAt: new Date()
             },
             {
                 _id: 'slide_2',
-                title: 'Fresh Ingredients',
-                description: 'We use only the freshest ingredients',
-                imageUrl: 'https://via.placeholder.com/400x200/8b4513/ffffff?text=Fresh+Ingredients',
+                title: 'Try Our Supreme Nachos',
+                description: 'Delicious Supreme Nachos for only ₱180',
+                imageUrl: 'image/Supreme Nachos.png',
                 order: 2,
                 active: true,
+                originalItem: 'Supreme Nachos',
+                price: 180,
+                category: 'nachos',
+                promoBadge: 'POPULAR',
                 createdAt: new Date(Date.now() - 86400000)
             },
             {
@@ -925,6 +1007,10 @@ async function loadSlideshow() {
                 imageUrl: 'https://via.placeholder.com/400x200/e65100/ffffff?text=Special+Offers',
                 order: 3,
                 active: false,
+                originalItem: null,
+                price: null,
+                category: null,
+                promoBadge: 'SPECIAL',
                 createdAt: new Date(Date.now() - 172800000)
             }
         ];
@@ -938,7 +1024,6 @@ async function loadSlideshow() {
 
 function renderSlideshow(slides) {
     const currentContainer = document.getElementById('slideshow-current');
-    const listContainer = document.getElementById('slideshow-list');
     
     // Sort slides by order
     slides.sort((a, b) => a.order - b.order);
@@ -952,133 +1037,284 @@ function renderSlideshow(slides) {
             currentContainer.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No active slides in slideshow</p>';
         } else {
             currentContainer.innerHTML = activeSlides.map(slide => `
-                <div class="slide-card active" data-id="${slide._id}">
-                    <img src="${slide.imageUrl}" alt="${slide.title}" class="slide-image" onerror="this.src='https://via.placeholder.com/400x200/8b4513/ffffff?text=${encodeURIComponent(slide.title)}'">
+                <div class="slide-card ${slide.active ? 'active' : ''}" data-id="${slide._id}">
+                    <img src="${slide.imageUrl}" alt="${slide.title}" class="slide-image" onerror="this.src='https://via.placeholder.com/400x200/8b4513/ffffff?text=${encodeURIComponent(slide.title.substring(0, 20))}'">
                     <div class="slide-info">
+                        <div class="slide-header">
+                            ${slide.price ? `<span class="slide-price-tag"><i class="fas fa-peso-sign"></i> ${slide.price}</span>` : ''}
+                            ${slide.originalItem ? `<span class="slide-item-name">${slide.originalItem}</span>` : ''}
+                        </div>
                         <h4>${slide.title}</h4>
                         <p>${slide.description || 'No description'}</p>
                         <div class="slide-meta">
-                            <span>Order: ${slide.order}</span>
-                            <span class="slide-status ${slide.active ? 'active' : 'inactive'}">${slide.active ? 'Active' : 'Inactive'}</span>
+                            ${slide.promoBadge ? `<span class="slide-badge">${slide.promoBadge}</span>` : ''}
+                            <span class="slide-status">
+                                ${slide.active ? '<i class="fas fa-eye"></i> Active' : '<i class="fas fa-eye-slash"></i> Hidden'}
+                            </span>
                         </div>
                         <div class="slide-actions">
-                            <button class="edit-slide-btn action-btn secondary" style="padding: 8px 12px; font-size: 12px;" data-id="${slide._id}">
+                            <button class="slide-btn edit" onclick="editSlide('${slide._id}')">
                                 <i class="fas fa-edit"></i> Edit
                             </button>
-                            <button class="delete-slide-btn action-btn danger" style="padding: 8px 12px; font-size: 12px;" data-id="${slide._id}">
+                            <button class="slide-btn toggle" onclick="toggleSlide('${slide._id}')">
+                                <i class="fas fa-toggle-${slide.active ? 'on' : 'off'}"></i> ${slide.active ? 'Hide' : 'Show'}
+                            </button>
+                            <button class="slide-btn delete" onclick="deleteSlide('${slide._id}')">
                                 <i class="fas fa-trash"></i> Delete
                             </button>
                         </div>
                     </div>
                 </div>
             `).join('');
-            
-            // Add event listeners to the newly created buttons
-            setTimeout(() => {
-                document.querySelectorAll('.edit-slide-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const slideId = this.getAttribute('data-id');
-                        editSlide(slideId);
-                    });
-                });
-                
-                document.querySelectorAll('.delete-slide-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const slideId = this.getAttribute('data-id');
-                        deleteSlide(slideId);
-                    });
-                });
-            }, 100);
-        }
-    }
-    
-    // Render slides list
-    if (listContainer) {
-        if (slides.length === 0) {
-            listContainer.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No slides found</p>';
-        } else {
-            listContainer.innerHTML = slides.map(slide => `
-                <div class="slide-list-item ${slide.active ? 'active' : ''}" data-id="${slide._id}">
-                    <div class="slide-list-preview">
-                        <img src="${slide.imageUrl}" alt="${slide.title}" class="slide-list-image" onerror="this.src='https://via.placeholder.com/60x60/8b4513/ffffff?text=${encodeURIComponent(slide.title.substring(0, 10))}'">
-                        <div class="slide-list-info">
-                            <h5>${slide.title}</h5>
-                            <p>${slide.description ? slide.description.substring(0, 50) + (slide.description.length > 50 ? '...' : '') : 'No description'}</p>
-                            <div class="slide-list-meta">
-                                <small>Order: ${slide.order}</small>
-                                <small>${new Date(slide.createdAt).toLocaleDateString()}</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="slide-list-actions">
-                        <label class="toggle-switch small">
-                            <input type="checkbox" class="toggle-slide-active" ${slide.active ? 'checked' : ''} data-id="${slide._id}">
-                            <span class="toggle-slider"></span>
-                        </label>
-                        <button class="action-btn icon-btn edit-slide-list-btn" data-id="${slide._id}" title="Edit">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="action-btn icon-btn danger delete-slide-list-btn" data-id="${slide._id}" title="Delete">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-            
-            // Add event listeners to the list items
-            setTimeout(() => {
-                document.querySelectorAll('.toggle-slide-active').forEach(toggle => {
-                    toggle.addEventListener('change', function() {
-                        const slideId = this.getAttribute('data-id');
-                        toggleSlideActive(slideId, this.checked);
-                    });
-                });
-                
-                document.querySelectorAll('.edit-slide-list-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const slideId = this.getAttribute('data-id');
-                        editSlide(slideId);
-                    });
-                });
-                
-                document.querySelectorAll('.delete-slide-list-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const slideId = this.getAttribute('data-id');
-                        deleteSlide(slideId);
-                    });
-                });
-            }, 100);
         }
     }
 }
 
-function showAddSlideModal(editMode = false) {
-    const modal = document.getElementById('add-slide-modal');
-    const modalTitle = modal.querySelector('.modal-content h2');
-    const saveBtn = document.getElementById('save-slide-btn');
+function showMenuItemsSelectionModal() {
+    currentEditingSlideId = null;
     
-    if (editMode) {
-        modalTitle.textContent = 'Edit Slide';
-        saveBtn.textContent = 'Update Slide';
-    } else {
-        modalTitle.textContent = 'Add New Slide';
-        saveBtn.textContent = 'Add Slide';
+    // Create modal content with menu items selection
+    const modalHTML = `
+        <div id="menu-items-modal" class="modal-overlay" style="display: flex; z-index: 9999;">
+            <div class="modal-content" style="max-width: 800px; max-height: 80vh; overflow-y: auto;">
+                <h2 id="slide-modal-title"><i class="fas fa-plus-circle"></i> Select Menu Item for Slide</h2>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 10px; font-weight: bold; color: #8b4513;">
+                        <i class="fas fa-filter"></i> Filter by Category:
+                    </label>
+                    <select id="item-category-filter" style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 15px;">
+                        <option value="all">All Items</option>
+                        <option value="nachos">Nachos</option>
+                        <option value="desserts">Desserts</option>
+                    </select>
+                </div>
+                
+                <div id="menu-items-grid" class="menu-items-grid" style="margin: 20px 0;">
+                    <!-- Menu items will be loaded here -->
+                </div>
+                
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e9ecef;">
+                    <h3 style="color: #8b4513; margin-bottom: 15px;"><i class="fas fa-cog"></i> Slide Settings</h3>
+                    <input type="text" id="custom-slide-title" placeholder="Custom Title (optional)" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #e9ecef; border-radius: 8px;">
+                    <input type="text" id="custom-slide-description" placeholder="Custom Description (optional)" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #e9ecef; border-radius: 8px;">
+                    <input type="text" id="slide-promo-badge" placeholder="Promo Badge (e.g., '20% OFF', 'New')" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #e9ecef; border-radius: 8px;">
+                    <input type="number" id="slide-order" placeholder="Display Order" value="0" min="0" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #e9ecef; border-radius: 8px;">
+                    
+                    <div style="margin: 15px 0;">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" id="slide-active" checked style="transform: scale(1.2);">
+                            <span style="font-weight: 500; color: #2c3e50;">Active (Show in slideshow)</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 25px;">
+                    <button id="save-slide-from-menu" class="action-btn primary">
+                        <i class="fas fa-save"></i> Save Slide
+                    </button>
+                    <button id="cancel-menu-selection" class="action-btn secondary">Cancel</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove existing modal if any
+    const existingModal = document.getElementById('menu-items-modal');
+    if (existingModal) existingModal.remove();
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Render menu items
+    renderMenuItemsInModal();
+    
+    // Add event listeners
+    setTimeout(() => {
+        const categoryFilter = document.getElementById('item-category-filter');
+        if (categoryFilter) {
+            categoryFilter.addEventListener('change', renderMenuItemsInModal);
+        }
         
-        // Reset form
-        const slideTitle = document.getElementById('slide-title');
-        const slideDescription = document.getElementById('slide-description');
-        const slideImageUrl = document.getElementById('slide-image-url');
-        const slideOrder = document.getElementById('slide-order');
-        const slideActive = document.getElementById('slide-active');
+        const saveSlideBtn = document.getElementById('save-slide-from-menu');
+        if (saveSlideBtn) {
+            saveSlideBtn.addEventListener('click', saveSlideFromMenuItem);
+        }
         
-        if (slideTitle) slideTitle.value = '';
-        if (slideDescription) slideDescription.value = '';
-        if (slideImageUrl) slideImageUrl.value = '';
-        if (slideOrder) slideOrder.value = (document.querySelectorAll('.slide-card').length + 1).toString();
-        if (slideActive) slideActive.checked = true;
+        const cancelBtn = document.getElementById('cancel-menu-selection');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', function() {
+                const modal = document.getElementById('menu-items-modal');
+                if (modal) modal.remove();
+            });
+        }
+        
+        // Close modal when clicking outside
+        const modal = document.getElementById('menu-items-modal');
+        if (modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.remove();
+                }
+            });
+        }
+    }, 100);
+}
+
+function renderMenuItemsInModal() {
+    const container = document.getElementById('menu-items-grid');
+    if (!container) return;
+    
+    const categoryFilter = document.getElementById('item-category-filter');
+    const filterValue = categoryFilter ? categoryFilter.value : 'all';
+    
+    let allItems = [];
+    
+    if (filterValue === 'all' || filterValue === 'nachos') {
+        allItems = allItems.concat(menuItems.nachos);
+    }
+    if (filterValue === 'all' || filterValue === 'desserts') {
+        allItems = allItems.concat(menuItems.desserts);
     }
     
-    modal.style.display = 'flex';
+    if (allItems.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #6c757d; padding: 40px;">No items found</p>';
+        return;
+    }
+    
+    container.innerHTML = allItems.map((item, index) => `
+        <div class="menu-item-selector" data-item='${JSON.stringify(item)}'>
+            <div style="display: flex; align-items: center; gap: 15px; padding: 15px; border: 2px solid #e9ecef; border-radius: 10px; margin-bottom: 15px; cursor: pointer; transition: all 0.3s ease; background: white;">
+                <div style="flex-shrink: 0;">
+                    <div style="width: 100px; height: 100px; border-radius: 8px; overflow: hidden; background: #f8f9fa; display: flex; align-items: center; justify-content: center;">
+                        <img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null; this.style.display='none'; this.parentNode.innerHTML='<i class=\"fas fa-utensils\" style=\"font-size: 32px; color: #8b4513;\"></i>';">
+                    </div>
+                </div>
+                <div style="flex: 1;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                        <h4 style="margin: 0; color: #2c3e50; font-size: 18px;">${item.name}</h4>
+                        <div style="background: #8b4513; color: white; padding: 5px 12px; border-radius: 15px; font-weight: bold;">
+                            <i class="fas fa-peso-sign"></i> ${item.price}
+                        </div>
+                    </div>
+                    <p style="margin: 0 0 8px 0; color: #6c757d; font-size: 14px; text-transform: capitalize;">
+                        <i class="fas fa-tag"></i> ${item.category}
+                    </p>
+                    <p style="margin: 0; color: #6c757d; font-size: 14px; line-height: 1.4;">
+                        ${item.description}
+                    </p>
+                </div>
+                <div style="flex-shrink: 0;">
+                    <input type="radio" name="selected-item" id="item_${index}_${item.category}" style="transform: scale(1.3);">
+                </div>
+            </div>
+        </div>
+    `).join('');
+    
+    // Add hover and selection effects
+    document.querySelectorAll('.menu-item-selector').forEach(itemEl => {
+        itemEl.addEventListener('mouseenter', () => {
+            itemEl.style.borderColor = '#8b4513';
+            itemEl.style.boxShadow = '0 4px 12px rgba(139, 69, 19, 0.1)';
+            itemEl.querySelector('div').style.transform = 'translateY(-2px)';
+        });
+        
+        itemEl.addEventListener('mouseleave', () => {
+            itemEl.style.borderColor = 'transparent';
+            itemEl.style.boxShadow = 'none';
+            itemEl.querySelector('div').style.transform = 'translateY(0)';
+        });
+        
+        // Add selection effect
+        const radio = itemEl.querySelector('input[type="radio"]');
+        radio.addEventListener('change', function() {
+            document.querySelectorAll('.menu-item-selector').forEach(el => {
+                el.querySelector('div').style.borderColor = '#e9ecef';
+                el.querySelector('div').style.backgroundColor = 'white';
+            });
+            
+            if (this.checked) {
+                itemEl.querySelector('div').style.borderColor = '#28a745';
+                itemEl.querySelector('div').style.backgroundColor = '#f8fff9';
+                
+                // Auto-fill custom title with item name
+                const customTitle = document.getElementById('custom-slide-title');
+                if (!customTitle.value) {
+                    const itemData = JSON.parse(itemEl.getAttribute('data-item'));
+                    customTitle.value = itemData.name;
+                }
+            }
+        });
+    });
+}
+
+function saveSlideFromMenuItem() {
+    const selectedItemEl = document.querySelector('.menu-item-selector input[type="radio"]:checked');
+    
+    if (!selectedItemEl) {
+        showAlert('Please select a menu item for the slide!', 'error');
+        return;
+    }
+    
+    const itemSelector = selectedItemEl.closest('.menu-item-selector');
+    if (!itemSelector) return;
+    
+    const itemData = JSON.parse(itemSelector.getAttribute('data-item'));
+    
+    // Get slide data
+    const customTitle = document.getElementById('custom-slide-title').value || itemData.name;
+    const customDescription = document.getElementById('custom-slide-description').value || itemData.description;
+    const promoBadge = document.getElementById('slide-promo-badge').value;
+    const slideOrder = parseInt(document.getElementById('slide-order').value) || 0;
+    const isActive = document.getElementById('slide-active').checked;
+    
+    // Create slide object
+    const slide = {
+        _id: currentEditingSlideId || 'slide_' + Date.now(),
+        title: customTitle,
+        description: customDescription || `Delicious ${itemData.name}`,
+        imageUrl: itemData.image,
+        originalItem: itemData.name,
+        price: itemData.price,
+        category: itemData.category,
+        promoBadge: promoBadge,
+        order: slideOrder,
+        active: isActive,
+        createdAt: currentEditingSlideId ? undefined : new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    };
+    
+    // Save to localStorage
+    saveSlideToStorage(slide);
+    
+    // Remove modal
+    const modal = document.getElementById('menu-items-modal');
+    if (modal) modal.remove();
+    
+    showAlert('✅ Slide added successfully!', 'success');
+    
+    // Refresh slideshow display
+    loadSlideshow();
+}
+
+function saveSlideToStorage(slide) {
+    let slides = JSON.parse(localStorage.getItem('slideshowSlides') || '[]');
+    
+    if (currentEditingSlideId) {
+        // Update existing slide
+        slides = slides.map(s => {
+            if (s._id === currentEditingSlideId) {
+                return { ...s, ...slide };
+            }
+            return s;
+        });
+    } else {
+        // Add new slide
+        slides.push(slide);
+    }
+    
+    // Sort by order
+    slides.sort((a, b) => a.order - b.order);
+    localStorage.setItem('slideshowSlides', JSON.stringify(slides));
 }
 
 function closeAddSlideModal() {
@@ -1091,79 +1327,7 @@ function closeAddSlideModal() {
     currentEditingSlideId = null;
 }
 
-async function addNewSlide() {
-    const slideTitle = document.getElementById('slide-title');
-    const slideDescription = document.getElementById('slide-description');
-    const slideImageUrl = document.getElementById('slide-image-url');
-    const slideOrder = document.getElementById('slide-order');
-    const slideActive = document.getElementById('slide-active');
-    
-    if (!slideTitle || !slideImageUrl || !slideOrder || !slideActive) return;
-    
-    const title = slideTitle.value.trim();
-    const description = slideDescription.value.trim();
-    const imageUrl = slideImageUrl.value.trim();
-    const order = parseInt(slideOrder.value) || 0;
-    const active = slideActive.checked;
-    
-    if (!title) {
-        showAlert('Title is required');
-        return;
-    }
-    
-    if (!imageUrl) {
-        showAlert('Image URL is required');
-        return;
-    }
-    
-    // Get existing slides
-    let slides = JSON.parse(localStorage.getItem('slideshowSlides') || '[]');
-    
-    if (currentEditingSlideId) {
-        // Update existing slide
-        slides = slides.map(slide => {
-            if (slide._id === currentEditingSlideId) {
-                return {
-                    ...slide,
-                    title,
-                    description,
-                    imageUrl,
-                    order,
-                    active,
-                    updatedAt: new Date()
-                };
-            }
-            return slide;
-        });
-        showAlert('✅ Slide updated successfully!');
-    } else {
-        // Add new slide
-        const newSlide = {
-            _id: 'slide_' + Date.now(),
-            title,
-            description,
-            imageUrl,
-            order,
-            active,
-            createdAt: new Date(),
-            updatedAt: new Date()
-        };
-        
-        slides.push(newSlide);
-        showAlert('✅ Slide added successfully!');
-    }
-    
-    // Save to localStorage
-    localStorage.setItem('slideshowSlides', JSON.stringify(slides));
-    
-    // Reset and close modal
-    closeAddSlideModal();
-    
-    // Refresh slideshow display
-    loadSlideshow();
-}
-
-async function editSlide(slideId) {
+function editSlide(slideId) {
     console.log('Editing slide:', slideId);
     
     // Get slides from localStorage
@@ -1179,21 +1343,40 @@ async function editSlide(slideId) {
     // Set editing state
     currentEditingSlideId = slideId;
     
-    // Populate form with slide data
-    const slideTitle = document.getElementById('slide-title');
-    const slideDescription = document.getElementById('slide-description');
-    const slideImageUrl = document.getElementById('slide-image-url');
-    const slideOrder = document.getElementById('slide-order');
-    const slideActive = document.getElementById('slide-active');
+    // Show menu items modal with pre-filled data
+    showMenuItemsSelectionModal();
     
-    if (slideTitle) slideTitle.value = slideToEdit.title;
-    if (slideDescription) slideDescription.value = slideToEdit.description || '';
-    if (slideImageUrl) slideImageUrl.value = slideToEdit.imageUrl;
-    if (slideOrder) slideOrder.value = slideToEdit.order;
-    if (slideActive) slideActive.checked = slideToEdit.active;
-    
-    // Show modal in edit mode
-    showAddSlideModal(true);
+    // Fill form with existing data after a small delay
+    setTimeout(() => {
+        const customTitle = document.getElementById('custom-slide-title');
+        const customDescription = document.getElementById('custom-slide-description');
+        const slidePromoBadge = document.getElementById('slide-promo-badge');
+        const slideOrder = document.getElementById('slide-order');
+        const slideActive = document.getElementById('slide-active');
+        
+        if (customTitle) customTitle.value = slideToEdit.title;
+        if (customDescription) customDescription.value = slideToEdit.description || '';
+        if (slidePromoBadge) slidePromoBadge.value = slideToEdit.promoBadge || '';
+        if (slideOrder) slideOrder.value = slideToEdit.order || 0;
+        if (slideActive) slideActive.checked = slideToEdit.active !== false;
+        
+        // Try to find and select the corresponding menu item
+        if (slideToEdit.originalItem) {
+            setTimeout(() => {
+                const itemSelectors = document.querySelectorAll('.menu-item-selector');
+                itemSelectors.forEach(selector => {
+                    const itemData = JSON.parse(selector.getAttribute('data-item') || '{}');
+                    if (itemData.name === slideToEdit.originalItem) {
+                        const radio = selector.querySelector('input[type="radio"]');
+                        if (radio) {
+                            radio.checked = true;
+                            radio.dispatchEvent(new Event('change'));
+                        }
+                    }
+                });
+            }, 200);
+        }
+    }, 300);
 }
 
 async function deleteSlide(slideId) {
@@ -1216,34 +1399,62 @@ async function deleteSlide(slideId) {
     loadSlideshow();
 }
 
-async function toggleSlideActive(slideId, active) {
+function toggleSlide(slideId) {
     // Get slides from localStorage
     let slides = JSON.parse(localStorage.getItem('slideshowSlides') || '[]');
     
-    // Update slide active status
-    slides = slides.map(slide => {
-        if (slide._id === slideId) {
-            return {
-                ...slide,
-                active,
-                updatedAt: new Date()
-            };
-        }
-        return slide;
-    });
+    // Find the slide
+    const slideIndex = slides.findIndex(slide => slide._id === slideId);
+    if (slideIndex === -1) return;
+    
+    // Toggle active status
+    slides[slideIndex].active = !slides[slideIndex].active;
+    slides[slideIndex].updatedAt = new Date().toISOString();
     
     // Save to localStorage
     localStorage.setItem('slideshowSlides', JSON.stringify(slides));
     
-    showAlert(`✅ Slide ${active ? 'activated' : 'deactivated'}!`);
+    showAlert(`✅ Slide ${slides[slideIndex].active ? 'activated' : 'deactivated'}!`);
     
     // Refresh slideshow display
     loadSlideshow();
 }
 
-function refreshSlideshow() {
-    loadSlideshow();
-    showAlert('Slideshow refreshed!');
+// ================================
+// SLIDESHOW PREVIEW UPDATE
+// ================================
+
+function updateSlideshowPreview() {
+    const slidesContainer = document.getElementById('slideshow-current');
+    if (!slidesContainer) return;
+    
+    const slides = JSON.parse(localStorage.getItem('slideshowSlides') || '[]');
+    const activeSlides = slides.filter(slide => slide.active);
+    
+    slidesContainer.innerHTML = '';
+    
+    if (activeSlides.length === 0) {
+        slidesContainer.innerHTML = '<div class="empty-message">No active slides</div>';
+        return;
+    }
+    
+    activeSlides.sort((a, b) => a.order - b.order);
+    
+    activeSlides.forEach((slide, index) => {
+        const slideCard = document.createElement('div');
+        slideCard.className = 'slide-card';
+        slideCard.innerHTML = `
+            <img src="${slide.imageUrl}" alt="${slide.title}" class="slide-image" 
+                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjOGI0NTEzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSJ3aGl0ZSI+JHtzbGlkZS50aXRsZX08L3RleHQ+PC9zdmc+'">
+            <div class="slide-info">
+                <h4>${slide.title}</h4>
+                <p>${slide.description || 'No description'}</p>
+                <p><small>Order: ${slide.order} | ${slide.promoBadge ? 'Badge: ' + slide.promoBadge : 'No badge'}</small></p>
+            </div>
+        `;
+        
+        slidesContainer.appendChild(slideCard);
+    });
 }
 
 // ================================
@@ -1456,6 +1667,7 @@ function showAlert(message) {
 window.showOrderDetails = showOrderDetails;
 window.editSlide = editSlide;
 window.deleteSlide = deleteSlide;
-window.toggleSlideActive = toggleSlideActive;
+window.toggleSlide = toggleSlide;
 window.closeAddSlideModal = closeAddSlideModal;
 window.saveSuperadminSettings = saveSuperadminSettings;
+window.updateSlideshowPreview = updateSlideshowPreview;
