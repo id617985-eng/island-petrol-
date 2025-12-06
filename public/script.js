@@ -5,7 +5,7 @@
 // Global variables
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 let isAdmin = localStorage.getItem('adminToken') ? true : false;
-let availabilityServiceInitialized = false;
+const API_BASE_URL = 'https://aifoodies.up.railway.app/api';
 
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
@@ -26,8 +26,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Setup navigation buttons
     setupNavigationButtons();
     
-    // Initialize availability system
-    initializeAvailability();
+    // Load menu items from server
+    loadMenuItemsFromServer();
 });
 
 // ================================
@@ -79,132 +79,34 @@ function setupNavigationButtons() {
 }
 
 // ================================
-// AVAILABILITY FUNCTIONS
+// MENU ITEMS FUNCTIONS
 // ================================
 
-async function initializeAvailability() {
-    console.log('Initializing availability system...');
-    
-    // Wait a bit for services to load
-    setTimeout(async () => {
-        if (window.availabilityService && window.apiService) {
-            availabilityService.init(apiService);
-            availabilityServiceInitialized = true;
-            
-            // Initial fetch
-            await availabilityService.fetchAvailability();
-            
-            // Start polling for updates every 30 seconds
-            availabilityService.startPolling(30000);
-            
-            // Subscribe to changes
-            availabilityService.subscribe(() => {
-                updateMenuItemsAvailability();
-            });
-            
-            console.log('Availability system initialized with server polling');
-        } else {
-            console.warn('Availability services not available, using localStorage fallback');
-            
-            // Fallback to localStorage with periodic checks
-            setInterval(() => {
-                updateMenuItemsAvailability();
-            }, 10000);
-        }
-        
-        // Initial UI update
-        await updateMenuItemsAvailability();
-    }, 500);
-}
-
-async function checkItemAvailability(itemName) {
+async function loadMenuItemsFromServer() {
     try {
-        if (availabilityServiceInitialized && window.availabilityService) {
-            return availabilityService.isItemAvailable(itemName);
-        }
+        const response = await fetch(`${API_BASE_URL}/menu-items`);
         
-        // Fallback to API
-        if (window.apiService) {
-            const availability = await apiService.getAvailability();
-            return availability[itemName] !== false;
-        }
-        
-        // Fallback to localStorage
-        const availability = JSON.parse(localStorage.getItem('itemAvailability') || '{}');
-        return availability[itemName] !== false;
-    } catch (error) {
-        console.error('Error checking availability:', error);
-        return true; // Default to available if error
-    }
-}
-
-async function updateMenuItemsAvailability() {
-    try {
-        let availability = {};
-        
-        if (availabilityServiceInitialized && window.availabilityService) {
-            availability = availabilityService.getAvailability();
-        } else if (window.apiService) {
-            availability = await apiService.getAvailability();
-        } else {
-            // Fallback to localStorage
-            availability = JSON.parse(localStorage.getItem('itemAvailability') || '{}');
-        }
-        
-        const menuItems = document.querySelectorAll('.menu-item');
-        
-        menuItems.forEach(item => {
-            const itemName = item.dataset.name;
-            const isAvailable = availability[itemName] !== false;
+        if (response.ok) {
+            const items = await response.json();
             
-            updateMenuItemUI(item, itemName, isAvailable);
-        });
+            // Update menu items on the page
+            updateMenuItemsDisplay(items);
+            
+            console.log(`✅ Loaded ${items.length} menu items from server`);
+            return items;
+        }
         
+        return [];
     } catch (error) {
-        console.error('Error updating menu items availability:', error);
+        console.error('Error loading menu items:', error);
+        return [];
     }
 }
 
-function updateMenuItemUI(item, itemName, isAvailable) {
-    if (!isAvailable) {
-        // Mark as out of stock
-        item.classList.add('out-of-stock');
-        
-        // Disable the "Add to Cart" button
-        const addToCartBtn = item.querySelector('.add-to-cart-btn');
-        if (addToCartBtn) {
-            addToCartBtn.disabled = true;
-            addToCartBtn.textContent = 'Out of Stock';
-            addToCartBtn.style.backgroundColor = '#ccc';
-            addToCartBtn.style.cursor = 'not-allowed';
-        }
-        
-        // Add overlay
-        const flipCardFront = item.querySelector('.flip-card-front');
-        if (flipCardFront && !flipCardFront.querySelector('.out-of-stock-overlay')) {
-            const overlay = document.createElement('div');
-            overlay.className = 'out-of-stock-overlay';
-            overlay.innerHTML = '<span>OUT OF STOCK</span>';
-            flipCardFront.appendChild(overlay);
-        }
-    } else {
-        // Mark as available
-        item.classList.remove('out-of-stock');
-        
-        const addToCartBtn = item.querySelector('.add-to-cart-btn');
-        if (addToCartBtn) {
-            addToCartBtn.disabled = false;
-            addToCartBtn.textContent = 'Add to Cart';
-            addToCartBtn.style.backgroundColor = '';
-            addToCartBtn.style.cursor = 'pointer';
-        }
-        
-        // Remove overlay
-        const overlay = item.querySelector('.out-of-stock-overlay');
-        if (overlay) {
-            overlay.remove();
-        }
-    }
+function updateMenuItemsDisplay(items) {
+    // This function will be implemented in nachos.html and aifoodies.html
+    // to update their specific displays
+    console.log('Menu items loaded:', items);
 }
 
 // ================================
@@ -271,6 +173,22 @@ async function addToCart(itemName, itemPrice) {
     
     // Show confirmation
     showAlert(`✅ Added ${itemName} to cart!`);
+}
+
+async function checkItemAvailability(itemName) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/availability`);
+        
+        if (response.ok) {
+            const availability = await response.json();
+            return availability[itemName] !== false;
+        }
+        
+        return true; // Default to available if server error
+    } catch (error) {
+        console.error('Error checking availability:', error);
+        return true; // Default to available if error
+    }
 }
 
 function updateCartDisplay() {
@@ -386,52 +304,58 @@ async function checkoutOrder() {
     
     try {
         // Submit order to server
-        if (window.apiService) {
-            const response = await apiService.submitOrder(order);
-            console.log('Order submitted:', response);
+        const response = await fetch(`${API_BASE_URL}/orders`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(order)
+        });
+        
+        if (response.ok) {
+            const orderData = await response.json();
+            console.log('Order submitted:', orderData);
+            
+            // Save order to localStorage for admin panel
+            const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+            orders.push(orderData);
+            localStorage.setItem('orders', JSON.stringify(orders));
+            
+            // Update customer data if exists
+            updateCustomerData(orderData);
+            
+            // Clear cart
+            cart = [];
+            localStorage.setItem('cart', JSON.stringify(cart));
+            
+            // Hide cart popup
+            const cartPopup = document.getElementById('cart-popup');
+            if (cartPopup) {
+                cartPopup.style.display = 'none';
+            }
+            
+            // Show success message
+            showAlert(`✅ Order placed successfully!<br><br>
+                Order ID: #${(orderData._id || '').substring(6, 12) || 'N/A'}<br>
+                Total: ₱${orderData.total.toFixed(2)}<br>
+                Pickup: ${orderData.pickupTime}<br><br>
+                Thank you for your order!`);
+            
+            // Reset form
+            if (customerName) customerName.value = '';
+            if (customerPhone) customerPhone.value = '';
+            if (pickupTime) pickupTime.value = '';
+            
+            updateCartDisplay();
+            
+        } else {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to submit order');
         }
-        
-        // Save order to localStorage for admin panel
-        const orders = JSON.parse(localStorage.getItem('orders') || '[]');
-        const orderWithId = {
-            ...order,
-            _id: 'order_' + Date.now(),
-            status: 'pending',
-            timestamp: new Date().toISOString()
-        };
-        orders.push(orderWithId);
-        localStorage.setItem('orders', JSON.stringify(orders));
-        
-        // Update customer data if exists
-        updateCustomerData(orderWithId);
-        
-        // Clear cart
-        cart = [];
-        localStorage.setItem('cart', JSON.stringify(cart));
-        
-        // Hide cart popup
-        const cartPopup = document.getElementById('cart-popup');
-        if (cartPopup) {
-            cartPopup.style.display = 'none';
-        }
-        
-        // Show success message
-        showAlert(`✅ Order placed successfully!<br><br>
-            Order ID: #${orderWithId._id.substring(7, 13)}<br>
-            Total: ₱${orderWithId.total.toFixed(2)}<br>
-            Pickup: ${orderWithId.pickupTime}<br><br>
-            Thank you for your order!`);
-        
-        // Reset form
-        if (customerName) customerName.value = '';
-        if (customerPhone) customerPhone.value = '';
-        if (pickupTime) pickupTime.value = '';
-        
-        updateCartDisplay();
         
     } catch (error) {
         console.error('Checkout error:', error);
-        showAlert('❌ Error submitting order. Please try again.');
+        showAlert(`❌ Error submitting order: ${error.message}`);
     }
 }
 
@@ -535,127 +459,8 @@ function setupAdminButton() {
         if (adminBtnText) adminBtnText.textContent = 'Admin Login';
         
         adminBtn.onclick = function() {
-            const modalHTML = `
-                <div id="admin-login-modal" class="modal-overlay" style="display: flex; z-index: 9999;">
-                    <div class="modal-content" style="max-width: 400px;">
-                        <h2>Admin Login</h2>
-                        <p style="text-align: center; margin-bottom: 20px;">Login to access admin panel</p>
-                        
-                        <input type="text" id="admin-username" placeholder="Username" value="admin">
-                        <input type="password" id="admin-password" placeholder="Password" value="admin123">
-                        
-                        <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
-                            <button id="login-admin-btn" style="background: #FF6A00;">Login as Admin</button>
-                            <button id="login-superadmin-btn" style="background: #8b4513;">Login as SuperAdmin</button>
-                            <button onclick="closeAdminLoginModal()" style="background: #6c757d;">Cancel</button>
-                        </div>
-                        
-                        <div style="margin-top: 20px; font-size: 12px; color: #666; text-align: center;">
-                            <p><strong>Demo Credentials:</strong></p>
-                            <p>Admin: admin / admin123</p>
-                            <p>SuperAdmin: superadmin / superadmin123</p>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            const existingModal = document.getElementById('admin-login-modal');
-            if (existingModal) {
-                existingModal.remove();
-            }
-            
-            document.body.insertAdjacentHTML('beforeend', modalHTML);
-            
-            setTimeout(() => {
-                const loginAdminBtn = document.getElementById('login-admin-btn');
-                const loginSuperadminBtn = document.getElementById('login-superadmin-btn');
-                const modal = document.getElementById('admin-login-modal');
-                
-                if (loginAdminBtn) {
-                    loginAdminBtn.addEventListener('click', function() {
-                        handleAdminLogin('admin');
-                    });
-                }
-                
-                if (loginSuperadminBtn) {
-                    loginSuperadminBtn.addEventListener('click', function() {
-                        handleAdminLogin('superadmin');
-                    });
-                }
-                
-                if (modal) {
-                    modal.addEventListener('click', function(e) {
-                        if (e.target === this) {
-                            this.remove();
-                        }
-                    });
-                }
-            }, 100);
+            showAdminLoginModal();
         };
-    }
-}
-
-async function handleAdminLogin(role) {
-    let username, password;
-    
-    if (role === 'admin') {
-        username = 'admin';
-        password = 'admin123';
-    } else {
-        username = 'superadmin';
-        password = 'superadmin123';
-    }
-    
-    const inputUsername = document.getElementById('admin-username').value;
-    const inputPassword = document.getElementById('admin-password').value;
-    
-    if (inputUsername === username && inputPassword === password) {
-        if (window.apiService) {
-            try {
-                const response = await apiService.adminLogin(username, password);
-                apiService.setToken(response.token);
-                localStorage.setItem('adminRole', response.user.role);
-                
-                const modal = document.getElementById('admin-login-modal');
-                if (modal) modal.remove();
-                
-                showAlert(`✅ Welcome, ${response.user.role === 'superadmin' ? 'SuperAdmin' : 'Admin'}! Redirecting...`);
-                
-                setTimeout(() => {
-                    window.location.href = 'admin.html';
-                }, 1000);
-                
-            } catch (error) {
-                showAlert('❌ Login failed. Please check credentials.');
-            }
-        } else {
-            // Fallback to localStorage
-            if (role === 'admin') {
-                localStorage.setItem('adminToken', 'demo_admin_token_123');
-                localStorage.setItem('adminRole', 'admin');
-            } else {
-                localStorage.setItem('adminToken', 'demo_superadmin_token_456');
-                localStorage.setItem('adminRole', 'superadmin');
-            }
-            
-            const modal = document.getElementById('admin-login-modal');
-            if (modal) modal.remove();
-            
-            showAlert(`✅ Welcome, ${role === 'superadmin' ? 'SuperAdmin' : 'Admin'}! Redirecting...`);
-            
-            setTimeout(() => {
-                window.location.href = 'admin.html';
-            }, 1000);
-        }
-    } else {
-        showAlert('❌ Invalid username or password!');
-    }
-}
-
-function closeAdminLoginModal() {
-    const modal = document.getElementById('admin-login-modal');
-    if (modal) {
-        modal.remove();
     }
 }
 
@@ -670,6 +475,3 @@ window.goBack = goBack;
 window.showAlert = showAlert;
 window.increaseQuantity = increaseQuantity;
 window.decreaseQuantity = decreaseQuantity;
-window.handleAdminLogin = handleAdminLogin;
-window.closeAdminLoginModal = closeAdminLoginModal;
-window.updateMenuItemsAvailability = updateMenuItemsAvailability;

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ai-Maize-ing Nachos - Home</title>
     <link rel="stylesheet" href="menu.css">
-    <link rel="stylesheet" href="slideshow.css"> <!-- Updated slideshow CSS -->
+    <link rel="stylesheet" href="slideshow.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Shrikhand&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -69,6 +69,46 @@
             margin-bottom: 20px;
             min-height: 40px;
             padding: 0 20px;
+        }
+        
+        /* Admin Button Container */
+        .admin-button-container {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        #admin-access-btn {
+            background: linear-gradient(135deg, #8b4513, #e65100);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(139, 69, 19, 0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        #admin-access-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(139, 69, 19, 0.4);
+        }
+
+        #admin-access-btn:active {
+            transform: translateY(0);
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 4px 15px rgba(139, 69, 19, 0.3); }
+            50% { box-shadow: 0 4px 20px rgba(139, 69, 19, 0.5); }
+            100% { box-shadow: 0 4px 15px rgba(139, 69, 19, 0.3); }
         }
         
         /* Promotional Banner */
@@ -142,6 +182,17 @@
             .page-subtitle {
                 font-size: 1rem;
             }
+            
+            .admin-button-container {
+                top: auto;
+                bottom: 80px;
+                right: 10px;
+            }
+            
+            #admin-access-btn {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
         }
         
         @media (max-width: 480px) {
@@ -169,7 +220,7 @@
         <img src="image/LOGO.jpg" alt="Ai-Maize-ing Nachos Logo" onerror="this.style.display='none'">
     </div>
 
-<div class="container">
+    <div class="container">
         <!-- Header Buttons -->
         <div class="header-buttons">
             <div id="admin-panel">
@@ -180,52 +231,29 @@
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </button>
             </div>
-            
         </div>
-<!-- Add this near your other header buttons -->
-<button id="admin-access-btn" style="background: #8b4513; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; display: none;">
-    <i class="fas fa-user-shield"></i> Admin
-</button>
 
-<script>
-// Show admin button if superadmin settings allow it
-document.addEventListener('DOMContentLoaded', function() {
-    const adminBtn = document.getElementById('admin-access-btn');
-    const superAdminSettings = JSON.parse(localStorage.getItem('superAdminSettings') || '{"showAdminButton": true}');
-    
-    if (adminBtn && superAdminSettings.showAdminButton) {
-        adminBtn.style.display = 'inline-block';
-        adminBtn.addEventListener('click', function() {
-            window.location.href = 'admin.html';
-        });
-    }
-});
-</script><!-- Add this near your other header buttons -->
-<button id="admin-access-btn" style="background: #8b4513; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; display: none;">
-    <i class="fas fa-user-shield"></i> Admin
-</button>
+        <!-- Admin Access Button (Controlled by SuperAdmin) -->
+        <div class="admin-button-container">
+            <button id="admin-access-btn" style="display: none;">
+                <i class="fas fa-user-shield"></i> Admin Panel
+            </button>
+        </div>
 
-<script>
-// Show admin button if superadmin settings allow it
-document.addEventListener('DOMContentLoaded', function() {
-    const adminBtn = document.getElementById('admin-access-btn');
-    const superAdminSettings = JSON.parse(localStorage.getItem('superAdminSettings') || '{"showAdminButton": true}');
-    
-    if (adminBtn && superAdminSettings.showAdminButton) {
-        adminBtn.style.display = 'inline-block';
-        adminBtn.addEventListener('click', function() {
-            window.location.href = 'admin.html';
-        });
-    }
-});
-</script>
- 
-        
-
+        <!-- Welcome Section -->
+        <section class="welcome-section">
+            <h1 class="page-title">Ai-Maize-ing Nachos</h1>
+            <p class="page-subtitle">Delicious nachos and desserts made with love and premium ingredients</p>
             
-        
+            <!-- Promotional Banner -->
+            <div class="promo-banner">
+                <p>
+                    <span class="promo-icon">🎉</span>
+                    Order now and get 10% off on your first purchase! Use code: WELCOME10
+                </p>
+            </div>
             
-            <!-- SLIDESHOW SECTION - TITLES MOVED OUTSIDE -->
+            <!-- SLIDESHOW SECTION -->
             <div class="slideshow-wrapper">
                 <!-- Title for current slide (OUTSIDE slideshow) -->
                 <h2 class="current-slide-title" id="current-slide-title">Welcome to Ai-Maize-ing Nachos</h2>
@@ -241,10 +269,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                     </div>
                     
-                    
-                        <div class="slideshow-dots" id="slideshow-dots">
-                            <!-- Dots will be dynamically added here -->
-                        </div>
+                    <div class="slideshow-dots" id="slideshow-dots">
+                        <!-- Dots will be dynamically added here -->
                     </div>
                     
                     <!-- Timer Bar -->
@@ -372,7 +398,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <script>
         // Slideshow functionality
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🏠 Home page initialized with slideshow');
+            console.log('🏠 Home page initialized');
             
             // Initialize slideshow
             initSlideshow();
@@ -383,7 +409,189 @@ document.addEventListener('DOMContentLoaded', function() {
             if (customerData && customerToggle) {
                 customerToggle.innerHTML = '<i class="fas fa-user"></i> My Profile';
             }
+            
+            // Initialize admin button visibility from SuperAdmin settings
+            updateAdminButtonVisibility();
+            
+            // Add click handler for admin button
+            const adminBtn = document.getElementById('admin-access-btn');
+            if (adminBtn) {
+                adminBtn.addEventListener('click', function() {
+                    // Check if admin is logged in
+                    const isAdminLoggedIn = localStorage.getItem('adminToken') !== null;
+                    if (isAdminLoggedIn) {
+                        window.location.href = 'admin.html';
+                    } else {
+                        // Show login modal
+                        showAdminLoginModal();
+                    }
+                });
+            }
         });
+
+        function updateAdminButtonVisibility() {
+            const adminBtn = document.getElementById('admin-access-btn');
+            if (!adminBtn) return;
+            
+            // Get superadmin settings
+            const superAdminSettings = JSON.parse(localStorage.getItem('superAdminSettings') || '{}');
+            
+            // Default to showing button if not specified
+            const shouldShow = superAdminSettings.showAdminButton !== false;
+            
+            if (shouldShow) {
+                adminBtn.style.display = 'flex';
+            } else {
+                adminBtn.style.display = 'none';
+            }
+            
+            console.log('Admin button visibility:', shouldShow ? 'Visible' : 'Hidden');
+        }
+
+        function showAdminLoginModal() {
+            const modalHTML = `
+                <div id="admin-login-modal" class="modal-overlay" style="display: flex; z-index: 9999;">
+                    <div class="modal-content" style="max-width: 400px;">
+                        <h2><i class="fas fa-user-shield"></i> Admin Login</h2>
+                        <p style="text-align: center; margin-bottom: 20px;">Login to access admin panel</p>
+                        
+                        <input type="text" id="admin-username" placeholder="Username" value="admin">
+                        <input type="password" id="admin-password" placeholder="Password" value="admin123">
+                        
+                        <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+                            <button id="login-admin-btn" style="background: #FF6A00;">Login as Admin</button>
+                            <button id="login-superadmin-btn" style="background: #8b4513;">Login as SuperAdmin</button>
+                            <button onclick="closeAdminLoginModal()" style="background: #6c757d;">Cancel</button>
+                        </div>
+                        
+                        <div style="margin-top: 20px; font-size: 12px; color: #666; text-align: center;">
+                            <p><strong>Demo Credentials:</strong></p>
+                            <p>Admin: admin / admin123</p>
+                            <p>SuperAdmin: superadmin / superadmin123</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const existingModal = document.getElementById('admin-login-modal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            
+            setTimeout(() => {
+                const loginAdminBtn = document.getElementById('login-admin-btn');
+                const loginSuperadminBtn = document.getElementById('login-superadmin-btn');
+                const modal = document.getElementById('admin-login-modal');
+                
+                if (loginAdminBtn) {
+                    loginAdminBtn.addEventListener('click', function() {
+                        handleAdminLogin('admin');
+                    });
+                }
+                
+                if (loginSuperadminBtn) {
+                    loginSuperadminBtn.addEventListener('click', function() {
+                        handleAdminLogin('superadmin');
+                    });
+                }
+                
+                if (modal) {
+                    modal.addEventListener('click', function(e) {
+                        if (e.target === this) {
+                            this.remove();
+                        }
+                    });
+                }
+            }, 100);
+        }
+
+        async function handleAdminLogin(role) {
+            let username, password;
+            
+            if (role === 'admin') {
+                username = 'admin';
+                password = 'admin123';
+            } else {
+                username = 'superadmin';
+                password = 'superadmin123';
+            }
+            
+            const inputUsername = document.getElementById('admin-username').value;
+            const inputPassword = document.getElementById('admin-password').value;
+            
+            if (inputUsername === username && inputPassword === password) {
+                try {
+                    const API_BASE_URL = 'https://aifoodies.up.railway.app/api';
+                    const response = await fetch(`${API_BASE_URL}/admin/login`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            username: inputUsername,
+                            password: inputPassword
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        
+                        // Store token and role
+                        localStorage.setItem('adminToken', data.token);
+                        localStorage.setItem('adminRole', data.user.role);
+                        
+                        const modal = document.getElementById('admin-login-modal');
+                        if (modal) modal.remove();
+                        
+                        showAlert(`✅ Welcome, ${data.user.role === 'superadmin' ? 'SuperAdmin' : 'Admin'}! Redirecting...`);
+                        
+                        setTimeout(() => {
+                            window.location.href = 'admin.html';
+                        }, 1000);
+                        
+                    } else {
+                        showAlert('❌ Login failed. Please check credentials.');
+                    }
+                } catch (error) {
+                    console.error('Login error:', error);
+                    showAlert('❌ Login failed. Please try again.');
+                }
+            } else {
+                showAlert('❌ Invalid username or password!');
+            }
+        }
+
+        function closeAdminLoginModal() {
+            const modal = document.getElementById('admin-login-modal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        function showAlert(message) {
+            const alertModal = document.getElementById('custom-alert');
+            const alertMessage = document.getElementById('custom-alert-message');
+            const alertOk = document.getElementById('custom-alert-ok');
+            
+            if (alertModal && alertMessage && alertOk) {
+                alertMessage.innerHTML = message;
+                alertModal.style.display = 'flex';
+                
+                alertOk.onclick = function() {
+                    alertModal.style.display = 'none';
+                };
+                
+                alertModal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        alertModal.style.display = 'none';
+                    }
+                });
+            } else {
+                alert(message);
+            }
+        }
 
         // Slideshow variables
         let currentSlide = 0;
@@ -396,14 +604,22 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Initializing slideshow...');
             
             try {
-                // Load slides from localStorage or use demo slides
-                slides = JSON.parse(localStorage.getItem('slideshowSlides') || '[]');
+                // Try to load slides from server
+                const API_BASE_URL = 'https://aifoodies.up.railway.app/api';
+                const response = await fetch(`${API_BASE_URL}/slideshow`);
                 
-                // If no slides in localStorage, use demo slides
-                if (!slides || slides.length === 0) {
-                    console.log('No slides found, using demo slides');
-                    slides = getDemoSlides();
-                    localStorage.setItem('slideshowSlides', JSON.stringify(slides));
+                if (response.ok) {
+                    slides = await response.json();
+                    console.log('Loaded slides from server:', slides.length);
+                } else {
+                    // Fallback to localStorage or demo slides
+                    slides = JSON.parse(localStorage.getItem('slideshowSlides') || '[]');
+                    
+                    if (!slides || slides.length === 0) {
+                        console.log('No slides found, using demo slides');
+                        slides = getDemoSlides();
+                        localStorage.setItem('slideshowSlides', JSON.stringify(slides));
+                    }
                 }
                 
                 // Filter only active slides
@@ -441,7 +657,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     _id: 'slide_1',
                     title: 'Welcome to Ai-Maize-ing Nachos',
                     description: 'Your go-to spot for the most delicious nachos and desserts in town!',
-                    imageUrl: 'image/logo.png',
+                    imageUrl: 'image/LOGO.jpg',
                     order: 1,
                     active: true,
                     createdAt: new Date(),
@@ -661,7 +877,8 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
             
             // Hide controls
-            document.querySelector('.slideshow-controls').style.display = 'none';
+            const controls = document.querySelector('.slideshow-controls');
+            if (controls) controls.style.display = 'none';
             
             // Update title and description for empty state
             const titleElement = document.getElementById('current-slide-title');
