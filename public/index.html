@@ -3,694 +3,370 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ai-Maize-ing Nachos - Home</title>
-    <link rel="stylesheet" href="menu.css">
-    <link rel="stylesheet" href="slideshow.css"> <!-- Updated slideshow CSS -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Shrikhand&display=swap" rel="stylesheet">
+    <title>Admin Panel - Ai-Maize-ing Nachos</title>
+    <link rel="stylesheet" href="admin.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        /* Additional home page styles */
-        .home-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        /* Welcome section with slideshow */
-        .welcome-section {
-            margin-bottom: 40px;
-        }
-        
-        .page-title {
-            text-align: center;
-            color: #8b4513;
-            font-size: 2.8rem;
-            margin-bottom: 10px;
-            font-family: 'Shrikhand', cursive;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .page-subtitle {
-            text-align: center;
-            color: #666;
-            font-size: 1.2rem;
-            margin-bottom: 30px;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        
-        /* Slideshow wrapper */
-        .slideshow-wrapper {
-            position: relative;
-            margin: 30px 0;
-        }
-        
-        /* Current slide title - MOVED OUTSIDE SLIDESHOW */
-        .current-slide-title {
-            text-align: center;
-            color: #8b4513;
-            font-size: 2.2rem;
-            margin-bottom: 20px;
-            font-family: 'Shrikhand', cursive;
-            min-height: 60px;
-            transition: opacity 0.5s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0 20px;
-        }
-        
-        .current-slide-description {
-            text-align: center;
-            color: #666;
-            font-size: 1.1rem;
-            margin-bottom: 20px;
-            min-height: 40px;
-            padding: 0 20px;
-        }
-        
-        /* Promotional Banner */
-        .promo-banner {
-            background: linear-gradient(135deg, #8b4513, #e65100);
-            color: white;
-            text-align: center;
-            padding: 15px 20px;
-            margin: 30px 0;
-            border-radius: 15px;
-            box-shadow: 0 6px 20px rgba(139, 69, 19, 0.3);
-            border: 2px solid #ffcc00;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .promo-banner::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
-            animation: shine 3s infinite;
-        }
-        
-        @keyframes shine {
-            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
-        }
-        
-        .promo-banner p {
-            margin: 0;
-            font-size: 1.2rem;
-            font-weight: bold;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-            position: relative;
-            z-index: 1;
-        }
-        
-        .promo-banner .promo-icon {
-            margin-right: 10px;
-            font-size: 1.4rem;
-            animation: bounce 2s infinite;
-        }
-        
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-            40% { transform: translateY(-5px); }
-            60% { transform: translateY(-3px); }
-        }
-        
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .current-slide-title {
-                font-size: 1.8rem;
-                min-height: 50px;
-                margin-bottom: 15px;
-            }
-            
-            .current-slide-description {
-                font-size: 1rem;
-                margin-bottom: 15px;
-            }
-            
-            .page-title {
-                font-size: 2.2rem;
-            }
-            
-            .page-subtitle {
-                font-size: 1rem;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .current-slide-title {
-                font-size: 1.5rem;
-                min-height: 40px;
-                margin-bottom: 10px;
-            }
-            
-            .current-slide-description {
-                font-size: 0.9rem;
-                margin-bottom: 10px;
-            }
-            
-            .page-title {
-                font-size: 1.8rem;
-            }
-        }
-    </style>
 </head>
-<body class="index-page">
-    
-    <!-- Small Corner Logo -->
-    <div class="corner-logo">
-        <img src="image/LOGO.jpg" alt="Ai-Maize-ing Nachos Logo" onerror="this.style.display='none'">
+<body class="admin-page">
+    <!-- Admin Panel Header -->
+    <div class="admin-header">
+        <div class="admin-header-content">
+            <h1 class="admin-panel-title">
+                <i class="fas fa-user-shield"></i> Admin Panel
+                <span id="admin-role-badge" class="admin-role-badge" style="display: none;"></span>
+            </h1>
+            <p>Manage your store, orders, and availability</p>
+        </div>
+        <div class="admin-header-actions">
+            <button id="back-to-store" class="action-btn secondary">
+                <i class="fas fa-store"></i> Back to Store
+            </button>
+            <button id="logout-btn" class="action-btn danger">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
     </div>
 
-<div class="container">
-        <!-- Header Buttons -->
-        <div class="header-buttons">
-            <div id="admin-panel">
-                <button id="admin-toggle">
-                    <i class="fas fa-user-shield"></i> <span id="admin-btn-text">Admin</span>
-                </button>
-                <button id="admin-logout-btn" style="display: none; background: #dc3545; margin-left: 5px;">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </button>
+    <!-- Admin Navigation -->
+    <div class="admin-nav">
+        <button class="admin-nav-btn active" data-section="dashboard">
+            <i class="fas fa-tachometer-alt"></i> Dashboard
+        </button>
+        <button class="admin-nav-btn" data-section="availability">
+            <i class="fas fa-toggle-on"></i> Availability
+        </button>
+        <button class="admin-nav-btn" data-section="slideshow">
+            <i class="fas fa-images"></i> Slideshow
+        </button>
+        <button class="admin-nav-btn" data-section="orders">
+            <i class="fas fa-receipt"></i> Orders
+        </button>
+        <button class="admin-nav-btn" data-section="products">
+            <i class="fas fa-boxes"></i> Manage Products
+        </button>
+    </div>
+
+    <!-- Admin Sections Container -->
+    <div class="admin-sections">
+        
+        <!-- Dashboard Section -->
+        <div id="dashboard-section" class="admin-section active">
+            <div class="admin-section-header">
+                <h2><i class="fas fa-tachometer-alt"></i> Dashboard Overview</h2>
+                <p>Store performance and recent activity</p>
             </div>
             
-        </div>
-<!-- Add this near your other header buttons -->
-<button id="admin-access-btn" style="background: #8b4513; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; display: none;">
-    <i class="fas fa-user-shield"></i> Admin
-</button>
-
-<script>
-// Show admin button if superadmin settings allow it
-document.addEventListener('DOMContentLoaded', function() {
-    const adminBtn = document.getElementById('admin-access-btn');
-    const superAdminSettings = JSON.parse(localStorage.getItem('superAdminSettings') || '{"showAdminButton": true}');
-    
-    if (adminBtn && superAdminSettings.showAdminButton) {
-        adminBtn.style.display = 'inline-block';
-        adminBtn.addEventListener('click', function() {
-            window.location.href = 'admin.html';
-        });
-    }
-});
-</script><!-- Add this near your other header buttons -->
-<button id="admin-access-btn" style="background: #8b4513; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; display: none;">
-    <i class="fas fa-user-shield"></i> Admin
-</button>
-
-<script>
-// Show admin button if superadmin settings allow it
-document.addEventListener('DOMContentLoaded', function() {
-    const adminBtn = document.getElementById('admin-access-btn');
-    const superAdminSettings = JSON.parse(localStorage.getItem('superAdminSettings') || '{"showAdminButton": true}');
-    
-    if (adminBtn && superAdminSettings.showAdminButton) {
-        adminBtn.style.display = 'inline-block';
-        adminBtn.addEventListener('click', function() {
-            window.location.href = 'admin.html';
-        });
-    }
-});
-</script>
- 
-        
-
-            
-        
-            
-            <!-- SLIDESHOW SECTION - TITLES MOVED OUTSIDE -->
-            <div class="slideshow-wrapper">
-                <!-- Title for current slide (OUTSIDE slideshow) -->
-                <h2 class="current-slide-title" id="current-slide-title">Welcome to Ai-Maize-ing Nachos</h2>
-                <p class="current-slide-description" id="current-slide-description">Your go-to spot for the most delicious nachos and desserts in town!</p>
+            <div class="dashboard-stats">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="total-orders">0</h3>
+                        <p>Total Orders</p>
+                    </div>
+                </div>
                 
-                <!-- Slideshow container -->
-                <div class="slideshow-container">
-                    <div class="slideshow" id="slideshow">
-                        <!-- Slides will be dynamically loaded here WITHOUT TITLES -->
-                        <div class="slideshow-loading">
-                            <div class="spinner"></div>
-                            <p>Loading delicious content...</p>
-                        </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-money-bill-wave"></i>
                     </div>
-                    
-                    
-                        <div class="slideshow-dots" id="slideshow-dots">
-                            <!-- Dots will be dynamically added here -->
-                        </div>
+                    <div class="stat-content">
+                        <h3 id="total-sales">₱0.00</h3>
+                        <p>Total Sales</p>
                     </div>
-                    
-                    <!-- Timer Bar -->
-                    <div class="slideshow-timer">
-                        <div class="timer-bar" id="timer-bar"></div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-day"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="today-orders">0</h3>
+                        <p>Today's Orders</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="today-sales">₱0.00</h3>
+                        <p>Today's Sales</p>
                     </div>
                 </div>
             </div>
-        </section>
-
-        <!-- Category Selection -->
-        <div class="compact-category-grid">
-            <div class="compact-category-card" onclick="navigateTo('nachos.html')">
-                <div class="compact-category-image">
-                    <img src="image/overload chees nachos.jpg" alt="Nachos" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZmY2YTAwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSJ3aGl0ZSI+TmFjaG9zPC90ZXh0Pjwvc3ZnPg=='">
+            
+            <!-- Sales Chart -->
+            <div class="chart-container">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="color: #8b4513; margin: 0;">Sales Overview</h3>
+                    <span class="real-time-indicator">
+                        <span class="pulse-dot"></span>
+                        LIVE
+                    </span>
                 </div>
-                <div class="compact-category-content">
-                    <div>
-                        <h2>Our Nachos</h2>
-                        <p>Delicious, cheesy nachos with various toppings and flavors</p>
-                    </div>
-                    <div>
-                        <div class="compact-price-range">₱35 - ₱180</div>
-                        <button class="compact-category-btn">Order Nachos</button>
+                <canvas id="sales-chart"></canvas>
+            </div>
+            
+            <!-- Recent Orders -->
+            <div class="recent-orders">
+                <div class="recent-orders-header">
+                    <h3>Recent Orders</h3>
+                    <button id="view-all-orders" class="action-btn secondary">View All Orders</button>
+                </div>
+                <div id="recent-orders-list" class="recent-orders-list">
+                    <div class="empty-state">
+                        <i class="fas fa-shopping-cart"></i>
+                        <h3>No Recent Orders</h3>
+                        <p>Orders will appear here when customers place them</p>
                     </div>
                 </div>
             </div>
-
-            <div class="compact-category-card" onclick="navigateTo('aifoodies.html')">
-                <div class="compact-category-image">
-                    <img src="image/mango.gif" alt="AI Foodies" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNGNhZjUwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSJ3aGl0ZSI+QUkgRm9vZGllczwvdGV4dD48L3N2Zz4='">
-                </div>
-                <div class="compact-category-content">
-                    <div>
-                        <h2>Desserts</h2>
-                        <p>Sweet desserts and treats including mango graham, biscoff, and more</p>
+        </div>
+        
+        <!-- Availability Section -->
+        <div id="availability-section" class="admin-section">
+            <div class="admin-section-header">
+                <h2><i class="fas fa-toggle-on"></i> Item Availability</h2>
+                <p>Control which items are available for ordering</p>
+            </div>
+            
+            <div class="availability-container">
+                <div class="availability-card">
+                    <h3><i class="fas fa-utensils"></i> Nachos Menu</h3>
+                    <div id="nachos-availability">
+                        <!-- Nachos items will be loaded here -->
                     </div>
-                    <div>
-                        <div class="compact-price-range">₱40 - ₱159</div>
-                        <button class="compact-category-btn">Order Desserts</button>
+                </div>
+                
+                <div class="availability-card">
+                    <h3><i class="fas fa-ice-cream"></i> Desserts</h3>
+                    <div id="desserts-availability">
+                        <!-- Dessert items will be loaded here -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="availability-actions">
+                <button id="reset-all-availability" class="action-btn primary">
+                    <i class="fas fa-check-circle"></i> Mark All Available
+                </button>
+                <button id="toggle-all-availability" class="action-btn secondary">
+                    <i class="fas fa-sync-alt"></i> Toggle All
+                </button>
+                <button id="save-availability" class="action-btn success">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </div>
+        </div>
+        
+        <!-- Slideshow Section -->
+        <div id="slideshow-section" class="admin-section">
+            <div class="admin-section-header">
+                <h2><i class="fas fa-images"></i> Homepage Slideshow</h2>
+                <p>Manage the slideshow on the homepage</p>
+            </div>
+            
+            <div class="slideshow-current">
+                <h3>Current Active Slides</h3>
+                <div id="slideshow-current" class="slideshow-list">
+                    <!-- Active slides will be loaded here -->
+                </div>
+            </div>
+            
+            <div class="slideshow-actions">
+                <button id="add-slide-btn" class="action-btn primary">
+                    <i class="fas fa-plus"></i> Add New Slide
+                </button>
+                <button id="refresh-slideshow" class="action-btn secondary">
+                    <i class="fas fa-sync-alt"></i> Refresh Slides
+                </button>
+                <button id="reorder-slides" class="action-btn success">
+                    <i class="fas fa-sort-amount-down"></i> Reorder Slides
+                </button>
+            </div>
+        </div>
+        
+        <!-- Orders Section -->
+        <div id="orders-section" class="admin-section">
+            <div class="admin-section-header">
+                <h2><i class="fas fa-receipt"></i> All Orders <span class="real-time-indicator">LIVE</span></h2>
+                <p>View and manage customer orders in real-time</p>
+            </div>
+            
+            <div class="orders-controls">
+                <select id="order-filter">
+                    <option value="all">All Orders</option>
+                    <option value="pending">Pending</option>
+                    <option value="processing">Processing</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+                
+                <input type="date" id="order-date">
+                
+                <input type="text" id="order-search" placeholder="Search by customer name, order ID...">
+                
+                <button id="export-orders" class="action-btn secondary">
+                    <i class="fas fa-download"></i> Export
+                </button>
+                <button id="refresh-orders" class="action-btn primary">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+            
+            <div class="orders-summary">
+                <div class="summary-card">
+                    <h3 id="summary-total">0</h3>
+                    <p>Total Orders</p>
+                </div>
+                <div class="summary-card">
+                    <h3 id="summary-pending">0</h3>
+                    <p>Pending</p>
+                </div>
+                <div class="summary-card">
+                    <h3 id="summary-processing">0</h3>
+                    <p>Processing</p>
+                </div>
+                <div class="summary-card">
+                    <h3 id="summary-completed">0</h3>
+                    <p>Completed</p>
+                </div>
+                <div class="summary-card">
+                    <h3 id="summary-cancelled">0</h3>
+                    <p>Cancelled</p>
+                </div>
+            </div>
+            
+            <div class="orders-list" id="orders-list">
+                <div class="empty-state">
+                    <i class="fas fa-receipt"></i>
+                    <h3>No Orders Yet</h3>
+                    <p>Customer orders will appear here in real-time</p>
+                </div>
+            </div>
+            
+            <div id="orders-pagination" class="pagination">
+                <!-- Pagination will be added here -->
+            </div>
+        </div>
+        
+        <!-- Products Section -->
+        <div id="products-section" class="admin-section">
+            <div class="admin-section-header">
+                <h2><i class="fas fa-boxes"></i> Product Management</h2>
+                <p>Add, edit, or remove menu items</p>
+            </div>
+            
+            <div class="product-management-container">
+                <div class="product-actions">
+                    <button id="add-product-btn" class="action-btn primary">
+                        <i class="fas fa-plus"></i> Add New Product
+                    </button>
+                    <button id="refresh-products" class="action-btn secondary">
+                        <i class="fas fa-sync-alt"></i> Refresh Products
+                    </button>
+                </div>
+                
+                <div class="products-list" id="products-list">
+                    <div class="empty-state">
+                        <i class="fas fa-box-open"></i>
+                        <h3>No Products Found</h3>
+                        <p>Add your first product to get started</p>
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- Quick Stats -->
-        <div class="compact-quick-stats">
-            <h2>Why Choose Us?</h2>
-            <div class="compact-stats-grid">
-                <div class="compact-stat-item">
-                    <i class="fas fa-shipping-fast"></i>
-                    <h3>Fast Pickup</h3>
-                    <p>Ready when you are</p>
-                </div>
-                <div class="compact-stat-item">
-                    <i class="fas fa-utensils"></i>
-                    <h3>Fresh Ingredients</h3>
-                    <p>Made with love</p>
-                </div>
-                <div class="compact-stat-item">
-                    <i class="fas fa-tags"></i>
-                    <h3>Best Prices</h3>
-                    <p>Great value</p>
-                </div>
-                <div class="compact-stat-item">
-                    <i class="fas fa-star"></i>
-                    <h3>Loyalty Points</h3>
-                    <p>Earn rewards</p>
-                </div>
-            </div>
-        </div>
+        
     </div>
 
-    <!-- Cart Trigger Button -->
-    <button id="cart-trigger">View Cart (<span id="cart-count">0</span>)</button>
-
-    <!-- Cart Popup -->
-    <div id="cart-popup">
-        <div class="cart-header">
-            <h3>Your Order</h3>
-            <button class="close-btn">X</button>
-        </div>
-        <ul id="cart-items"></ul>
-        <p>Total: <span id="cart-total">₱0</span></p>
-
-        <div class="order-details">
-            <input type="text" id="customer-name" placeholder="Your Name for Pickup">
-            <input type="tel" id="customer-phone" placeholder="Phone Number (Optional)">
-            <input type="text" id="pickup-time" placeholder="Pick-up Time (e.g., 6:30 PM)">
-        </div>
-
-        <div class="payment-options">
-            <select id="payment-method">
-                <option value="Cash on Pick-up">Cash on Pick-up</option>
-                <option value="Gcash">Gcash / PayMaya</option>
-                <option value="Bank Transfer">Bank Transfer</option>
-            </select>
-        </div>
-
-        <button id="checkout-btn">Send Order</button>
-    </div>
-
-    <!-- Modals -->
+    <!-- Custom Alert Modal -->
     <div id="custom-alert" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <p id="custom-alert-message"></p>
-            <button id="custom-alert-ok">OK</button>
+            <button id="custom-alert-ok" class="action-btn primary">OK</button>
         </div>
     </div>
 
-    <div id="login-modal" class="modal-overlay" style="display: none;">
-        <div class="login-container">
-            <h2>Admin Login</h2>
-            <input type="text" id="admin-username" placeholder="Username">
-            <input type="password" id="admin-password" placeholder="Password">
-            <button id="login-btn">Login</button>
-        </div>
-    </div>
-
-    <!-- JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="script.js"></script>
-    
-    <!-- Updated Slideshow JavaScript with external titles -->
-    <script>
-        // Slideshow functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🏠 Home page initialized with slideshow');
+    <!-- Add Product Modal -->
+    <div id="add-product-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h2 id="product-modal-title"><i class="fas fa-plus-circle"></i> Add New Product</h2>
             
-            // Initialize slideshow
-            initSlideshow();
+            <div id="add-product-success" class="success-message"></div>
             
-            // Check if customer is logged in and update button text
-            const customerData = localStorage.getItem('customerData');
-            const customerToggle = document.getElementById('customer-toggle');
-            if (customerData && customerToggle) {
-                customerToggle.innerHTML = '<i class="fas fa-user"></i> My Profile';
-            }
-        });
-
-        // Slideshow variables
-        let currentSlide = 0;
-        let slides = [];
-        let slideInterval;
-        let isPaused = false;
-        const SLIDE_DURATION = 5000; // 5 seconds per slide
-
-        async function initSlideshow() {
-            console.log('Initializing slideshow...');
+            <div class="form-group">
+                <label for="product-name">Product Name *</label>
+                <input type="text" id="product-name" placeholder="e.g., Supreme Nachos" required>
+                <div class="error-message" id="name-error">Please enter a product name</div>
+            </div>
             
-            try {
-                // Load slides from localStorage or use demo slides
-                slides = JSON.parse(localStorage.getItem('slideshowSlides') || '[]');
-                
-                // If no slides in localStorage, use demo slides
-                if (!slides || slides.length === 0) {
-                    console.log('No slides found, using demo slides');
-                    slides = getDemoSlides();
-                    localStorage.setItem('slideshowSlides', JSON.stringify(slides));
-                }
-                
-                // Filter only active slides
-                const activeSlides = slides.filter(slide => slide.active);
-                
-                if (activeSlides.length === 0) {
-                    showEmptySlideshow();
-                    return;
-                }
-                
-                // Render slideshow (without titles in slide content)
-                renderSlideshow(activeSlides);
-                
-                // Setup controls
-                setupSlideshowControls();
-                
-                // Start autoplay
-                startSlideshow();
-                
-                // Timer bar animation
-                updateTimerBar();
-                
-                // Set initial title and description
-                updateSlideTitleAndDescription(activeSlides[0]);
-                
-            } catch (error) {
-                console.error('Error initializing slideshow:', error);
-                showErrorSlideshow();
-            }
-        }
-
-        function getDemoSlides() {
-            return [
-                {
-                    _id: 'slide_1',
-                    title: 'Welcome to Ai-Maize-ing Nachos',
-                    description: 'Your go-to spot for the most delicious nachos and desserts in town!',
-                    imageUrl: 'image/logo.png',
-                    order: 1,
-                    active: true,
-                    createdAt: new Date(),
-                    promoBadge: 'New'
-                },
-                {
-                    _id: 'slide_2',
-                    title: 'Fresh Ingredients Daily',
-                    description: 'We use only the freshest, highest quality ingredients in all our dishes',
-                    imageUrl: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-                    order: 2,
-                    active: true,
-                    createdAt: new Date(Date.now() - 86400000)
-                },
-                {
-                    _id: 'slide_3',
-                    title: 'Special Offers Every Week',
-                    description: 'Check out our weekly specials and get amazing discounts',
-                    imageUrl: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-                    order: 3,
-                    active: true,
-                    createdAt: new Date(Date.now() - 172800000),
-                    promoBadge: '20% OFF'
-                }
-            ];
-        }
-
-        function renderSlideshow(slidesToShow) {
-            const slideshow = document.getElementById('slideshow');
-            const dotsContainer = document.getElementById('slideshow-dots');
+            <div class="form-group">
+                <label for="product-price">Price (₱) *</label>
+                <input type="number" id="product-price" placeholder="e.g., 180" min="0" step="0.01" required>
+                <div class="error-message" id="price-error">Please enter a valid price</div>
+            </div>
             
-            // Clear existing content
-            slideshow.innerHTML = '';
-            dotsContainer.innerHTML = '';
+            <div class="form-group">
+                <label for="product-category">Category *</label>
+                <select id="product-category" required>
+                    <option value="">Select Category</option>
+                    <option value="nachos">Nachos</option>
+                    <option value="desserts">Desserts</option>
+                </select>
+                <div class="error-message" id="category-error">Please select a category</div>
+            </div>
             
-            // Sort slides by order
-            slidesToShow.sort((a, b) => a.order - b.order);
+            <div class="form-group">
+                <label for="product-description">Description</label>
+                <textarea id="product-description" placeholder="Describe the product... (Optional)"></textarea>
+            </div>
             
-            // Create slides WITHOUT TITLES in content
-            slidesToShow.forEach((slide, index) => {
-                // Create slide element
-                const slideElement = document.createElement('div');
-                slideElement.className = 'slide';
-                slideElement.id = `slide-${index}`;
-                slideElement.dataset.title = slide.title;
-                slideElement.dataset.description = slide.description;
-                
-                // Add promo badge if present
-                let promoBadge = '';
-                if (slide.promoBadge) {
-                    promoBadge = `<div class="promo-badge">${slide.promoBadge}</div>`;
-                }
-                
-                // Note: No title in slide-content anymore
-                slideElement.innerHTML = `
-                    <img src="${slide.imageUrl}" alt="${slide.title}" class="slide-image" 
-                         onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjM1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjOGI0NTEzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSJ3aGl0ZSI+JHtzbGlkZS50aXRsZX08L3RleHQ+PC9zdmc+'">
-                    <div class="slide-content">
-                        <p class="slide-description">${slide.description}</p>
+            <div class="form-group">
+                <label for="product-image">Image URL</label>
+                <input type="text" id="product-image" placeholder="e.g., /image/product.jpg">
+                <div class="image-preview" id="image-preview">
+                    <div class="image-preview-placeholder">
+                        <i class="fas fa-image"></i>
+                        <p>No image selected</p>
                     </div>
-                    ${promoBadge}
-                `;
-                
-                slideshow.appendChild(slideElement);
-                
-                // Create dot
-                const dot = document.createElement('div');
-                dot.className = 'dot';
-                dot.dataset.index = index;
-                dot.addEventListener('click', () => goToSlide(index));
-                dotsContainer.appendChild(dot);
-            });
-            
-            // Show first slide
-            if (slidesToShow.length > 0) {
-                goToSlide(0);
-            }
-        }
-
-        function setupSlideshowControls() {
-            // Previous button
-            const prevBtn = document.getElementById('prev-slide');
-            if (prevBtn) {
-                prevBtn.addEventListener('click', () => {
-                    pauseSlideshow();
-                    prevSlide();
-                    setTimeout(resumeSlideshow, 3000); // Resume after 3 seconds
-                });
-            }
-            
-            // Next button
-            const nextBtn = document.getElementById('next-slide');
-            if (nextBtn) {
-                nextBtn.addEventListener('click', () => {
-                    pauseSlideshow();
-                    nextSlide();
-                    setTimeout(resumeSlideshow, 3000); // Resume after 3 seconds
-                });
-            }
-            
-            // Pause on hover
-            const slideshowContainer = document.querySelector('.slideshow-container');
-            if (slideshowContainer) {
-                slideshowContainer.addEventListener('mouseenter', pauseSlideshow);
-                slideshowContainer.addEventListener('mouseleave', resumeSlideshow);
-                
-                // Touch events for mobile
-                slideshowContainer.addEventListener('touchstart', pauseSlideshow);
-                slideshowContainer.addEventListener('touchend', () => {
-                    setTimeout(resumeSlideshow, 3000);
-                });
-            }
-        }
-
-        function goToSlide(index, direction = 'right') {
-            const activeSlides = slides.filter(slide => slide.active);
-            if (activeSlides.length === 0) return;
-            
-            const oldIndex = currentSlide;
-            currentSlide = (index + activeSlides.length) % activeSlides.length;
-            
-            // Update slide classes
-            const slidesElements = document.querySelectorAll('.slide');
-            const dots = document.querySelectorAll('.dot');
-            
-            // Remove active classes
-            slidesElements.forEach(slide => slide.classList.remove('active'));
-            dots.forEach(dot => dot.classList.remove('active'));
-            
-            // Add animation class based on direction
-            const currentSlideElement = slidesElements[currentSlide];
-            currentSlideElement.classList.add('active');
-            currentSlideElement.classList.add(`slide-in-${direction}`);
-            
-            // Remove animation class after animation completes
-            setTimeout(() => {
-                currentSlideElement.classList.remove(`slide-in-${direction}`);
-            }, 800);
-            
-            // Update dot
-            if (dots[currentSlide]) {
-                dots[currentSlide].classList.add('active');
-            }
-            
-            // Update title and description outside slideshow
-            updateSlideTitleAndDescription(activeSlides[currentSlide]);
-            
-            // Reset timer bar
-            updateTimerBar();
-        }
-
-        function updateSlideTitleAndDescription(slide) {
-            const titleElement = document.getElementById('current-slide-title');
-            const descriptionElement = document.getElementById('current-slide-description');
-            
-            if (titleElement && slide.title) {
-                titleElement.textContent = slide.title;
-            }
-            
-            if (descriptionElement && slide.description) {
-                descriptionElement.textContent = slide.description;
-            }
-        }
-
-        function nextSlide() {
-            goToSlide(currentSlide + 1, 'right');
-        }
-
-        function prevSlide() {
-            goToSlide(currentSlide - 1, 'left');
-        }
-
-        function startSlideshow() {
-            if (slideInterval) clearInterval(slideInterval);
-            slideInterval = setInterval(nextSlide, SLIDE_DURATION);
-            isPaused = false;
-        }
-
-        function pauseSlideshow() {
-            if (slideInterval) {
-                clearInterval(slideInterval);
-                slideInterval = null;
-                isPaused = true;
-            }
-        }
-
-        function resumeSlideshow() {
-            if (isPaused) {
-                startSlideshow();
-            }
-        }
-
-        function updateTimerBar() {
-            const timerBar = document.getElementById('timer-bar');
-            if (!timerBar) return;
-            
-            // Reset timer bar
-            timerBar.style.transition = 'none';
-            timerBar.style.width = '0%';
-            
-            // Force reflow
-            timerBar.offsetWidth;
-            
-            // Start animation
-            timerBar.style.transition = `width ${SLIDE_DURATION}ms linear`;
-            timerBar.style.width = '100%';
-        }
-
-        function showEmptySlideshow() {
-            const slideshow = document.getElementById('slideshow');
-            slideshow.innerHTML = `
-                <div class="slideshow-empty">
-                    <i class="fas fa-images"></i>
-                    <h3>No Slides Available</h3>
-                    <p>Check back soon for promotions and updates!</p>
                 </div>
-            `;
+            </div>
             
-            // Hide controls
-            document.querySelector('.slideshow-controls').style.display = 'none';
+            <div class="form-check">
+                <input type="checkbox" id="product-available" checked>
+                <label for="product-available">Available for ordering</label>
+            </div>
             
-            // Update title and description for empty state
-            const titleElement = document.getElementById('current-slide-title');
-            const descriptionElement = document.getElementById('current-slide-description');
-            if (titleElement) titleElement.textContent = 'Check Back Soon!';
-            if (descriptionElement) descriptionElement.textContent = 'We\'re preparing something special for you!';
-        }
+            <div class="modal-actions">
+                <button id="save-product-btn" class="action-btn primary">
+                    <i class="fas fa-save"></i> Save Product
+                </button>
+                <button id="cancel-add-product" class="action-btn secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+        </div>
+    </div>
 
-        function showErrorSlideshow() {
-            const slideshow = document.getElementById('slideshow');
-            slideshow.innerHTML = `
-                <div class="slideshow-empty">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <h3>Unable to Load Slideshow</h3>
-                    <p>Please check your connection and try again.</p>
-                </div>
-            `;
-            
-            // Update title and description for error state
-            const titleElement = document.getElementById('current-slide-title');
-            const descriptionElement = document.getElementById('current-slide-description');
-            if (titleElement) titleElement.textContent = 'Oops! Something went wrong';
-            if (descriptionElement) descriptionElement.textContent = 'Please try refreshing the page';
-        }
+    <!-- Order Details Modal -->
+    <div id="order-details-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 600px;">
+            <h2 id="order-modal-title">Order Details</h2>
+            <div id="order-details-content">
+                <!-- Order details will be loaded here -->
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 25px; justify-content: flex-end;">
+                <button id="update-order-status" class="action-btn primary">Update Status</button>
+                <button id="close-order-details" class="action-btn secondary">Close</button>
+            </div>
+        </div>
+    </div>
 
-        // Global function for navigation
-        function navigateTo(page) {
-            window.location.href = page;
-        }
-    </script>
+    <!-- Load admin script -->
+    <script src="admin-script.js"></script>
 </body>
 </html>
