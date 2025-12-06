@@ -9,98 +9,18 @@ let adminRole = localStorage.getItem('adminRole') || 'admin';
 let currentSection = 'dashboard';
 let superAdminSettings = JSON.parse(localStorage.getItem('superAdminSettings') || '{"showAdminButton": true}');
 let currentEditingSlideId = null;
+let currentEditingProductId = null;
 
-// Menu items data from nachos.html and aifoodies.html
-const menuItems = {
-    nachos: [
-        { 
-            name: "Regular Nachos", 
-            price: 35, 
-            image: "image/classic nachos.jpg", 
-            category: "nachos",
-            description: "Classic nachos with delicious toppings"
-        },
-        { 
-            name: "Veggie Nachos", 
-            price: 65, 
-            image: "image/veggie nachos.jpg", 
-            category: "nachos",
-            description: "Fresh vegetable nachos"
-        },
-        { 
-            name: "Overload Cheesy Nachos", 
-            price: 95, 
-            image: "image/overload chees nachos.jpg", 
-            category: "nachos",
-            description: "Extra cheesy nachos overload"
-        },
-        { 
-            name: "Nacho Combo", 
-            price: 75, 
-            image: "image/combo.png", 
-            category: "nachos",
-            description: "Nachos combo meal"
-        },
-        { 
-            name: "Nacho Fries", 
-            price: 85, 
-            image: "image/nacho fries.jpg", 
-            category: "nachos",
-            description: "Nachos with crispy fries"
-        },
-        { 
-            name: "Supreme Nachos", 
-            price: 180, 
-            image: "image/Supreme Nachos.png", 
-            category: "nachos",
-            description: "Supreme nachos special"
-        },
-        { 
-            name: "Shawarma fries", 
-            price: 120, 
-            image: "image/shawarma fries.jpeg", 
-            category: "nachos",
-            description: "Shawarma style fries"
-        }
-    ],
-    desserts: [
-        { 
-            name: "Mango Graham", 
-            price: 40, 
-            image: "image/mango.gif", 
-            category: "desserts",
-            description: "Refreshing mango graham"
-        },
-        { 
-            name: "Mango tiramisu on tube", 
-            price: 100, 
-            image: "image/mango tiramisu on tub-price 100.jpeg", 
-            category: "desserts",
-            description: "Mango tiramisu in a tube"
-        },
-        { 
-            name: "Biscoff", 
-            price: 159, 
-            image: "image/biscoff.jpeg", 
-            category: "desserts",
-            description: "Delicious biscoff dessert"
-        },
-        { 
-            name: "Oreo", 
-            price: 149, 
-            image: "image/oreo and bisscoff.png", 
-            category: "desserts",
-            description: "Creamy oreo dessert"
-        },
-        { 
-            name: "Mango Graham Float", 
-            price: 40, 
-            image: "image/Mango Graham Floa.jpg", 
-            category: "desserts",
-            description: "Mango graham float special"
-        }
-    ]
+// Menu items data - Load from localStorage or use default
+let menuItems = {
+    nachos: [],
+    desserts: []
 };
+
+// Real orders data
+let realOrders = JSON.parse(localStorage.getItem('realOrders') || '[]');
+let orderUpdateInterval = null;
+let currentOrdersFilter = 'all';
 
 // ================================
 // INITIALIZATION
@@ -116,12 +36,160 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
+    // Load menu items
+    loadMenuItemsFromStorage();
+    
     // Initialize admin panel
     initializeAdminPanel();
     
-    // Setup event listeners after a small delay to ensure DOM is ready
-    setTimeout(setupAdminEventListeners, 200);
+    // Setup real-time order listener
+    setupOrderListener();
+    
+    // Setup ALL event listeners
+    setupAdminEventListeners();
 });
+
+function loadMenuItemsFromStorage() {
+    const storedItems = localStorage.getItem('menuItems');
+    if (storedItems) {
+        menuItems = JSON.parse(storedItems);
+    } else {
+        // Default items if none in storage
+        menuItems = {
+            nachos: [
+                { 
+                    id: 'nachos_1',
+                    name: "Regular Nachos", 
+                    price: 35, 
+                    image: "image/classic nachos.jpg", 
+                    category: "nachos",
+                    description: "Classic nachos with delicious toppings",
+                    isAvailable: true,
+                    createdAt: new Date()
+                },
+                { 
+                    id: 'nachos_2',
+                    name: "Veggie Nachos", 
+                    price: 65, 
+                    image: "image/veggie nachos.jpg", 
+                    category: "nachos",
+                    description: "Fresh vegetable nachos",
+                    isAvailable: true,
+                    createdAt: new Date()
+                },
+                { 
+                    id: 'nachos_3',
+                    name: "Overload Cheesy Nachos", 
+                    price: 95, 
+                    image: "image/overload chees nachos.jpg", 
+                    category: "nachos",
+                    description: "Extra cheesy nachos overload",
+                    isAvailable: true,
+                    createdAt: new Date()
+                },
+                { 
+                    id: 'nachos_4',
+                    name: "Nacho Combo", 
+                    price: 75, 
+                    image: "image/combo.png", 
+                    category: "nachos",
+                    description: "Nachos combo meal",
+                    isAvailable: true,
+                    createdAt: new Date()
+                },
+                { 
+                    id: 'nachos_5',
+                    name: "Nacho Fries", 
+                    price: 85, 
+                    image: "image/nacho fries.jpg", 
+                    category: "nachos",
+                    description: "Nachos with crispy fries",
+                    isAvailable: true,
+                    createdAt: new Date()
+                },
+                { 
+                    id: 'nachos_6',
+                    name: "Supreme Nachos", 
+                    price: 180, 
+                    image: "image/Supreme Nachos.png", 
+                    category: "nachos",
+                    description: "Supreme nachos special",
+                    isAvailable: true,
+                    createdAt: new Date()
+                },
+                { 
+                    id: 'nachos_7',
+                    name: "Shawarma fries", 
+                    price: 120, 
+                    image: "image/shawarma fries.jpeg", 
+                    category: "nachos",
+                    description: "Shawarma style fries",
+                    isAvailable: true,
+                    createdAt: new Date()
+                }
+            ],
+            desserts: [
+                { 
+                    id: 'desserts_1',
+                    name: "Mango Graham", 
+                    price: 40, 
+                    image: "image/mango.gif", 
+                    category: "desserts",
+                    description: "Refreshing mango graham",
+                    isAvailable: true,
+                    createdAt: new Date()
+                },
+                { 
+                    id: 'desserts_2',
+                    name: "Mango tiramisu on tube", 
+                    price: 100, 
+                    image: "image/mango tiramisu on tub-price 100.jpeg", 
+                    category: "desserts",
+                    description: "Mango tiramisu in a tube",
+                    isAvailable: true,
+                    createdAt: new Date()
+                },
+                { 
+                    id: 'desserts_3',
+                    name: "Biscoff", 
+                    price: 159, 
+                    image: "image/biscoff.jpeg", 
+                    category: "desserts",
+                    description: "Delicious biscoff dessert",
+                    isAvailable: true,
+                    createdAt: new Date()
+                },
+                { 
+                    id: 'desserts_4',
+                    name: "Oreo", 
+                    price: 149, 
+                    image: "image/oreo and bisscoff.png", 
+                    category: "desserts",
+                    description: "Creamy oreo dessert",
+                    isAvailable: true,
+                    createdAt: new Date()
+                },
+                { 
+                    id: 'desserts_5',
+                    name: "Mango Graham Float", 
+                    price: 40, 
+                    image: "image/Mango Graham Floa.jpg", 
+                    category: "desserts",
+                    description: "Mango graham float special",
+                    isAvailable: true,
+                    createdAt: new Date()
+                }
+            ]
+        };
+        localStorage.setItem('menuItems', JSON.stringify(menuItems));
+    }
+    return menuItems;
+}
+
+// Save menu items to localStorage
+function saveMenuItemsToStorage() {
+    localStorage.setItem('menuItems', JSON.stringify(menuItems));
+}
 
 function showLoginModal() {
     const modalHTML = `
@@ -134,13 +202,13 @@ function showLoginModal() {
                 <input type="password" id="admin-password-modal" placeholder="Password" value="admin123" style="margin-bottom: 20px;">
                 
                 <div style="display: flex; flex-direction: column; gap: 10px;">
-                    <button id="modal-login-btn" style="background: #8b4513; color: white; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                    <button id="modal-login-btn" class="action-btn primary">
                         <i class="fas fa-sign-in-alt"></i> Login as Admin
                     </button>
-                    <button id="modal-superadmin-btn" style="background: #FF6A00; color: white; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                    <button id="modal-superadmin-btn" class="action-btn" style="background: #FF6A00;">
                         <i class="fas fa-crown"></i> Login as SuperAdmin
                     </button>
-                    <button onclick="window.location.href = 'index.html'" style="background: #6c757d; color: white; padding: 12px; border: none; border-radius: 8px; cursor: pointer;">
+                    <button id="back-to-home-btn" class="action-btn secondary">
                         <i class="fas fa-home"></i> Back to Homepage
                     </button>
                 </div>
@@ -160,40 +228,33 @@ function showLoginModal() {
     
     document.body.insertAdjacentHTML('beforeend', modalHTML);
     
-    // Add event listeners
-    setTimeout(() => {
-        const modalLoginBtn = document.getElementById('modal-login-btn');
-        const modalSuperadminBtn = document.getElementById('modal-superadmin-btn');
-        
-        if (modalLoginBtn) {
-            modalLoginBtn.addEventListener('click', function() {
-                handleAdminModalLogin('admin');
-            });
+    // Add event listeners immediately
+    document.getElementById('modal-login-btn').addEventListener('click', function() {
+        handleAdminModalLogin('admin');
+    });
+    
+    document.getElementById('modal-superadmin-btn').addEventListener('click', function() {
+        handleAdminModalLogin('superadmin');
+    });
+    
+    document.getElementById('back-to-home-btn').addEventListener('click', function() {
+        window.location.href = 'index.html';
+    });
+    
+    // Close modal when clicking outside
+    const modal = document.getElementById('admin-login-modal');
+    modal.addEventListener('click', function(e) {
+        if (e.target === this) {
+            modal.remove();
         }
-        
-        if (modalSuperadminBtn) {
-            modalSuperadminBtn.addEventListener('click', function() {
-                handleAdminModalLogin('superadmin');
-            });
+    });
+    
+    // Enter key to login
+    document.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            handleAdminModalLogin('admin');
         }
-        
-        // Close modal when clicking outside
-        const modal = document.getElementById('admin-login-modal');
-        if (modal) {
-            modal.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    modal.remove();
-                }
-            });
-        }
-        
-        // Enter key to login
-        document.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                handleAdminModalLogin('admin');
-            }
-        });
-    }, 100);
+    });
 }
 
 function handleAdminModalLogin(role) {
@@ -227,24 +288,26 @@ function handleAdminModalLogin(role) {
     // Show success message
     showAlert(`✅ Welcome, ${role === 'superadmin' ? 'SuperAdmin' : 'Admin'}!`);
     
-    // Initialize admin panel
+    // Reload the page to initialize everything
     setTimeout(() => {
-        initializeAdminPanel();
-    }, 500);
+        window.location.reload();
+    }, 1000);
 }
 
 function initializeAdminPanel() {
     console.log('Initializing admin panel for:', adminRole);
     
     // Show superadmin features if applicable
-    showSuperAdminFeatures();
+    if (adminRole === 'superadmin') {
+        showSuperAdminFeatures();
+    }
     
     // Load initial dashboard
     loadAdminDashboard();
 }
 
 // ================================
-// EVENT LISTENERS SETUP
+// EVENT LISTENERS SETUP - FIXED VERSION
 // ================================
 
 function setupAdminEventListeners() {
@@ -270,19 +333,32 @@ function setupAdminEventListeners() {
         });
     }
     
-    // Navigation buttons
-    document.querySelectorAll('.admin-nav-btn[data-section]').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const sectionId = this.getAttribute('data-section');
-            showSection(sectionId);
+    // Navigation buttons - Use event delegation
+    const adminNav = document.querySelector('.admin-nav');
+    if (adminNav) {
+        adminNav.addEventListener('click', function(e) {
+            const navBtn = e.target.closest('.admin-nav-btn');
+            if (navBtn && navBtn.hasAttribute('data-section')) {
+                const sectionId = navBtn.getAttribute('data-section');
+                showSection(sectionId);
+            }
         });
-    });
+    }
     
     // View all orders button
     const viewAllOrders = document.getElementById('view-all-orders');
     if (viewAllOrders) {
         viewAllOrders.addEventListener('click', function() {
             showSection('orders');
+        });
+    }
+    
+    // Refresh orders button
+    const refreshOrders = document.getElementById('refresh-orders');
+    if (refreshOrders) {
+        refreshOrders.addEventListener('click', function() {
+            loadRealOrders();
+            showAlert('Orders refreshed!', 'success');
         });
     }
     
@@ -297,18 +373,50 @@ function setupAdminEventListeners() {
         toggleAllAvailabilityBtn.addEventListener('click', toggleAllAvailability);
     }
     
+    const saveAvailabilityBtn = document.getElementById('save-availability');
+    if (saveAvailabilityBtn) {
+        saveAvailabilityBtn.addEventListener('click', function() {
+            showAlert('Availability changes saved!', 'success');
+        });
+    }
+    
     // Slideshow buttons
     setupSlideshowEventListeners();
     
     // Order filters
     const orderFilter = document.getElementById('order-filter');
     if (orderFilter) {
-        orderFilter.addEventListener('change', filterOrders);
+        orderFilter.addEventListener('change', function() {
+            currentOrdersFilter = this.value;
+            filterOrders();
+        });
     }
     
     const orderSearch = document.getElementById('order-search');
     if (orderSearch) {
         orderSearch.addEventListener('input', searchOrders);
+    }
+    
+    // Export orders button
+    const exportOrders = document.getElementById('export-orders');
+    if (exportOrders) {
+        exportOrders.addEventListener('click', function() {
+            showAlert('Export feature would download orders as CSV file.', 'info');
+        });
+    }
+    
+    // Products buttons
+    const addProductBtn = document.getElementById('add-product-btn');
+    if (addProductBtn) {
+        addProductBtn.addEventListener('click', showAddProductModal);
+    }
+    
+    const refreshProducts = document.getElementById('refresh-products');
+    if (refreshProducts) {
+        refreshProducts.addEventListener('click', function() {
+            loadProducts();
+            showAlert('Products refreshed!', 'success');
+        });
     }
     
     // Custom alert OK button
@@ -328,8 +436,63 @@ function setupAdminEventListeners() {
         });
     });
     
-    // Superadmin settings buttons (will be added dynamically)
+    // Add product modal buttons
+    const saveProductBtn = document.getElementById('save-product-btn');
+    if (saveProductBtn) {
+        saveProductBtn.addEventListener('click', saveProduct);
+    }
+    
+    const cancelAddProduct = document.getElementById('cancel-add-product');
+    if (cancelAddProduct) {
+        cancelAddProduct.addEventListener('click', function() {
+            document.getElementById('add-product-modal').style.display = 'none';
+            currentEditingProductId = null;
+        });
+    }
+    
+    // Order details modal buttons
+    const closeOrderDetails = document.getElementById('close-order-details');
+    if (closeOrderDetails) {
+        closeOrderDetails.addEventListener('click', function() {
+            document.getElementById('order-details-modal').style.display = 'none';
+        });
+    }
+    
+    // Setup event listeners for dynamically added elements
+    setupDynamicEventListeners();
+}
+
+function setupSlideshowEventListeners() {
+    console.log('Setting up slideshow event listeners');
+    
+    // Add slide button
+    const addSlideBtn = document.getElementById('add-slide-btn');
+    if (addSlideBtn) {
+        addSlideBtn.addEventListener('click', showMenuItemsSelectionModal);
+    }
+    
+    // Refresh slideshow button
+    const refreshSlideshowBtn = document.getElementById('refresh-slideshow');
+    if (refreshSlideshowBtn) {
+        refreshSlideshowBtn.addEventListener('click', function() {
+            loadSlideshow();
+            showAlert('Slideshow refreshed!', 'success');
+        });
+    }
+    
+    // Reorder slides button
+    const reorderSlidesBtn = document.getElementById('reorder-slides');
+    if (reorderSlidesBtn) {
+        reorderSlidesBtn.addEventListener('click', function() {
+            showAlert('Drag and drop slides to reorder them. This feature requires additional implementation.', 'info');
+        });
+    }
+}
+
+function setupDynamicEventListeners() {
+    // This will be called after loading dynamic content
     setTimeout(() => {
+        // Superadmin settings buttons
         const saveSuperAdminBtn = document.getElementById('save-superadmin-settings');
         if (saveSuperAdminBtn) {
             saveSuperAdminBtn.addEventListener('click', saveSuperadminSettings);
@@ -351,56 +514,21 @@ function setupAdminEventListeners() {
         if (resetSuperadminSettings) {
             resetSuperadminSettings.addEventListener('click', resetSuperadminSettingsFunc);
         }
-    }, 300);
-}
-
-// Setup slideshow event listeners with delegation
-function setupSlideshowEventListeners() {
-    console.log('Setting up slideshow event listeners');
-    
-    // Add slide button - Updated to show menu items
-    const addSlideBtn = document.getElementById('add-slide-btn');
-    if (addSlideBtn) {
-        addSlideBtn.addEventListener('click', function() {
-            showMenuItemsSelectionModal();
-        });
-    }
-    
-    // Refresh slideshow button
-    const refreshSlideshowBtn = document.getElementById('refresh-slideshow');
-    if (refreshSlideshowBtn) {
-        refreshSlideshowBtn.addEventListener('click', loadSlideshow);
-    }
-    
-    // Reorder slides button
-    const reorderSlidesBtn = document.getElementById('reorder-slides');
-    if (reorderSlidesBtn) {
-        reorderSlidesBtn.addEventListener('click', function() {
-            showAlert('Drag and drop slides to reorder them.');
-        });
-    }
-    
-    // Save slide button in add-slide-modal
-    const saveSlideBtn = document.getElementById('save-slide-btn');
-    if (saveSlideBtn) {
-        saveSlideBtn.addEventListener('click', addNewSlide);
-    }
-    
-    // Cancel add slide button
-    const cancelAddSlide = document.getElementById('cancel-add-slide');
-    if (cancelAddSlide) {
-        cancelAddSlide.addEventListener('click', closeAddSlideModal);
-    }
-    
-    // Delete slide button
-    const deleteSlideBtn = document.getElementById('delete-slide-btn');
-    if (deleteSlideBtn) {
-        deleteSlideBtn.addEventListener('click', function() {
-            if (currentEditingSlideId) {
-                deleteSlide(currentEditingSlideId);
+        
+        // Setup availability toggle switches
+        document.querySelectorAll('.toggle-switch input').forEach(checkbox => {
+            if (!checkbox.hasAttribute('data-event-bound')) {
+                checkbox.setAttribute('data-event-bound', 'true');
+                checkbox.addEventListener('change', function() {
+                    const itemName = this.getAttribute('data-item');
+                    const available = this.checked;
+                    if (itemName) {
+                        updateAvailability(itemName, available);
+                    }
+                });
             }
         });
-    }
+    }, 500);
 }
 
 // ================================
@@ -551,13 +679,10 @@ function addSuperAdminSection() {
         superadminNavBtn.setAttribute('data-section', 'superadmin');
         superadminNavBtn.innerHTML = '<i class="fas fa-crown"></i> SuperAdmin';
         adminNav.appendChild(superadminNavBtn);
-        
-        // Add click event
-        superadminNavBtn.addEventListener('click', function() {
-            const sectionId = this.getAttribute('data-section');
-            showSection(sectionId);
-        });
     }
+    
+    // Setup dynamic event listeners for newly added elements
+    setupDynamicEventListeners();
 }
 
 function saveSuperadminSettings() {
@@ -576,7 +701,7 @@ function saveSuperadminSettings() {
     // Save to localStorage
     localStorage.setItem('superAdminSettings', JSON.stringify(superAdminSettings));
     
-    showAlert('✅ Superadmin settings saved! Changes will apply on the homepage.');
+    showAlert('✅ Superadmin settings saved! Changes will apply on the homepage.', 'success');
     
     // Log the change
     logSuperadminAction('Settings updated');
@@ -599,7 +724,7 @@ function resetSuperadminSettingsFunc() {
         if (maintenanceMode) maintenanceMode.checked = false;
         if (siteTheme) siteTheme.value = 'default';
         
-        showAlert('✅ Settings reset to default');
+        showAlert('✅ Settings reset to default', 'success');
         logSuperadminAction('Settings reset to default');
     }
 }
@@ -646,7 +771,7 @@ function viewAccessLogFunc() {
     });
     logHTML += '</div>';
     
-    showAlert(logHTML);
+    showAlert(logHTML, 'info');
 }
 
 function logSuperadminAction(action) {
@@ -697,7 +822,10 @@ function showSection(sectionId) {
             loadSlideshow();
             break;
         case 'orders':
-            loadAllOrders();
+            loadRealOrders();
+            break;
+        case 'products':
+            loadProducts();
             break;
         case 'superadmin':
             // Superadmin section is already loaded
@@ -713,87 +841,121 @@ async function loadAdminDashboard() {
     try {
         console.log('Loading dashboard...');
         
-        // Update stats
-        const totalOrders = document.getElementById('total-orders');
-        const totalSales = document.getElementById('total-sales');
-        const todayOrders = document.getElementById('today-orders');
-        const todaySales = document.getElementById('today-sales');
+        // Load real orders first
+        await loadRealOrders();
         
-        if (totalOrders) totalOrders.textContent = '24';
-        if (totalSales) totalSales.textContent = '₱5,240.00';
-        if (todayOrders) todayOrders.textContent = '3';
-        if (todaySales) todaySales.textContent = '₱650.00';
+        // Update chart with real data
+        updateSalesChartWithRealData();
         
-        // Update chart
-        updateSalesChart();
-        
-        // Load recent orders
-        loadRecentOrders();
+        // Load recent orders from real data
+        loadRecentRealOrders();
         
     } catch (error) {
         console.error('Dashboard load error:', error);
-        showAlert('Error loading dashboard data');
+        showAlert('Error loading dashboard data', 'error');
     }
 }
 
-async function loadRecentOrders() {
-    const ordersList = document.getElementById('recent-orders-list');
-    if (!ordersList) return;
-    
-    // Demo recent orders
-    const demoOrders = [
-        {
-            _id: 'order_001',
-            customerName: 'John Doe',
-            items: [
-                { name: 'Regular Nachos', quantity: 2 },
-                { name: 'Mango Graham', quantity: 1 }
-            ],
-            total: 110,
-            status: 'completed'
-        },
-        {
-            _id: 'order_002',
-            customerName: 'Jane Smith',
-            items: [
-                { name: 'Overload Cheesy Nachos', quantity: 1 }
-            ],
-            total: 95,
-            status: 'processing'
-        },
-        {
-            _id: 'order_003',
-            customerName: 'Mike Johnson',
-            items: [
-                { name: 'Shawarma Fries', quantity: 1 },
-                { name: 'Nacho Combo', quantity: 2 }
-            ],
-            total: 270,
-            status: 'pending'
+// ================================
+// REAL-TIME ORDERS FUNCTIONS
+// ================================
+
+// Function to fetch real orders from localStorage
+async function loadRealOrders() {
+    try {
+        console.log('Loading real orders...');
+        
+        // Get orders from localStorage (where script.js saves them)
+        const storedOrders = localStorage.getItem('customerOrders');
+        if (storedOrders) {
+            realOrders = JSON.parse(storedOrders);
+        } else {
+            realOrders = [];
         }
-    ];
-    
-    ordersList.innerHTML = demoOrders.map(order => `
-        <div class="order-preview-item" onclick="showOrderDetails('${order._id}')">
-            <div class="order-preview-header">
-                <span class="order-id">#${order._id.substring(0, 8)}</span>
-                <span class="order-status ${order.status}">${order.status}</span>
-            </div>
-            <div class="order-preview-details">
-                <div class="customer-name">${order.customerName || 'Guest'}</div>
-                <div class="order-total">₱${order.total.toFixed(2)}</div>
-            </div>
-            <div class="order-preview-items">
-                ${order.items.slice(0, 2).map(item => 
-                    `<span>${item.name} x${item.quantity}</span>`
-                ).join(', ')}
-                ${order.items.length > 2 ? `... +${order.items.length - 2} more` : ''}
-            </div>
-        </div>
-    `).join('');
+        
+        // Also check for single recent order
+        const recentOrder = localStorage.getItem('lastOrder');
+        if (recentOrder) {
+            const parsedOrder = JSON.parse(recentOrder);
+            if (!realOrders.some(o => o._id === parsedOrder._id || o.id === parsedOrder.id)) {
+                realOrders.push(parsedOrder);
+                // Save back to localStorage
+                localStorage.setItem('customerOrders', JSON.stringify(realOrders));
+            }
+        }
+        
+        // Update orders summary
+        updateOrdersSummary(realOrders);
+        
+        // Render orders list with filter
+        filterOrders();
+        
+        // Update dashboard stats
+        updateDashboardWithRealOrders();
+        
+        return realOrders;
+    } catch (error) {
+        console.error('Error loading real orders:', error);
+        return [];
+    }
 }
 
-function updateSalesChart() {
+// Function to update dashboard with real orders
+function updateDashboardWithRealOrders() {
+    // Calculate totals
+    const totalOrders = realOrders.length;
+    const totalSales = realOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+    
+    // Today's orders
+    const today = new Date().toDateString();
+    const todayOrders = realOrders.filter(order => {
+        const orderDate = new Date(order.timestamp || order.orderTime || Date.now()).toDateString();
+        return orderDate === today;
+    });
+    
+    const todayOrdersCount = todayOrders.length;
+    const todaySales = todayOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+    
+    // Update dashboard
+    const totalOrdersEl = document.getElementById('total-orders');
+    const totalSalesEl = document.getElementById('total-sales');
+    const todayOrdersEl = document.getElementById('today-orders');
+    const todaySalesEl = document.getElementById('today-sales');
+    
+    if (totalOrdersEl) totalOrdersEl.textContent = totalOrders;
+    if (totalSalesEl) totalSalesEl.textContent = `₱${totalSales.toFixed(2)}`;
+    if (todayOrdersEl) todayOrdersEl.textContent = todayOrdersCount;
+    if (todaySalesEl) todaySalesEl.textContent = `₱${todaySales.toFixed(2)}`;
+}
+
+// Function to listen for new orders (using localStorage events)
+function setupOrderListener() {
+    // Listen for storage events (when new orders are added from other tabs)
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'customerOrders' || e.key === 'lastOrder') {
+            console.log('New order detected via storage event');
+            loadRealOrders();
+        }
+    });
+    
+    // Poll for new orders every 5 seconds
+    if (orderUpdateInterval) clearInterval(orderUpdateInterval);
+    orderUpdateInterval = setInterval(() => {
+        if (currentSection === 'dashboard' || currentSection === 'orders') {
+            loadRealOrders();
+        }
+    }, 5000);
+    
+    // Also check when switching to orders section
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden && (currentSection === 'orders' || currentSection === 'dashboard')) {
+            loadRealOrders();
+        }
+    });
+}
+
+// Update sales chart with real data
+function updateSalesChartWithRealData() {
     const ctx = document.getElementById('sales-chart');
     if (!ctx) return;
     
@@ -805,13 +967,16 @@ function updateSalesChart() {
     // Get canvas context
     const canvas = ctx.getContext('2d');
     
+    // Generate sales data from real orders
+    const salesData = generateSalesDataFromOrders(realOrders);
+    
     window.salesChart = new Chart(canvas, {
         type: 'line',
         data: {
             labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
             datasets: [{
                 label: 'Daily Sales (₱)',
-                data: [1200, 1900, 1500, 2200, 1800, 2500, 2100],
+                data: salesData,
                 borderColor: '#FF6A00',
                 backgroundColor: 'rgba(255, 106, 0, 0.1)',
                 borderWidth: 2,
@@ -847,6 +1012,344 @@ function updateSalesChart() {
     });
 }
 
+// Generate sales data from real orders
+function generateSalesDataFromOrders(orders) {
+    // Default data (if no orders)
+    let data = [0, 0, 0, 0, 0, 0, 0];
+    
+    if (orders.length > 0) {
+        // Group orders by day of week
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const salesByDay = { Sun: 0, Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0, Sat: 0 };
+        
+        orders.forEach(order => {
+            if (order.timestamp || order.orderTime) {
+                const date = new Date(order.timestamp || order.orderTime);
+                const day = days[date.getDay()];
+                salesByDay[day] += order.total || 0;
+            }
+        });
+        
+        // Convert to array in correct order (Mon-Sun)
+        data = [
+            salesByDay.Mon,
+            salesByDay.Tue,
+            salesByDay.Wed,
+            salesByDay.Thu,
+            salesByDay.Fri,
+            salesByDay.Sat,
+            salesByDay.Sun
+        ];
+    }
+    
+    return data;
+}
+
+// Load recent orders from real data
+function loadRecentRealOrders() {
+    const ordersList = document.getElementById('recent-orders-list');
+    if (!ordersList) return;
+    
+    // Sort orders by timestamp (newest first)
+    const sortedOrders = [...realOrders].sort((a, b) => {
+        const timeA = new Date(a.timestamp || a.orderTime || 0);
+        const timeB = new Date(b.timestamp || b.orderTime || 0);
+        return timeB - timeA;
+    });
+    
+    // Take only 3 most recent orders
+    const recentOrders = sortedOrders.slice(0, 3);
+    
+    if (recentOrders.length === 0) {
+        ordersList.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-shopping-cart"></i>
+                <h3>No Recent Orders</h3>
+                <p>Orders will appear here when customers place them</p>
+            </div>
+        `;
+        return;
+    }
+    
+    ordersList.innerHTML = recentOrders.map(order => `
+        <div class="order-preview-item" onclick="showRealOrderDetails('${order._id || order.id || ''}')">
+            <div class="order-preview-header">
+                <span class="order-id">#${(order._id || order.id || '').substring(0, 8)}</span>
+                <span class="order-status ${order.status || 'pending'}">${(order.status || 'pending').toUpperCase()}</span>
+            </div>
+            <div class="order-preview-details">
+                <div class="customer-name">${order.customerName || order.name || 'Guest'}</div>
+                <div class="order-amount">₱${(order.total || 0).toFixed(2)}</div>
+            </div>
+            <div class="order-items">
+                ${order.items ? order.items.slice(0, 2).map(item => 
+                    `${item.name} x${item.quantity}`
+                ).join(', ') : 'No items'}
+                ${order.items && order.items.length > 2 ? `... +${order.items.length - 2} more` : ''}
+            </div>
+        </div>
+    `).join('');
+}
+
+// Show real order details
+function showRealOrderDetails(orderId) {
+    const order = realOrders.find(o => o._id === orderId || o.id === orderId);
+    if (!order) {
+        showAlert('Order not found!', 'error');
+        return;
+    }
+    
+    let details = `
+        <h3>Order #${orderId.substring(0, 8)}</h3>
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 15px 0;">
+            <p><strong>Customer:</strong> ${order.customerName || order.name || 'Guest'}</p>
+            <p><strong>Phone:</strong> ${order.customerPhone || order.phone || 'N/A'}</p>
+            <p><strong>Pickup Time:</strong> ${order.pickupTime || 'ASAP'}</p>
+            <p><strong>Payment Method:</strong> ${order.paymentMethod || 'Cash on Pick-up'}</p>
+            <p><strong>Status:</strong> <span class="order-status ${order.status || 'pending'}">${(order.status || 'pending').toUpperCase()}</span></p>
+            <p><strong>Total:</strong> ₱${(order.total || 0).toFixed(2)}</p>
+        </div>
+        
+        <h4>Items:</h4>
+        <div style="max-height: 200px; overflow-y: auto; margin: 10px 0;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #e9ecef;">
+                        <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Item</th>
+                        <th style="padding: 10px; text-align: center; border-bottom: 2px solid #dee2e6;">Qty</th>
+                        <th style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6;">Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    if (order.items && order.items.length > 0) {
+        order.items.forEach(item => {
+            details += `
+                <tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #dee2e6;">${item.name}</td>
+                    <td style="padding: 10px; text-align: center; border-bottom: 1px solid #dee2e6;">${item.quantity}</td>
+                    <td style="padding: 10px; text-align: right; border-bottom: 1px solid #dee2e6;">₱${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td>
+                </tr>
+            `;
+        });
+    } else {
+        details += `
+            <tr>
+                <td colspan="3" style="padding: 20px; text-align: center; color: #6c757d;">No items in this order</td>
+            </tr>
+        `;
+    }
+    
+    details += `
+                </tbody>
+                <tfoot>
+                    <tr style="background: #f8f9fa;">
+                        <td colspan="2" style="padding: 10px; text-align: right; font-weight: bold;">Total:</td>
+                        <td style="padding: 10px; text-align: right; font-weight: bold;">₱${(order.total || 0).toFixed(2)}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    `;
+    
+    // Show in modal
+    const orderDetailsContent = document.getElementById('order-details-content');
+    const orderModal = document.getElementById('order-details-modal');
+    
+    if (orderDetailsContent && orderModal) {
+        orderDetailsContent.innerHTML = details;
+        orderModal.style.display = 'flex';
+        
+        // Update order status button
+        const updateOrderStatusBtn = document.getElementById('update-order-status');
+        if (updateOrderStatusBtn) {
+            updateOrderStatusBtn.onclick = function() {
+                updateOrderStatus(orderId);
+            };
+        }
+    } else {
+        showAlert(details, 'info');
+    }
+}
+
+// Update order status
+function updateOrderStatus(orderId) {
+    const order = realOrders.find(o => o._id === orderId || o.id === orderId);
+    if (!order) return;
+    
+    const currentStatus = order.status || 'pending';
+    const statuses = ['pending', 'processing', 'completed', 'cancelled'];
+    const currentIndex = statuses.indexOf(currentStatus);
+    const nextIndex = (currentIndex + 1) % statuses.length;
+    const nextStatus = statuses[nextIndex];
+    
+    // Update order status
+    order.status = nextStatus;
+    order.updatedAt = new Date().toISOString();
+    
+    // Save back to localStorage
+    localStorage.setItem('customerOrders', JSON.stringify(realOrders));
+    
+    // Refresh orders display
+    loadRealOrders();
+    
+    // Close modal
+    document.getElementById('order-details-modal').style.display = 'none';
+    
+    showAlert(`✅ Order status updated to: ${nextStatus.toUpperCase()}`, 'success');
+}
+
+// Filter orders
+function filterOrders() {
+    let filteredOrders = [...realOrders];
+    
+    // Apply status filter
+    if (currentOrdersFilter !== 'all') {
+        filteredOrders = filteredOrders.filter(order => 
+            (order.status || 'pending') === currentOrdersFilter
+        );
+    }
+    
+    // Apply date filter
+    const dateFilter = document.getElementById('order-date');
+    if (dateFilter && dateFilter.value) {
+        const selectedDate = new Date(dateFilter.value).toDateString();
+        filteredOrders = filteredOrders.filter(order => {
+            const orderDate = new Date(order.timestamp || order.orderTime || Date.now()).toDateString();
+            return orderDate === selectedDate;
+        });
+    }
+    
+    // Render filtered orders
+    renderOrdersList(filteredOrders);
+}
+
+function searchOrders() {
+    const searchInput = document.getElementById('order-search');
+    if (!searchInput) return;
+    
+    const searchTerm = searchInput.value.toLowerCase().trim();
+    
+    if (searchTerm === '') {
+        filterOrders();
+        return;
+    }
+    
+    let filteredOrders = [...realOrders];
+    
+    // Apply status filter first
+    if (currentOrdersFilter !== 'all') {
+        filteredOrders = filteredOrders.filter(order => 
+            (order.status || 'pending') === currentOrdersFilter
+        );
+    }
+    
+    // Then apply search filter
+    filteredOrders = filteredOrders.filter(order => {
+        const customerName = (order.customerName || order.name || '').toLowerCase();
+        const orderId = (order._id || order.id || '').toLowerCase();
+        const phone = (order.customerPhone || order.phone || '').toLowerCase();
+        
+        return customerName.includes(searchTerm) || 
+               orderId.includes(searchTerm) ||
+               phone.includes(searchTerm);
+    });
+    
+    renderOrdersList(filteredOrders);
+}
+
+function renderOrdersList(orders) {
+    const ordersList = document.getElementById('orders-list');
+    if (!ordersList) return;
+    
+    // Sort orders by timestamp (newest first)
+    orders.sort((a, b) => {
+        const timeA = new Date(a.timestamp || a.orderTime || 0);
+        const timeB = new Date(b.timestamp || b.orderTime || 0);
+        return timeB - timeA;
+    });
+    
+    if (orders.length === 0) {
+        ordersList.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-receipt"></i>
+                <h3>No Orders Found</h3>
+                <p>${currentOrdersFilter !== 'all' ? `No ${currentOrdersFilter} orders` : 'No orders yet'}</p>
+            </div>
+        `;
+        return;
+    }
+    
+    ordersList.innerHTML = orders.map(order => {
+        const orderId = order._id || order.id || `order_${Date.now()}`;
+        const orderTime = new Date(order.timestamp || order.orderTime || Date.now());
+        const formattedTime = orderTime.toLocaleString();
+        const status = order.status || 'pending';
+        
+        return `
+            <div class="order-item" onclick="showRealOrderDetails('${orderId}')">
+                <div class="order-header">
+                    <div>
+                        <div class="order-title">Order #${orderId.substring(0, 8)}</div>
+                        <div class="order-time">${formattedTime}</div>
+                    </div>
+                    <span class="order-status ${status}">${status.toUpperCase()}</span>
+                </div>
+                <div class="order-details">
+                    <div class="detail-item">
+                        <div class="detail-label">Customer</div>
+                        <div class="detail-value">${order.customerName || order.name || 'Guest'}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Phone</div>
+                        <div class="detail-value">${order.customerPhone || order.phone || 'N/A'}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Pickup Time</div>
+                        <div class="detail-value">${order.pickupTime || 'ASAP'}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Total</div>
+                        <div class="detail-value">₱${(order.total || 0).toFixed(2)}</div>
+                    </div>
+                </div>
+                <div class="order-footer">
+                    <div class="order-items-list">
+                        ${order.items ? order.items.slice(0, 3).map(item => 
+                            `${item.name} x${item.quantity}`
+                        ).join(', ') : 'No items'}
+                        ${order.items && order.items.length > 3 ? `... +${order.items.length - 3} more` : ''}
+                    </div>
+                    <div class="order-payment-method">
+                        ${order.paymentMethod || 'Cash on Pick-up'}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function updateOrdersSummary(orders) {
+    const total = orders.length;
+    const pending = orders.filter(o => (o.status || 'pending') === 'pending').length;
+    const processing = orders.filter(o => (o.status || 'pending') === 'processing').length;
+    const completed = orders.filter(o => (o.status || 'pending') === 'completed').length;
+    const cancelled = orders.filter(o => (o.status || 'pending') === 'cancelled').length;
+    
+    const summaryTotal = document.getElementById('summary-total');
+    const summaryPending = document.getElementById('summary-pending');
+    const summaryProcessing = document.getElementById('summary-processing');
+    const summaryCompleted = document.getElementById('summary-completed');
+    const summaryCancelled = document.getElementById('summary-cancelled');
+    
+    if (summaryTotal) summaryTotal.textContent = total;
+    if (summaryPending) summaryPending.textContent = pending;
+    if (summaryProcessing) summaryProcessing.textContent = processing;
+    if (summaryCompleted) summaryCompleted.textContent = completed;
+    if (summaryCancelled) summaryCancelled.textContent = cancelled;
+}
+
 // ================================
 // AVAILABILITY FUNCTIONS
 // ================================
@@ -854,76 +1357,88 @@ function updateSalesChart() {
 async function loadAvailabilityControls() {
     console.log('Loading availability controls...');
     
-    // Demo availability items
-    const nachosItems = [
-        { name: 'Regular Nachos', available: true },
-        { name: 'Veggie Nachos', available: true },
-        { name: 'Overload Cheesy Nachos', available: true },
-        { name: 'Nacho Combo', available: true },
-        { name: 'Nacho Fries', available: true },
-        { name: 'Supreme Nachos', available: true },
-        { name: 'Shawarma Fries', available: true }
-    ];
-    
-    const dessertsItems = [
-        { name: 'Mango Graham', available: true },
-        { name: 'Mango tiramisu on tube', available: true },
-        { name: 'Biscoff', available: true },
-        { name: 'Oreo', available: true },
-        { name: 'Mango Graham Float', available: true }
-    ];
+    // Load current availability from localStorage
+    const availability = JSON.parse(localStorage.getItem('itemAvailability') || '{}');
     
     // Render nachos items
     const nachosContainer = document.getElementById('nachos-availability');
-    if (nachosContainer) {
-        nachosContainer.innerHTML = nachosItems.map(item => `
-            <div class="availability-item">
-                <span class="item-name">${item.name}</span>
-                <label class="toggle-switch">
-                    <input type="checkbox" 
-                           ${item.available ? 'checked' : ''}
-                           data-item="${item.name}">
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-        `).join('');
+    if (nachosContainer && menuItems.nachos) {
+        if (menuItems.nachos.length === 0) {
+            nachosContainer.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No nachos items found</p>';
+        } else {
+            nachosContainer.innerHTML = menuItems.nachos.map(item => {
+                const isAvailable = availability[item.name] !== false; // Default to true if not set
+                return `
+                    <div class="availability-item">
+                        <div class="item-info">
+                            <span class="item-name">${item.name}</span>
+                            <span class="item-price">₱${item.price}</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" 
+                                   ${isAvailable ? 'checked' : ''}
+                                   data-item="${item.name}"
+                                   data-event-bound="true">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                `;
+            }).join('');
+        }
     }
     
     // Render dessert items
     const dessertsContainer = document.getElementById('desserts-availability');
-    if (dessertsContainer) {
-        dessertsContainer.innerHTML = dessertsItems.map(item => `
-            <div class="availability-item">
-                <span class="item-name">${item.name}</span>
-                <label class="toggle-switch">
-                    <input type="checkbox" 
-                           ${item.available ? 'checked' : ''}
-                           data-item="${item.name}">
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-        `).join('');
+    if (dessertsContainer && menuItems.desserts) {
+        if (menuItems.desserts.length === 0) {
+            dessertsContainer.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No dessert items found</p>';
+        } else {
+            dessertsContainer.innerHTML = menuItems.desserts.map(item => {
+                const isAvailable = availability[item.name] !== false; // Default to true if not set
+                return `
+                    <div class="availability-item">
+                        <div class="item-info">
+                            <span class="item-name">${item.name}</span>
+                            <span class="item-price">₱${item.price}</span>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" 
+                                   ${isAvailable ? 'checked' : ''}
+                                   data-item="${item.name}"
+                                   data-event-bound="true">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                `;
+            }).join('');
+        }
     }
     
-    // Add event listeners to toggle switches
-    document.querySelectorAll('.toggle-switch input').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const itemName = this.getAttribute('data-item');
-            const available = this.checked;
-            updateAvailability(itemName, available);
-        });
-    });
+    // Setup event listeners for toggle switches
+    setupDynamicEventListeners();
 }
 
 async function updateAvailability(itemName, available) {
     console.log(`Updating ${itemName} availability to: ${available}`);
-    showAlert(`${itemName} is now ${available ? 'available' : 'out of stock'}`);
     
-    // In a real app, you would make an API call here
-    // For demo, we'll just update localStorage
+    // Update localStorage
     let availability = JSON.parse(localStorage.getItem('itemAvailability') || '{}');
     availability[itemName] = available;
     localStorage.setItem('itemAvailability', JSON.stringify(availability));
+    
+    // Update menu items
+    for (let category in menuItems) {
+        const itemIndex = menuItems[category].findIndex(item => item.name === itemName);
+        if (itemIndex !== -1) {
+            menuItems[category][itemIndex].isAvailable = available;
+            break;
+        }
+    }
+    
+    // Save updated menu items
+    saveMenuItemsToStorage();
+    
+    showAlert(`${itemName} is now ${available ? 'available' : 'out of stock'}`, 'success');
 }
 
 async function resetAllAvailability() {
@@ -935,12 +1450,14 @@ async function resetAllAvailability() {
     document.querySelectorAll('.toggle-switch input').forEach(checkbox => {
         checkbox.checked = true;
         
-        // Trigger change event
+        // Update availability
         const itemName = checkbox.getAttribute('data-item');
-        updateAvailability(itemName, true);
+        if (itemName) {
+            updateAvailability(itemName, true);
+        }
     });
     
-    showAlert('✅ All items marked as available!');
+    showAlert('✅ All items marked as available!', 'success');
 }
 
 async function toggleAllAvailability() {
@@ -952,17 +1469,257 @@ async function toggleAllAvailability() {
     document.querySelectorAll('.toggle-switch input').forEach(checkbox => {
         checkbox.checked = !checkbox.checked;
         
-        // Trigger change event
+        // Update availability
         const itemName = checkbox.getAttribute('data-item');
         const available = checkbox.checked;
-        updateAvailability(itemName, available);
+        if (itemName) {
+            updateAvailability(itemName, available);
+        }
     });
     
-    showAlert('✅ All items availability toggled!');
+    showAlert('✅ All items availability toggled!', 'success');
 }
 
 // ================================
-// SLIDESHOW FUNCTIONS (with menu items selection)
+// PRODUCT MANAGEMENT FUNCTIONS
+// ================================
+
+function loadProducts() {
+    console.log('Loading products...');
+    
+    // Combine all menu items
+    const allProducts = [...(menuItems.nachos || []), ...(menuItems.desserts || [])];
+    
+    const productsList = document.getElementById('products-list');
+    if (!productsList) return;
+    
+    if (allProducts.length === 0) {
+        productsList.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-box-open"></i>
+                <h3>No Products Found</h3>
+                <p>Add your first product to get started</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Sort by category and name
+    allProducts.sort((a, b) => {
+        if (a.category !== b.category) {
+            return a.category.localeCompare(b.category);
+        }
+        return a.name.localeCompare(b.name);
+    });
+    
+    productsList.innerHTML = allProducts.map(product => `
+        <div class="product-item">
+            <div class="product-image">
+                <img src="${product.image || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjOGI0NTEzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSJ3aGl0ZSI+JHtwcm9kdWN0Lm5hbWUuc3Vic3RyaW5nKDAsMSl9PC90ZXh0Pjwvc3ZnPg=='}" 
+                     alt="${product.name}" 
+                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjOGI0NTEzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSJ3aGl0ZSI+JHtwcm9kdWN0Lm5hbWUuc3Vic3RyaW5nKDAsMSl9PC90ZXh0Pjwvc3ZnPg=='">
+            </div>
+            <div class="product-info">
+                <h4>${product.name}</h4>
+                <p>${product.description || 'No description'}</p>
+                <div class="product-meta">
+                    <span class="product-category">${product.category}</span>
+                    <span class="product-price">₱${product.price}</span>
+                    <span class="product-status" style="background: ${product.isAvailable ? '#28a745' : '#dc3545'}; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px;">
+                        ${product.isAvailable ? 'Available' : 'Unavailable'}
+                    </span>
+                </div>
+            </div>
+            <div class="product-actions-buttons">
+                <button class="action-btn primary small" onclick="editProduct('${product.id}')">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+                <button class="action-btn danger small" onclick="deleteProduct('${product.id}')">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function showAddProductModal() {
+    currentEditingProductId = null;
+    
+    const modal = document.getElementById('add-product-modal');
+    const modalTitle = document.getElementById('product-modal-title');
+    const productName = document.getElementById('product-name');
+    const productPrice = document.getElementById('product-price');
+    const productCategory = document.getElementById('product-category');
+    const productDescription = document.getElementById('product-description');
+    const productImage = document.getElementById('product-image');
+    const productAvailable = document.getElementById('product-available');
+    
+    if (modalTitle) modalTitle.innerHTML = '<i class="fas fa-plus-circle"></i> Add New Product';
+    if (productName) productName.value = '';
+    if (productPrice) productPrice.value = '';
+    if (productCategory) productCategory.value = '';
+    if (productDescription) productDescription.value = '';
+    if (productImage) productImage.value = '';
+    if (productAvailable) productAvailable.checked = true;
+    
+    modal.style.display = 'flex';
+}
+
+function editProduct(productId) {
+    currentEditingProductId = productId;
+    
+    // Find the product
+    let product = null;
+    for (let category in menuItems) {
+        const found = menuItems[category].find(p => p.id === productId);
+        if (found) {
+            product = found;
+            break;
+        }
+    }
+    
+    if (!product) {
+        showAlert('Product not found!', 'error');
+        return;
+    }
+    
+    const modal = document.getElementById('add-product-modal');
+    const modalTitle = document.getElementById('product-modal-title');
+    const productName = document.getElementById('product-name');
+    const productPrice = document.getElementById('product-price');
+    const productCategory = document.getElementById('product-category');
+    const productDescription = document.getElementById('product-description');
+    const productImage = document.getElementById('product-image');
+    const productAvailable = document.getElementById('product-available');
+    
+    if (modalTitle) modalTitle.innerHTML = '<i class="fas fa-edit"></i> Edit Product';
+    if (productName) productName.value = product.name;
+    if (productPrice) productPrice.value = product.price;
+    if (productCategory) productCategory.value = product.category;
+    if (productDescription) productDescription.value = product.description || '';
+    if (productImage) productImage.value = product.image || '';
+    if (productAvailable) productAvailable.checked = product.isAvailable !== false;
+    
+    modal.style.display = 'flex';
+}
+
+function saveProduct() {
+    const productName = document.getElementById('product-name');
+    const productPrice = document.getElementById('product-price');
+    const productCategory = document.getElementById('product-category');
+    const productDescription = document.getElementById('product-description');
+    const productImage = document.getElementById('product-image');
+    const productAvailable = document.getElementById('product-available');
+    
+    if (!productName || !productName.value.trim()) {
+        showAlert('Please enter a product name!', 'error');
+        return;
+    }
+    
+    if (!productPrice || !productPrice.value || parseFloat(productPrice.value) <= 0) {
+        showAlert('Please enter a valid price!', 'error');
+        return;
+    }
+    
+    if (!productCategory || !productCategory.value) {
+        showAlert('Please select a category!', 'error');
+        return;
+    }
+    
+    const productData = {
+        id: currentEditingProductId || `product_${Date.now()}`,
+        name: productName.value.trim(),
+        price: parseFloat(productPrice.value),
+        category: productCategory.value,
+        description: productDescription ? productDescription.value.trim() : '',
+        image: productImage ? productImage.value.trim() : '',
+        isAvailable: productAvailable ? productAvailable.checked : true,
+        updatedAt: new Date().toISOString()
+    };
+    
+    if (!currentEditingProductId) {
+        // Add new product
+        productData.createdAt = new Date().toISOString();
+        menuItems[productData.category].push(productData);
+        showAlert('✅ Product added successfully!', 'success');
+    } else {
+        // Update existing product
+        let found = false;
+        for (let category in menuItems) {
+            const index = menuItems[category].findIndex(p => p.id === currentEditingProductId);
+            if (index !== -1) {
+                // Remove from old category if category changed
+                if (category !== productData.category) {
+                    menuItems[category].splice(index, 1);
+                    menuItems[productData.category].push(productData);
+                } else {
+                    menuItems[category][index] = productData;
+                }
+                found = true;
+                break;
+            }
+        }
+        
+        if (!found) {
+            // If product not found (shouldn't happen), add as new
+            menuItems[productData.category].push(productData);
+        }
+        showAlert('✅ Product updated successfully!', 'success');
+    }
+    
+    // Save to localStorage
+    saveMenuItemsToStorage();
+    
+    // Close modal
+    document.getElementById('add-product-modal').style.display = 'none';
+    
+    // Refresh products list
+    loadProducts();
+    
+    // Refresh availability controls if needed
+    if (currentSection === 'availability') {
+        loadAvailabilityControls();
+    }
+    
+    // Reset editing state
+    currentEditingProductId = null;
+}
+
+function deleteProduct(productId) {
+    if (!confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
+        return;
+    }
+    
+    let deleted = false;
+    for (let category in menuItems) {
+        const index = menuItems[category].findIndex(p => p.id === productId);
+        if (index !== -1) {
+            menuItems[category].splice(index, 1);
+            deleted = true;
+            break;
+        }
+    }
+    
+    if (deleted) {
+        // Save to localStorage
+        saveMenuItemsToStorage();
+        
+        // Refresh products list
+        loadProducts();
+        
+        // Refresh availability controls if needed
+        if (currentSection === 'availability') {
+            loadAvailabilityControls();
+        }
+        
+        showAlert('✅ Product deleted successfully!', 'success');
+    } else {
+        showAlert('Product not found!', 'error');
+    }
+}
+
+// ================================
+// SLIDESHOW FUNCTIONS
 // ================================
 
 async function loadSlideshow() {
@@ -1044,8 +1801,8 @@ function renderSlideshow(slides) {
                             ${slide.price ? `<span class="slide-price-tag"><i class="fas fa-peso-sign"></i> ${slide.price}</span>` : ''}
                             ${slide.originalItem ? `<span class="slide-item-name">${slide.originalItem}</span>` : ''}
                         </div>
-                        <h4>${slide.title}</h4>
-                        <p>${slide.description || 'No description'}</p>
+                        <h4 class="slide-title">${slide.title}</h4>
+                        <p class="slide-description">${slide.description || 'No description'}</p>
                         <div class="slide-meta">
                             ${slide.promoBadge ? `<span class="slide-badge">${slide.promoBadge}</span>` : ''}
                             <span class="slide-status">
@@ -1070,577 +1827,23 @@ function renderSlideshow(slides) {
     }
 }
 
-function showMenuItemsSelectionModal() {
-    currentEditingSlideId = null;
-    
-    // Create modal content with menu items selection
-    const modalHTML = `
-        <div id="menu-items-modal" class="modal-overlay" style="display: flex; z-index: 9999;">
-            <div class="modal-content" style="max-width: 800px; max-height: 80vh; overflow-y: auto;">
-                <h2 id="slide-modal-title"><i class="fas fa-plus-circle"></i> Select Menu Item for Slide</h2>
-                
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 10px; font-weight: bold; color: #8b4513;">
-                        <i class="fas fa-filter"></i> Filter by Category:
-                    </label>
-                    <select id="item-category-filter" style="width: 100%; padding: 12px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 15px;">
-                        <option value="all">All Items</option>
-                        <option value="nachos">Nachos</option>
-                        <option value="desserts">Desserts</option>
-                    </select>
-                </div>
-                
-                <div id="menu-items-grid" class="menu-items-grid" style="margin: 20px 0;">
-                    <!-- Menu items will be loaded here -->
-                </div>
-                
-                <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e9ecef;">
-                    <h3 style="color: #8b4513; margin-bottom: 15px;"><i class="fas fa-cog"></i> Slide Settings</h3>
-                    <input type="text" id="custom-slide-title" placeholder="Custom Title (optional)" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #e9ecef; border-radius: 8px;">
-                    <input type="text" id="custom-slide-description" placeholder="Custom Description (optional)" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #e9ecef; border-radius: 8px;">
-                    <input type="text" id="slide-promo-badge" placeholder="Promo Badge (e.g., '20% OFF', 'New')" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #e9ecef; border-radius: 8px;">
-                    <input type="number" id="slide-order" placeholder="Display Order" value="0" min="0" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #e9ecef; border-radius: 8px;">
-                    
-                    <div style="margin: 15px 0;">
-                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                            <input type="checkbox" id="slide-active" checked style="transform: scale(1.2);">
-                            <span style="font-weight: 500; color: #2c3e50;">Active (Show in slideshow)</span>
-                        </label>
-                    </div>
-                </div>
-                
-                <div style="display: flex; gap: 10px; margin-top: 25px;">
-                    <button id="save-slide-from-menu" class="action-btn primary">
-                        <i class="fas fa-save"></i> Save Slide
-                    </button>
-                    <button id="cancel-menu-selection" class="action-btn secondary">Cancel</button>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    // Remove existing modal if any
-    const existingModal = document.getElementById('menu-items-modal');
-    if (existingModal) existingModal.remove();
-    
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-    
-    // Render menu items
-    renderMenuItemsInModal();
-    
-    // Add event listeners
-    setTimeout(() => {
-        const categoryFilter = document.getElementById('item-category-filter');
-        if (categoryFilter) {
-            categoryFilter.addEventListener('change', renderMenuItemsInModal);
-        }
-        
-        const saveSlideBtn = document.getElementById('save-slide-from-menu');
-        if (saveSlideBtn) {
-            saveSlideBtn.addEventListener('click', saveSlideFromMenuItem);
-        }
-        
-        const cancelBtn = document.getElementById('cancel-menu-selection');
-        if (cancelBtn) {
-            cancelBtn.addEventListener('click', function() {
-                const modal = document.getElementById('menu-items-modal');
-                if (modal) modal.remove();
-            });
-        }
-        
-        // Close modal when clicking outside
-        const modal = document.getElementById('menu-items-modal');
-        if (modal) {
-            modal.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    this.remove();
-                }
-            });
-        }
-    }, 100);
-}
-
-function renderMenuItemsInModal() {
-    const container = document.getElementById('menu-items-grid');
-    if (!container) return;
-    
-    const categoryFilter = document.getElementById('item-category-filter');
-    const filterValue = categoryFilter ? categoryFilter.value : 'all';
-    
-    let allItems = [];
-    
-    if (filterValue === 'all' || filterValue === 'nachos') {
-        allItems = allItems.concat(menuItems.nachos);
-    }
-    if (filterValue === 'all' || filterValue === 'desserts') {
-        allItems = allItems.concat(menuItems.desserts);
-    }
-    
-    if (allItems.length === 0) {
-        container.innerHTML = '<p style="text-align: center; color: #6c757d; padding: 40px;">No items found</p>';
-        return;
-    }
-    
-    container.innerHTML = allItems.map((item, index) => `
-        <div class="menu-item-selector" data-item='${JSON.stringify(item)}'>
-            <div style="display: flex; align-items: center; gap: 15px; padding: 15px; border: 2px solid #e9ecef; border-radius: 10px; margin-bottom: 15px; cursor: pointer; transition: all 0.3s ease; background: white;">
-                <div style="flex-shrink: 0;">
-                    <div style="width: 100px; height: 100px; border-radius: 8px; overflow: hidden; background: #f8f9fa; display: flex; align-items: center; justify-content: center;">
-                        <img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null; this.style.display='none'; this.parentNode.innerHTML='<i class=\"fas fa-utensils\" style=\"font-size: 32px; color: #8b4513;\"></i>';">
-                    </div>
-                </div>
-                <div style="flex: 1;">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-                        <h4 style="margin: 0; color: #2c3e50; font-size: 18px;">${item.name}</h4>
-                        <div style="background: #8b4513; color: white; padding: 5px 12px; border-radius: 15px; font-weight: bold;">
-                            <i class="fas fa-peso-sign"></i> ${item.price}
-                        </div>
-                    </div>
-                    <p style="margin: 0 0 8px 0; color: #6c757d; font-size: 14px; text-transform: capitalize;">
-                        <i class="fas fa-tag"></i> ${item.category}
-                    </p>
-                    <p style="margin: 0; color: #6c757d; font-size: 14px; line-height: 1.4;">
-                        ${item.description}
-                    </p>
-                </div>
-                <div style="flex-shrink: 0;">
-                    <input type="radio" name="selected-item" id="item_${index}_${item.category}" style="transform: scale(1.3);">
-                </div>
-            </div>
-        </div>
-    `).join('');
-    
-    // Add hover and selection effects
-    document.querySelectorAll('.menu-item-selector').forEach(itemEl => {
-        itemEl.addEventListener('mouseenter', () => {
-            itemEl.style.borderColor = '#8b4513';
-            itemEl.style.boxShadow = '0 4px 12px rgba(139, 69, 19, 0.1)';
-            itemEl.querySelector('div').style.transform = 'translateY(-2px)';
-        });
-        
-        itemEl.addEventListener('mouseleave', () => {
-            itemEl.style.borderColor = 'transparent';
-            itemEl.style.boxShadow = 'none';
-            itemEl.querySelector('div').style.transform = 'translateY(0)';
-        });
-        
-        // Add selection effect
-        const radio = itemEl.querySelector('input[type="radio"]');
-        radio.addEventListener('change', function() {
-            document.querySelectorAll('.menu-item-selector').forEach(el => {
-                el.querySelector('div').style.borderColor = '#e9ecef';
-                el.querySelector('div').style.backgroundColor = 'white';
-            });
-            
-            if (this.checked) {
-                itemEl.querySelector('div').style.borderColor = '#28a745';
-                itemEl.querySelector('div').style.backgroundColor = '#f8fff9';
-                
-                // Auto-fill custom title with item name
-                const customTitle = document.getElementById('custom-slide-title');
-                if (!customTitle.value) {
-                    const itemData = JSON.parse(itemEl.getAttribute('data-item'));
-                    customTitle.value = itemData.name;
-                }
-            }
-        });
-    });
-}
-
-function saveSlideFromMenuItem() {
-    const selectedItemEl = document.querySelector('.menu-item-selector input[type="radio"]:checked');
-    
-    if (!selectedItemEl) {
-        showAlert('Please select a menu item for the slide!', 'error');
-        return;
-    }
-    
-    const itemSelector = selectedItemEl.closest('.menu-item-selector');
-    if (!itemSelector) return;
-    
-    const itemData = JSON.parse(itemSelector.getAttribute('data-item'));
-    
-    // Get slide data
-    const customTitle = document.getElementById('custom-slide-title').value || itemData.name;
-    const customDescription = document.getElementById('custom-slide-description').value || itemData.description;
-    const promoBadge = document.getElementById('slide-promo-badge').value;
-    const slideOrder = parseInt(document.getElementById('slide-order').value) || 0;
-    const isActive = document.getElementById('slide-active').checked;
-    
-    // Create slide object
-    const slide = {
-        _id: currentEditingSlideId || 'slide_' + Date.now(),
-        title: customTitle,
-        description: customDescription || `Delicious ${itemData.name}`,
-        imageUrl: itemData.image,
-        originalItem: itemData.name,
-        price: itemData.price,
-        category: itemData.category,
-        promoBadge: promoBadge,
-        order: slideOrder,
-        active: isActive,
-        createdAt: currentEditingSlideId ? undefined : new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-    };
-    
-    // Save to localStorage
-    saveSlideToStorage(slide);
-    
-    // Remove modal
-    const modal = document.getElementById('menu-items-modal');
-    if (modal) modal.remove();
-    
-    showAlert('✅ Slide added successfully!', 'success');
-    
-    // Refresh slideshow display
-    loadSlideshow();
-}
-
-function saveSlideToStorage(slide) {
-    let slides = JSON.parse(localStorage.getItem('slideshowSlides') || '[]');
-    
-    if (currentEditingSlideId) {
-        // Update existing slide
-        slides = slides.map(s => {
-            if (s._id === currentEditingSlideId) {
-                return { ...s, ...slide };
-            }
-            return s;
-        });
-    } else {
-        // Add new slide
-        slides.push(slide);
-    }
-    
-    // Sort by order
-    slides.sort((a, b) => a.order - b.order);
-    localStorage.setItem('slideshowSlides', JSON.stringify(slides));
-}
-
-function closeAddSlideModal() {
-    const modal = document.getElementById('add-slide-modal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-    
-    // Reset editing state
-    currentEditingSlideId = null;
-}
-
-function editSlide(slideId) {
-    console.log('Editing slide:', slideId);
-    
-    // Get slides from localStorage
-    let slides = JSON.parse(localStorage.getItem('slideshowSlides') || '[]');
-    
-    // Find the slide to edit
-    const slideToEdit = slides.find(slide => slide._id === slideId);
-    if (!slideToEdit) {
-        showAlert('Slide not found!');
-        return;
-    }
-    
-    // Set editing state
-    currentEditingSlideId = slideId;
-    
-    // Show menu items modal with pre-filled data
-    showMenuItemsSelectionModal();
-    
-    // Fill form with existing data after a small delay
-    setTimeout(() => {
-        const customTitle = document.getElementById('custom-slide-title');
-        const customDescription = document.getElementById('custom-slide-description');
-        const slidePromoBadge = document.getElementById('slide-promo-badge');
-        const slideOrder = document.getElementById('slide-order');
-        const slideActive = document.getElementById('slide-active');
-        
-        if (customTitle) customTitle.value = slideToEdit.title;
-        if (customDescription) customDescription.value = slideToEdit.description || '';
-        if (slidePromoBadge) slidePromoBadge.value = slideToEdit.promoBadge || '';
-        if (slideOrder) slideOrder.value = slideToEdit.order || 0;
-        if (slideActive) slideActive.checked = slideToEdit.active !== false;
-        
-        // Try to find and select the corresponding menu item
-        if (slideToEdit.originalItem) {
-            setTimeout(() => {
-                const itemSelectors = document.querySelectorAll('.menu-item-selector');
-                itemSelectors.forEach(selector => {
-                    const itemData = JSON.parse(selector.getAttribute('data-item') || '{}');
-                    if (itemData.name === slideToEdit.originalItem) {
-                        const radio = selector.querySelector('input[type="radio"]');
-                        if (radio) {
-                            radio.checked = true;
-                            radio.dispatchEvent(new Event('change'));
-                        }
-                    }
-                });
-            }, 200);
-        }
-    }, 300);
-}
-
-async function deleteSlide(slideId) {
-    if (!confirm('Are you sure you want to delete this slide? This action cannot be undone.')) {
-        return;
-    }
-    
-    // Get slides from localStorage
-    let slides = JSON.parse(localStorage.getItem('slideshowSlides') || '[]');
-    
-    // Filter out the slide to delete
-    const updatedSlides = slides.filter(slide => slide._id !== slideId);
-    
-    // Save to localStorage
-    localStorage.setItem('slideshowSlides', JSON.stringify(updatedSlides));
-    
-    showAlert('✅ Slide deleted successfully!');
-    
-    // Refresh slideshow display
-    loadSlideshow();
-}
-
-function toggleSlide(slideId) {
-    // Get slides from localStorage
-    let slides = JSON.parse(localStorage.getItem('slideshowSlides') || '[]');
-    
-    // Find the slide
-    const slideIndex = slides.findIndex(slide => slide._id === slideId);
-    if (slideIndex === -1) return;
-    
-    // Toggle active status
-    slides[slideIndex].active = !slides[slideIndex].active;
-    slides[slideIndex].updatedAt = new Date().toISOString();
-    
-    // Save to localStorage
-    localStorage.setItem('slideshowSlides', JSON.stringify(slides));
-    
-    showAlert(`✅ Slide ${slides[slideIndex].active ? 'activated' : 'deactivated'}!`);
-    
-    // Refresh slideshow display
-    loadSlideshow();
-}
-
-// ================================
-// SLIDESHOW PREVIEW UPDATE
-// ================================
-
-function updateSlideshowPreview() {
-    const slidesContainer = document.getElementById('slideshow-current');
-    if (!slidesContainer) return;
-    
-    const slides = JSON.parse(localStorage.getItem('slideshowSlides') || '[]');
-    const activeSlides = slides.filter(slide => slide.active);
-    
-    slidesContainer.innerHTML = '';
-    
-    if (activeSlides.length === 0) {
-        slidesContainer.innerHTML = '<div class="empty-message">No active slides</div>';
-        return;
-    }
-    
-    activeSlides.sort((a, b) => a.order - b.order);
-    
-    activeSlides.forEach((slide, index) => {
-        const slideCard = document.createElement('div');
-        slideCard.className = 'slide-card';
-        slideCard.innerHTML = `
-            <img src="${slide.imageUrl}" alt="${slide.title}" class="slide-image" 
-                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjOGI0NTEzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSJ3aGl0ZSI+JHtzbGlkZS50aXRsZX08L3RleHQ+PC9zdmc+'">
-            <div class="slide-info">
-                <h4>${slide.title}</h4>
-                <p>${slide.description || 'No description'}</p>
-                <p><small>Order: ${slide.order} | ${slide.promoBadge ? 'Badge: ' + slide.promoBadge : 'No badge'}</small></p>
-            </div>
-        `;
-        
-        slidesContainer.appendChild(slideCard);
-    });
-}
-
-// ================================
-// ORDERS FUNCTIONS
-// ================================
-
-async function loadAllOrders() {
-    console.log('Loading all orders...');
-    
-    // Demo orders
-    const demoOrders = [
-        {
-            _id: 'order_001',
-            customerName: 'John Doe',
-            customerPhone: '09123456789',
-            items: [
-                { name: 'Regular Nachos', quantity: 2, price: 35 },
-                { name: 'Mango Graham', quantity: 1, price: 40 }
-            ],
-            total: 110,
-            status: 'completed',
-            paymentMethod: 'Cash on Pick-up',
-            pickupTime: '6:30 PM',
-            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000) // 2 hours ago
-        },
-        {
-            _id: 'order_002',
-            customerName: 'Jane Smith',
-            customerPhone: '09198765432',
-            items: [
-                { name: 'Overload Cheesy Nachos', quantity: 1, price: 95 },
-                { name: 'Biscoff', quantity: 1, price: 159 }
-            ],
-            total: 254,
-            status: 'processing',
-            paymentMethod: 'Gcash',
-            pickupTime: '7:00 PM',
-            timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000) // 1 hour ago
-        },
-        {
-            _id: 'order_003',
-            customerName: 'Mike Johnson',
-            customerPhone: '09151112233',
-            items: [
-                { name: 'Shawarma Fries', quantity: 1, price: 120 },
-                { name: 'Nacho Combo', quantity: 2, price: 75 }
-            ],
-            total: 270,
-            status: 'pending',
-            paymentMethod: 'Bank Transfer',
-            pickupTime: '7:30 PM',
-            timestamp: new Date() // Just now
-        },
-        {
-            _id: 'order_004',
-            customerName: 'Sarah Williams',
-            customerPhone: '09169998877',
-            items: [
-                { name: 'Veggie Nachos', quantity: 1, price: 65 },
-                { name: 'Oreo', quantity: 1, price: 149 }
-            ],
-            total: 214,
-            status: 'cancelled',
-            paymentMethod: 'Gcash',
-            pickupTime: '8:00 PM',
-            timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000) // 3 hours ago
-        }
-    ];
-    
-    renderOrdersList(demoOrders);
-    updateOrdersSummary(demoOrders);
-    
-    // Add event listeners to order items
-    document.querySelectorAll('.order-item').forEach(item => {
-        item.addEventListener('click', function() {
-            const orderIdElement = this.querySelector('.order-id');
-            if (orderIdElement) {
-                const orderId = orderIdElement.textContent.replace('#', '');
-                showOrderDetails(orderId);
-            }
-        });
-    });
-}
-
-function renderOrdersList(orders) {
-    const ordersList = document.getElementById('orders-list');
-    if (!ordersList) return;
-    
-    if (orders.length === 0) {
-        ordersList.innerHTML = '<p style="text-align: center; color: #666;">No orders found</p>';
-        return;
-    }
-    
-    ordersList.innerHTML = orders.map(order => `
-        <div class="order-item">
-            <div class="order-header">
-                <div class="order-id-time">
-                    <span class="order-id">#${order._id.substring(0, 8)}</span>
-                    <span class="order-time">${new Date(order.timestamp).toLocaleString()}</span>
-                </div>
-                <span class="order-status ${order.status}">${order.status.toUpperCase()}</span>
-            </div>
-            <div class="order-body">
-                <div class="order-customer">
-                    <strong>${order.customerName || 'Guest'}</strong>
-                    ${order.customerPhone ? `<br><small>${order.customerPhone}</small>` : ''}
-                </div>
-                <div class="order-items-preview">
-                    ${order.items.slice(0, 3).map(item => 
-                        `<span>${item.name} x${item.quantity}</span>`
-                    ).join(', ')}
-                    ${order.items.length > 3 ? `... +${order.items.length - 3} more` : ''}
-                </div>
-                <div class="order-total">₱${order.total.toFixed(2)}</div>
-            </div>
-            <div class="order-footer">
-                <span class="order-payment">${order.paymentMethod}</span>
-                <span class="order-pickup">Pickup: ${order.pickupTime}</span>
-            </div>
-        </div>
-    `).join('');
-}
-
-function updateOrdersSummary(orders) {
-    const total = orders.length;
-    const pending = orders.filter(o => o.status === 'pending').length;
-    const processing = orders.filter(o => o.status === 'processing').length;
-    const completed = orders.filter(o => o.status === 'completed').length;
-    
-    const summaryTotal = document.getElementById('summary-total');
-    const summaryPending = document.getElementById('summary-pending');
-    const summaryProcessing = document.getElementById('summary-processing');
-    const summaryCompleted = document.getElementById('summary-completed');
-    
-    if (summaryTotal) summaryTotal.textContent = total;
-    if (summaryPending) summaryPending.textContent = pending;
-    if (summaryProcessing) summaryProcessing.textContent = processing;
-    if (summaryCompleted) summaryCompleted.textContent = completed;
-}
-
-function showOrderDetails(orderId) {
-    showAlert(`Order Details for #${orderId}\n\nCustomer: John Doe\nItems: Regular Nachos x2, Mango Graham x1\nTotal: ₱110.00\nStatus: Completed\nPayment: Cash on Pick-up\nPickup Time: 6:30 PM`);
-}
-
-function filterOrders() {
-    const orderFilter = document.getElementById('order-filter');
-    const orderDate = document.getElementById('order-date');
-    
-    if (!orderFilter || !orderDate) return;
-    
-    const filterValue = orderFilter.value;
-    const dateValue = orderDate.value;
-    
-    if (filterValue !== 'all') {
-        showAlert(`Filtering orders by: ${filterValue} ${dateValue ? 'and date: ' + dateValue : ''}`);
-    }
-    
-    // In a real app, you would filter the orders list
-    // For demo, just reload all orders
-    loadAllOrders();
-}
-
-function searchOrders() {
-    const orderSearch = document.getElementById('order-search');
-    if (!orderSearch) return;
-    
-    const searchTerm = orderSearch.value.toLowerCase();
-    const orderItems = document.querySelectorAll('.order-item');
-    
-    orderItems.forEach(item => {
-        const text = item.textContent.toLowerCase();
-        item.style.display = text.includes(searchTerm) ? '' : 'none';
-    });
-}
-
 // ================================
 // UTILITY FUNCTIONS
 // ================================
 
-function showAlert(message) {
+function showAlert(message, type = 'info') {
     const alertModal = document.getElementById('custom-alert');
     const alertMessage = document.getElementById('custom-alert-message');
     const alertOk = document.getElementById('custom-alert-ok');
     
     if (alertModal && alertMessage && alertOk) {
+        // Set message with HTML support
         alertMessage.innerHTML = message;
+        
+        // Style based on type
+        alertMessage.style.color = type === 'error' ? '#dc3545' : 
+                                   type === 'success' ? '#28a745' : '#2c3e50';
+        
         alertModal.style.display = 'flex';
         
         // Ensure OK button works
@@ -1654,7 +1857,17 @@ function showAlert(message) {
                 alertModal.style.display = 'none';
             }
         });
+        
+        // Auto-close after 5 seconds for success/info messages
+        if (type !== 'error') {
+            setTimeout(() => {
+                if (alertModal.style.display === 'flex') {
+                    alertModal.style.display = 'none';
+                }
+            }, 5000);
+        }
     } else {
+        // Fallback to browser alert
         alert(message);
     }
 }
@@ -1664,10 +1877,9 @@ function showAlert(message) {
 // ================================
 
 // Make functions available globally for inline event handlers
-window.showOrderDetails = showOrderDetails;
+window.showRealOrderDetails = showRealOrderDetails;
 window.editSlide = editSlide;
 window.deleteSlide = deleteSlide;
 window.toggleSlide = toggleSlide;
-window.closeAddSlideModal = closeAddSlideModal;
-window.saveSuperadminSettings = saveSuperadminSettings;
-window.updateSlideshowPreview = updateSlideshowPreview;
+window.editProduct = editProduct;
+window.deleteProduct = deleteProduct;

@@ -143,8 +143,7 @@ header p {
   margin: 0 auto;
 }
 
-
-/* ===== HEADER BUTTONS - UPDATED ===== */
+/* ===== HEADER BUTTONS ===== */
 .header-buttons {
   position: absolute;
   top: 15px;
@@ -152,9 +151,10 @@ header p {
   z-index: 1000;
   display: flex;
   gap: 10px;
-  /* Add these lines to prevent overlapping */
-  flex-wrap: nowrap;
-  align-items: center;
+}
+
+#admin-panel, #customer-panel {
+  display: inline-block;
 }
 
 #admin-toggle, #customer-toggle {
@@ -171,89 +171,6 @@ header p {
   font-family: 'Roboto', sans-serif;
   min-height: 44px;
   min-width: 44px;
-  /* Add white-space to prevent text wrapping */
-  white-space: nowrap;
-}
-
-/* Adjust button colors */
-#admin-toggle {
-  background: #8b4513;
-}
-
-#customer-toggle {
-  background: #17a2b8;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .header-buttons {
-    top: 10px;
-    right: 10px;
-    gap: 5px; /* Reduce gap on mobile */
-  }
-  
-  #admin-toggle, #customer-toggle {
-    padding: 10px 14px; /* Reduce padding on mobile */
-    font-size: 12px; /* Smaller font on mobile */
-    min-height: 40px;
-    min-width: 40px;
-  }
-}
-
-@media (max-width: 480px) {
-  .header-buttons {
-    top: 8px;
-    right: 8px;
-    gap: 4px;
-  }
-  
-  #admin-toggle, #customer-toggle {
-    padding: 8px 10px;
-    font-size: 11px;
-    min-height: 36px;
-    min-width: 36px;
-  }
-  
-  /* If still overlapping, use icons only on very small screens */
-  @media (max-width: 360px) {
-    #admin-toggle span, #customer-toggle span {
-      display: none;
-    }
-    
-    #admin-toggle, #customer-toggle {
-      padding: 10px;
-      width: 40px;
-      justify-content: center;
-    }
-    
-    #admin-toggle i, #customer-toggle i {
-      margin: 0;
-      font-size: 14px;
-    }
-  }
-}
-
-/* Adjust corner logo position if it's causing overlap */
-.corner-logo {
-  position: absolute;
-  top: 15px;
-  left: 15px;
-  z-index: 1001;
-  width: 100px;
-  height: 100px;
-  /* Add right margin to ensure space for buttons */
-  margin-right: 220px; /* Adjust this value as needed */
-}
-
-/* For mobile, adjust corner logo */
-@media (max-width: 768px) {
-  .corner-logo {
-    width: 60px;
-    height: 60px;
-    top: 10px;
-    left: 10px;
-    margin-right: 150px; /* Adjust for mobile */
-  }
 }
 /* ===== ADMIN AVAILABILITY CONTROLS ===== */
 .availability-section {

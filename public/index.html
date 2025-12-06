@@ -169,8 +169,56 @@
         <img src="image/LOGO.jpg" alt="Ai-Maize-ing Nachos Logo" onerror="this.style.display='none'">
     </div>
 
+<div class="container">
+        <!-- Header Buttons -->
+        <div class="header-buttons">
+            <div id="admin-panel">
+                <button id="admin-toggle">
+                    <i class="fas fa-user-shield"></i> <span id="admin-btn-text">Admin</span>
+                </button>
+                <button id="admin-logout-btn" style="display: none; background: #dc3545; margin-left: 5px;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+            
+        </div>
+<!-- Add this near your other header buttons -->
+<button id="admin-access-btn" style="background: #8b4513; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; display: none;">
+    <i class="fas fa-user-shield"></i> Admin
+</button>
 
+<script>
+// Show admin button if superadmin settings allow it
+document.addEventListener('DOMContentLoaded', function() {
+    const adminBtn = document.getElementById('admin-access-btn');
+    const superAdminSettings = JSON.parse(localStorage.getItem('superAdminSettings') || '{"showAdminButton": true}');
+    
+    if (adminBtn && superAdminSettings.showAdminButton) {
+        adminBtn.style.display = 'inline-block';
+        adminBtn.addEventListener('click', function() {
+            window.location.href = 'admin.html';
+        });
+    }
+});
+</script><!-- Add this near your other header buttons -->
+<button id="admin-access-btn" style="background: #8b4513; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; display: none;">
+    <i class="fas fa-user-shield"></i> Admin
+</button>
 
+<script>
+// Show admin button if superadmin settings allow it
+document.addEventListener('DOMContentLoaded', function() {
+    const adminBtn = document.getElementById('admin-access-btn');
+    const superAdminSettings = JSON.parse(localStorage.getItem('superAdminSettings') || '{"showAdminButton": true}');
+    
+    if (adminBtn && superAdminSettings.showAdminButton) {
+        adminBtn.style.display = 'inline-block';
+        adminBtn.addEventListener('click', function() {
+            window.location.href = 'admin.html';
+        });
+    }
+});
+</script>
  
         
 

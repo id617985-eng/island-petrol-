@@ -16,7 +16,7 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '10mb' })); // Increase limit for image uploads
 app.use(express.static(path.join(__dirname, 'public')));
 
 // MongoDB Connection
@@ -318,6 +318,232 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
+// =========== NEW API ENDPOINTS ===========
+
+// Upload image to GitHub (admin only)
+app.post('/api/admin/upload-image', authenticateToken, async (req, res) => {
+    try {
+        const { imageBase64, fileName, productName } = req.body;
+        
+        if (!imageBase64 || !fileName) {
+            return res.status(400).json({ 
+                message: 'Image data and file name are required',
+                code: 'IMAGE_DATA_REQUIRED'
+            });
+        }
+        
+        // Remove data:image/...;base64, prefix if present
+        const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
+        
+        // Get GitHub credentials from environment variables
+        const GITHUB_USERNAME = process.env.GITHUB_USERNAME || 'id617985-eng';
+        const REPO_NAME = process.env.GITHUB_REPO_NAME || 'new-items';
+        const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+        
+        if (!GITHUB_TOKEN) {
+            console.warn('⚠️ GitHub token not found in environment variables');
+            return res.status(500).json({
+                message: 'GitHub upload not configured',
+                code: 'GITHUB_NOT_CONFIGURED'
+            });
+        }
+        
+        const PATH = `images/${fileName}`;
+        
+        // GitHub API URL
+        const githubApiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/${PATH}`;
+        
+        // Prepare GitHub API request
+        const response = await fetch(githubApiUrl, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `token ${GITHUB_TOKEN}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/vnd.github.v3+json'
+            },
+            body: JSON.stringify({
+                message: `Add product image for: ${productName || fileName}`,
+                content: base64Data,
+                committer: {
+                    name: 'Ai-Maize-ing Nachos Admin',
+                    email: 'admin@aimaizeingnachos.com'
+                }
+            })
+        });
+        
+        const githubResult = await response.json();
+        
+        if (!response.ok) {
+            console.error('GitHub API error:', githubResult);
+            return res.status(response.status).json({
+                message: 'Failed to upload image to GitHub',
+                details: githubResult.message || 'Unknown GitHub error',
+                code: 'GITHUB_UPLOAD_FAILED'
+            });
+        }
+        
+        // Construct the public URL for the image
+        const imageUrl = `https://raw.githubusercontent.com/${GITHUB_USERNAME}/${REPO_NAME}/main/${PATH}`;
+        
+        console.log(`✅ Image uploaded to GitHub: ${imageUrl} by ${req.user.username}`);
+        
+        res.json({
+            success: true,
+            message: 'Image uploaded successfully',
+            imageUrl: imageUrl,
+            githubUrl: githubResult.content.html_url
+        });
+        
+    } catch (error) {
+        console.error('Upload image error:', error);
+        res.status(500).json({ 
+            message: 'Internal server error',
+            code: 'INTERNAL_ERROR'
+        });
+    }
+});
+
+// Add new menu item (admin only)
+app.post('/api/admin/menu-items', authenticateToken, async (req, res) => {
+    try {
+        const { 
+            name, 
+            price, 
+            category, 
+            description, 
+            ingredients, 
+            isAvailable = true,
+            imageUrl = '',
+            displayOrder = 0
+        } = req.body;
+        
+        // Validation
+        if (!name || !price || !category) {
+            return res.status(400).json({ 
+                message: 'Name, price, and category are required',
+                code: 'REQUIRED_FIELDS'
+            });
+        }
+        
+        if (!['nachos', 'desserts'].includes(category)) {
+            return res.status(400).json({ 
+                message: 'Category must be either "nachos" or "desserts"',
+                code: 'INVALID_CATEGORY'
+            });
+        }
+        
+        // Check if item already exists
+        const existingItem = await MenuItem.findOne({ name });
+        if (existingItem) {
+            return res.status(409).json({ 
+                message: 'Menu item with this name already exists',
+                code: 'ITEM_EXISTS'
+            });
+        }
+        
+        // Create new menu item
+        const menuItem = new MenuItem({
+            name,
+            price: parseFloat(price),
+            category,
+            description: description || '',
+            ingredients: ingredients || '',
+            isAvailable,
+            imageUrl,
+            displayOrder
+        });
+        
+        await menuItem.save();
+        
+        console.log(`✅ New menu item created: ${name} by ${req.user.username}`);
+        
+        res.status(201).json({
+            success: true,
+            message: 'Menu item created successfully',
+            item: menuItem
+        });
+        
+    } catch (error) {
+        console.error('Create menu item error:', error);
+        res.status(500).json({ 
+            message: 'Internal server error',
+            code: 'INTERNAL_ERROR'
+        });
+    }
+});
+
+// Update menu item (admin only)
+app.put('/api/admin/menu-items/:id', authenticateToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updateData = req.body;
+        
+        if (updateData.price) {
+            updateData.price = parseFloat(updateData.price);
+        }
+        
+        const menuItem = await MenuItem.findByIdAndUpdate(
+            id,
+            { ...updateData, updatedAt: new Date() },
+            { new: true, runValidators: true }
+        );
+        
+        if (!menuItem) {
+            return res.status(404).json({ 
+                message: 'Menu item not found',
+                code: 'ITEM_NOT_FOUND'
+            });
+        }
+        
+        console.log(`✅ Menu item updated: ${menuItem.name} by ${req.user.username}`);
+        
+        res.json({
+            success: true,
+            message: 'Menu item updated successfully',
+            item: menuItem
+        });
+        
+    } catch (error) {
+        console.error('Update menu item error:', error);
+        res.status(500).json({ 
+            message: 'Internal server error',
+            code: 'INTERNAL_ERROR'
+        });
+    }
+});
+
+// Delete menu item (admin only)
+app.delete('/api/admin/menu-items/:id', authenticateToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const menuItem = await MenuItem.findByIdAndDelete(id);
+        
+        if (!menuItem) {
+            return res.status(404).json({ 
+                message: 'Menu item not found',
+                code: 'ITEM_NOT_FOUND'
+            });
+        }
+        
+        console.log(`🗑️ Menu item deleted: ${menuItem.name} by ${req.user.username}`);
+        
+        res.json({
+            success: true,
+            message: 'Menu item deleted successfully'
+        });
+        
+    } catch (error) {
+        console.error('Delete menu item error:', error);
+        res.status(500).json({ 
+            message: 'Internal server error',
+            code: 'INTERNAL_ERROR'
+        });
+    }
+});
+
+// =========== EXISTING API ENDPOINTS ===========
+
 // Routes
 app.get('/api/health', (req, res) => {
     res.json({
@@ -325,7 +551,8 @@ app.get('/api/health', (req, res) => {
         database: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected',
         version: '1.0.0',
         timestamp: new Date().toISOString(),
-        message: 'Ai-Maize-ing Nachos API is running'
+        message: 'Ai-Maize-ing Nachos API is running',
+        environment: process.env.NODE_ENV || 'development'
     });
 });
 
@@ -569,9 +796,6 @@ app.put('/api/admin/menu-items/:name/availability', authenticateToken, async (re
         
         console.log(`✅ Updated availability: ${name} = ${isAvailable} by ${req.user.username}`);
         
-        // Broadcast to all connected clients via WebSocket would be better
-        // For now, we'll rely on polling
-        
         res.json({
             success: true,
             message: `${name} availability updated to ${isAvailable ? 'available' : 'out of stock'}`,
@@ -757,6 +981,11 @@ app.listen(PORT, async () => {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`🌐 Health: http://localhost:${PORT}/api/health`);
     console.log(`🔐 Admin Login: http://localhost:${PORT}`);
+    console.log(`📁 Environment: ${process.env.NODE_ENV || 'development'}`);
+    
+    if (!process.env.GITHUB_TOKEN) {
+        console.warn('⚠️ GITHUB_TOKEN not set - image uploads will be disabled');
+    }
     
     // Initialize default admins AND menu items
     await initializeDefaultAdmins();
