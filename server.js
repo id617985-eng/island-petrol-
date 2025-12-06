@@ -8,23 +8,41 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const app = express();
+
+// Railway.app provides PORT environment variable
 const PORT = process.env.PORT || 8080;
 
-// Middleware
+// Middleware - Railway.app specific CORS
 app.use(cors({
-    origin: '*',
+    origin: [
+        'https://aifoodies.up.railway.app',
+        'http://localhost:3000',
+        'http://localhost:8080',
+        'http://127.0.0.1:5500',
+        '*'
+    ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    credentials: true,
+    preflightContinue: false,
+    optionsSuccessStatus: 204
 }));
-app.use(bodyParser.json({ limit: '10mb' })); // Increase limit for image uploads
+
+app.use(bodyParser.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// MongoDB Connection
+// Handle preflight requests
+app.options('*', cors());
+
+// MongoDB Connection for Railway.app
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://aifoodies:mahalkitaivy@aifoodies.ylsnhql.mongodb.net/nachos?retryWrites=true&w=majority';
 
 mongoose.connect(MONGODB_URI)
-    .then(() => console.log('✅ MongoDB Connected'))
+    .then(() => console.log('✅ MongoDB Connected to Railway.app'))
     .catch(err => console.log('❌ MongoDB Error:', err));
+
+// JWT Secret for Railway.app
+const JWT_SECRET = process.env.JWT_SECRET || 'railway-secret-key-2024-aifoodies-nachos';
 
 // Admin Schema
 const adminSchema = new mongoose.Schema({
@@ -82,6 +100,19 @@ const menuItemSchema = new mongoose.Schema({
 });
 
 const MenuItem = mongoose.model('MenuItem', menuItemSchema);
+
+// Slideshow Schema
+const slideshowSchema = new mongoose.Schema({
+    title: { type: String, required: true },
+    description: { type: String },
+    imageUrl: { type: String, required: true },
+    order: { type: Number, default: 0 },
+    active: { type: Boolean, default: true },
+    promoBadge: { type: String },
+    createdAt: { type: Date, default: Date.now }
+});
+
+const Slideshow = mongoose.model('Slideshow', slideshowSchema);
 
 // Initialize default admins
 async function initializeDefaultAdmins() {
@@ -169,7 +200,8 @@ async function initializeMenuItems() {
                 description: 'Classic nachos with delicious toppings',
                 ingredients: 'Chips, beef, cucumber, white onions, tomatoes, carrots, cheesy sauce, garlic sauce, sesame seeds.',
                 isAvailable: true,
-                imageUrl: '/image/classic nachos.jpg'
+                imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/regular-nachos.jpg',
+                displayOrder: 1
             },
             {
                 name: 'Veggie Nachos',
@@ -178,7 +210,8 @@ async function initializeMenuItems() {
                 description: 'Vegetarian delight',
                 ingredients: 'Corn chips, bell peppers, onions, olives, melted cheese, guacamole.',
                 isAvailable: true,
-                imageUrl: '/image/veggie nachos.jpg'
+                imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/veggie-nachos.jpg',
+                displayOrder: 2
             },
             {
                 name: 'Overload Cheesy Nachos',
@@ -187,7 +220,8 @@ async function initializeMenuItems() {
                 description: 'Extra cheesy goodness',
                 ingredients: 'Chips, beef, cucumber, white onions, tomatoes, carrots, black olives, cheesy sauce, garlic sauce, sesame seeds, Cheese.',
                 isAvailable: true,
-                imageUrl: '/image/overload chees nachos.jpg'
+                imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/overload-cheesy-nachos.jpg',
+                displayOrder: 3
             },
             {
                 name: 'Nacho Combo',
@@ -196,7 +230,8 @@ async function initializeMenuItems() {
                 description: 'Nachos with drink',
                 ingredients: 'Chips, beef, cucumber, white onions, tomatoes, carrots, cheesy sauce, garlic sauce, sesame seeds, Drinks.',
                 isAvailable: true,
-                imageUrl: '/image/combo.png'
+                imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/nacho-combo.jpg',
+                displayOrder: 4
             },
             {
                 name: 'Nacho Fries',
@@ -205,7 +240,8 @@ async function initializeMenuItems() {
                 description: 'Nachos with fries',
                 ingredients: 'Fries, Chips, beef, cucumber, white onions, tomatoes, carrots, black olives, cheesy sauce, garlic sauce, sesame seeds.',
                 isAvailable: true,
-                imageUrl: '/image/nacho fries.jpg'
+                imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/nacho-fries.jpg',
+                displayOrder: 5
             },
             {
                 name: 'Supreme Nachos',
@@ -214,7 +250,8 @@ async function initializeMenuItems() {
                 description: 'Premium nachos experience',
                 ingredients: 'Corn chips, beef, tomatoes, onions, triple cheese, guacamole.',
                 isAvailable: true,
-                imageUrl: '/image/Supreme Nachos.png'
+                imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/supreme-nachos.jpg',
+                displayOrder: 6
             },
             {
                 name: 'Shawarma fries',
@@ -223,7 +260,8 @@ async function initializeMenuItems() {
                 description: 'Shawarma style fries',
                 ingredients: 'Fries, beef, cucumber, white onions, tomatoes, carrots, black olives, cheesy sauce, garlic sauce, sesame seeds, cheese, guacamole.',
                 isAvailable: true,
-                imageUrl: '/image/shawarma fries.jpeg'
+                imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/shawarma-fries.jpg',
+                displayOrder: 7
             },
             // Desserts
             {
@@ -233,7 +271,8 @@ async function initializeMenuItems() {
                 description: 'Sweet mango graham dessert',
                 ingredients: 'Mango slices, graham crackers, cream, condensed milk.',
                 isAvailable: true,
-                imageUrl: '/image/mango.gif'
+                imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/mango-graham.jpg',
+                displayOrder: 1
             },
             {
                 name: 'Mango tiramisu on tube',
@@ -242,7 +281,8 @@ async function initializeMenuItems() {
                 description: 'Mango tiramisu in a tube',
                 ingredients: 'Mango puree, mascarpone, ladyfingers, cream, cocoa dust.',
                 isAvailable: true,
-                imageUrl: '/image/mango tiramisu on tub-price 100.jpeg'
+                imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/mango-tiramisu.jpg',
+                displayOrder: 2
             },
             {
                 name: 'Biscoff',
@@ -251,7 +291,8 @@ async function initializeMenuItems() {
                 description: 'Biscoff cookie dessert',
                 ingredients: 'Biscoff spread, crushed cookies, cream, condensed milk.',
                 isAvailable: true,
-                imageUrl: '/image/biscoff.jpeg'
+                imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/biscoff.jpg',
+                displayOrder: 3
             },
             {
                 name: 'Oreo',
@@ -260,7 +301,8 @@ async function initializeMenuItems() {
                 description: 'Oreo cookie delight',
                 ingredients: 'Oreo cookies, whipped cream, chocolate syrup, condensed milk.',
                 isAvailable: true,
-                imageUrl: '/image/oreo and bisscoff.png'
+                imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/oreo.jpg',
+                displayOrder: 4
             },
             {
                 name: 'Mango Graham Float',
@@ -269,7 +311,8 @@ async function initializeMenuItems() {
                 description: 'Mango graham float dessert',
                 ingredients: 'Mango, graham crackers, cream, condensed milk, and other delicious ingredients.',
                 isAvailable: true,
-                imageUrl: '/image/Mango Graham Floa.jpg'
+                imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/mango-graham-float.jpg',
+                displayOrder: 5
             }
         ];
 
@@ -283,6 +326,7 @@ async function initializeMenuItems() {
                 existingItem.price = itemData.price;
                 existingItem.isAvailable = itemData.isAvailable;
                 existingItem.imageUrl = itemData.imageUrl;
+                existingItem.displayOrder = itemData.displayOrder;
                 await existingItem.save();
                 console.log(`✅ Updated menu item: ${itemData.name}`);
             }
@@ -291,6 +335,50 @@ async function initializeMenuItems() {
         console.log('✅ All menu items initialized/updated');
     } catch (error) {
         console.error('❌ Error initializing menu items:', error);
+    }
+}
+
+// Initialize slideshow items
+async function initializeSlideshow() {
+    try {
+        const slides = [
+            {
+                title: 'Welcome to Ai-Maize-ing Nachos!',
+                description: 'Delicious food made with love',
+                imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/logo.jpg',
+                order: 1,
+                active: true,
+                promoBadge: 'New'
+            },
+            {
+                title: 'Overload Cheesy Nachos',
+                description: 'Loaded with premium cheese and toppings',
+                imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/overload-cheesy-nachos.jpg',
+                order: 2,
+                active: true,
+                promoBadge: 'Bestseller'
+            },
+            {
+                title: 'Mango Graham Special',
+                description: 'Sweet mango dessert delight',
+                imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/mango-graham.jpg',
+                order: 3,
+                active: true,
+                promoBadge: '20% OFF'
+            }
+        ];
+
+        // Clear existing slides
+        await Slideshow.deleteMany({});
+
+        for (const slideData of slides) {
+            await Slideshow.create(slideData);
+            console.log(`✅ Created slideshow slide: ${slideData.title}`);
+        }
+        
+        console.log('✅ Slideshow initialized');
+    } catch (error) {
+        console.error('❌ Error initializing slideshow:', error);
     }
 }
 
@@ -306,7 +394,7 @@ const authenticateToken = (req, res, next) => {
         });
     }
 
-    jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret-key', (err, user) => {
+    jwt.verify(token, JWT_SECRET, (err, user) => {
         if (err) {
             return res.status(403).json({ 
                 message: 'Invalid or expired token',
@@ -318,7 +406,178 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
-// =========== NEW API ENDPOINTS ===========
+// =========== SLIDESHOW API ENDPOINTS ===========
+
+// Get slideshow (public)
+app.get('/api/slideshow', async (req, res) => {
+    try {
+        const slides = await Slideshow.find({ active: true }).sort({ order: 1 });
+        
+        // If no slides, return demo slides
+        if (slides.length === 0) {
+            const demoSlides = [
+                {
+                    _id: 'slide_1',
+                    title: 'Welcome to Ai-Maize-ing Nachos!',
+                    description: 'Delicious food made with love',
+                    imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/logo.jpg',
+                    order: 1,
+                    active: true,
+                    promoBadge: 'New'
+                },
+                {
+                    _id: 'slide_2',
+                    title: 'Overload Cheesy Nachos',
+                    description: 'Loaded with premium cheese and toppings',
+                    imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/overload-cheesy-nachos.jpg',
+                    order: 2,
+                    active: true,
+                    promoBadge: 'Bestseller'
+                },
+                {
+                    _id: 'slide_3',
+                    title: 'Mango Graham Special',
+                    description: 'Sweet mango dessert delight',
+                    imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/mango-graham.jpg',
+                    order: 3,
+                    active: true,
+                    promoBadge: '20% OFF'
+                }
+            ];
+            return res.json(demoSlides);
+        }
+        
+        res.json(slides);
+    } catch (error) {
+        console.error('Get slideshow error:', error);
+        res.status(500).json({ 
+            message: 'Internal server error',
+            code: 'INTERNAL_ERROR'
+        });
+    }
+});
+
+// Create slideshow slide (admin only)
+app.post('/api/admin/slideshow', authenticateToken, async (req, res) => {
+    try {
+        const { title, description, imageUrl, order, active, promoBadge } = req.body;
+        
+        if (!title || !imageUrl) {
+            return res.status(400).json({ 
+                message: 'Title and image URL are required',
+                code: 'REQUIRED_FIELDS'
+            });
+        }
+        
+        const slide = new Slideshow({
+            title,
+            description,
+            imageUrl,
+            order: order || 0,
+            active: active !== undefined ? active : true,
+            promoBadge
+        });
+        
+        await slide.save();
+        
+        console.log(`✅ Slideshow slide created: ${title} by ${req.user.username}`);
+        
+        res.status(201).json({
+            success: true,
+            message: 'Slide created successfully',
+            slide
+        });
+        
+    } catch (error) {
+        console.error('Create slide error:', error);
+        res.status(500).json({ 
+            message: 'Internal server error',
+            code: 'INTERNAL_ERROR'
+        });
+    }
+});
+
+// Update slideshow slide (admin only)
+app.put('/api/admin/slideshow/:id', authenticateToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updateData = req.body;
+        
+        const slide = await Slideshow.findByIdAndUpdate(
+            id,
+            updateData,
+            { new: true, runValidators: true }
+        );
+        
+        if (!slide) {
+            return res.status(404).json({ 
+                message: 'Slide not found',
+                code: 'SLIDE_NOT_FOUND'
+            });
+        }
+        
+        console.log(`✅ Slideshow slide updated: ${slide.title} by ${req.user.username}`);
+        
+        res.json({
+            success: true,
+            message: 'Slide updated successfully',
+            slide
+        });
+        
+    } catch (error) {
+        console.error('Update slide error:', error);
+        res.status(500).json({ 
+            message: 'Internal server error',
+            code: 'INTERNAL_ERROR'
+        });
+    }
+});
+
+// Delete slideshow slide (admin only)
+app.delete('/api/admin/slideshow/:id', authenticateToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const slide = await Slideshow.findByIdAndDelete(id);
+        
+        if (!slide) {
+            return res.status(404).json({ 
+                message: 'Slide not found',
+                code: 'SLIDE_NOT_FOUND'
+            });
+        }
+        
+        console.log(`🗑️ Slideshow slide deleted: ${slide.title} by ${req.user.username}`);
+        
+        res.json({
+            success: true,
+            message: 'Slide deleted successfully'
+        });
+        
+    } catch (error) {
+        console.error('Delete slide error:', error);
+        res.status(500).json({ 
+            message: 'Internal server error',
+            code: 'INTERNAL_ERROR'
+        });
+    }
+});
+
+// Get all slides (admin only)
+app.get('/api/admin/slideshow', authenticateToken, async (req, res) => {
+    try {
+        const slides = await Slideshow.find().sort({ order: 1 });
+        res.json(slides);
+    } catch (error) {
+        console.error('Get admin slides error:', error);
+        res.status(500).json({ 
+            message: 'Internal server error',
+            code: 'INTERNAL_ERROR'
+        });
+    }
+});
+
+// =========== IMAGE UPLOAD API ENDPOINTS ===========
 
 // Upload image to GitHub (admin only)
 app.post('/api/admin/upload-image', authenticateToken, async (req, res) => {
@@ -335,9 +594,9 @@ app.post('/api/admin/upload-image', authenticateToken, async (req, res) => {
         // Remove data:image/...;base64, prefix if present
         const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
         
-        // Get GitHub credentials from environment variables
-        const GITHUB_USERNAME = process.env.GITHUB_USERNAME || 'id617985-eng';
-        const REPO_NAME = process.env.GITHUB_REPO_NAME || 'new-items';
+        // GitHub credentials for Railway.app
+        const GITHUB_USERNAME = 'id617985-eng';
+        const REPO_NAME = 'new-items';
         const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
         
         if (!GITHUB_TOKEN) {
@@ -402,6 +661,8 @@ app.post('/api/admin/upload-image', authenticateToken, async (req, res) => {
         });
     }
 });
+
+// =========== MENU ITEMS API ENDPOINTS ===========
 
 // Add new menu item (admin only)
 app.post('/api/admin/menu-items', authenticateToken, async (req, res) => {
@@ -544,15 +805,26 @@ app.delete('/api/admin/menu-items/:id', authenticateToken, async (req, res) => {
 
 // =========== EXISTING API ENDPOINTS ===========
 
-// Routes
+// Health check
 app.get('/api/health', (req, res) => {
     res.json({
         status: 'OK',
         database: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected',
         version: '1.0.0',
         timestamp: new Date().toISOString(),
-        message: 'Ai-Maize-ing Nachos API is running',
-        environment: process.env.NODE_ENV || 'development'
+        message: 'Ai-Maize-ing Nachos API is running on Railway.app',
+        environment: process.env.NODE_ENV || 'production',
+        domain: 'https://aifoodies.up.railway.app'
+    });
+});
+
+// Test endpoint
+app.get('/api/test', (req, res) => {
+    res.json({
+        status: 'ok',
+        message: 'API is working correctly',
+        timestamp: new Date().toISOString(),
+        server: 'Railway.app'
     });
 });
 
@@ -609,7 +881,7 @@ app.post('/api/admin/login', async (req, res) => {
                 role: admin.role,
                 permissions: admin.permissions
             },
-            process.env.JWT_SECRET || 'fallback-secret-key',
+            JWT_SECRET,
             { expiresIn: '24h' }
         );
 
@@ -699,6 +971,12 @@ app.get('/api/admin/me', authenticateToken, async (req, res) => {
 // Dashboard stats
 app.get('/api/admin/dashboard-stats', authenticateToken, async (req, res) => {
     try {
+        // Get real stats from database
+        const totalMenuItems = await MenuItem.countDocuments();
+        const availableItems = await MenuItem.countDocuments({ isAvailable: true });
+        const totalSlides = await Slideshow.countDocuments({ active: true });
+        const totalAdmins = await Admin.countDocuments({ isActive: true });
+        
         const stats = {
             totalOrders: 24,
             totalSales: 5240,
@@ -706,6 +984,10 @@ app.get('/api/admin/dashboard-stats', authenticateToken, async (req, res) => {
             todaySales: 650,
             pendingOrders: 2,
             totalCustomers: 15,
+            totalMenuItems,
+            availableItems,
+            totalSlides,
+            totalAdmins,
             popularItems: [
                 { name: 'Overload Cheesy Nachos', count: 12 },
                 { name: 'Mango Graham', count: 10 },
@@ -749,7 +1031,7 @@ app.get('/api/menu-items', async (req, res) => {
             query.category = category;
         }
         
-        const menuItems = await MenuItem.find(query).sort({ displayOrder: 1 });
+        const menuItems = await MenuItem.find(query).sort({ displayOrder: 1, name: 1 });
         res.json(menuItems);
     } catch (error) {
         console.error('Get menu items error:', error);
@@ -867,38 +1149,6 @@ app.get('/api/admin/menu-items', authenticateToken, async (req, res) => {
     }
 });
 
-// Public endpoints for frontend
-app.get('/api/slideshow', (req, res) => {
-    const slides = [
-        {
-            _id: '1',
-            title: 'Welcome to Ai-Maize-ing Nachos!',
-            description: 'Delicious food made with love',
-            imageUrl: '/image/LOGO.jpg',
-            order: 1,
-            active: true
-        },
-        {
-            _id: '2',
-            title: 'Overload Cheesy Nachos',
-            description: 'Loaded with premium cheese and toppings',
-            imageUrl: '/image/overload chees nachos.jpg',
-            order: 2,
-            active: true
-        },
-        {
-            _id: '3',
-            title: 'Mango Graham Special',
-            description: 'Sweet mango dessert delight',
-            imageUrl: '/image/mango.gif',
-            order: 3,
-            active: true
-        }
-    ];
-    
-    res.json(slides);
-});
-
 // Orders endpoints
 app.get('/api/admin/orders', authenticateToken, async (req, res) => {
     try {
@@ -979,15 +1229,17 @@ app.get('*', (req, res) => {
 // Start server
 app.listen(PORT, async () => {
     console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`🌐 Health: http://localhost:${PORT}/api/health`);
-    console.log(`🔐 Admin Login: http://localhost:${PORT}`);
-    console.log(`📁 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🌐 Railway.app URL: https://aifoodies.up.railway.app`);
+    console.log(`🌐 Health: https://aifoodies.up.railway.app/api/health`);
+    console.log(`🔐 Admin Login: https://aifoodies.up.railway.app`);
+    console.log(`📁 Environment: ${process.env.NODE_ENV || 'production'}`);
     
     if (!process.env.GITHUB_TOKEN) {
         console.warn('⚠️ GITHUB_TOKEN not set - image uploads will be disabled');
     }
     
-    // Initialize default admins AND menu items
+    // Initialize default data
     await initializeDefaultAdmins();
     await initializeMenuItems();
+    await initializeSlideshow();
 });
