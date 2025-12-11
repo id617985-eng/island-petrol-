@@ -11,7 +11,14 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-app.use(cors());
+// Enhanced CORS configuration
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    credentials: true
+}));
+
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -26,33 +33,29 @@ let recentNotifications = [];
 const MAX_NOTIFICATIONS = 50;
 const currencySymbol = '₱';
 
-// VAPID Keys for Push Notifications - FIXED SYNTAX
+// VAPID Keys for Push Notifications
 const vapidKeys = {
-  publicKey: process.env.VAPID_PUBLIC_KEY,
-  privateKey: process.env.VAPID_PRIVATE_KEY
+    publicKey: process.env.VAPID_PUBLIC_KEY,
+    privateKey: process.env.VAPID_PRIVATE_KEY
 };
 
 // Validate that VAPID keys are provided
 if (!vapidKeys.publicKey || !vapidKeys.privateKey) {
-  console.log('⚠️  VAPID keys not found in environment variables');
-  console.log('ℹ️  Push notifications will be disabled');
-  console.log('ℹ️  Generate keys with: node generate-valid-keys.js');
-} else {
-  try {
-    // Configure web-push with VAPID keys
-    webpush.setVapidDetails(
-      'mailto:admin@aifoodies.com',
-      vapidKeys.publicKey,
-      vapidKeys.privateKey
-    );
-    console.log('✅ VAPID keys configured successfully');
-  } catch (error) {
-    console.log('❌ VAPID key configuration failed:', error.message);
+    console.log('⚠️  VAPID keys not found in environment variables');
     console.log('ℹ️  Push notifications will be disabled');
-    // Disable push functionality
-    vapidKeys.publicKey = null;
-    vapidKeys.privateKey = null;
-  }
+} else {
+    try {
+        webpush.setVapidDetails(
+            'mailto:admin@aifoodies.com',
+            vapidKeys.publicKey,
+            vapidKeys.privateKey
+        );
+        console.log('✅ VAPID keys configured successfully');
+    } catch (error) {
+        console.log('❌ VAPID key configuration failed:', error.message);
+        vapidKeys.publicKey = null;
+        vapidKeys.privateKey = null;
+    }
 }
 
 // Store push subscriptions
@@ -66,7 +69,10 @@ const authenticateToken = (req, res, next) => {
     if (!token) return res.status(401).json({ message: 'Access token required' });
 
     jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret-key', (err, user) => {
-        if (err) return res.status(403).json({ message: 'Invalid token' });
+        if (err) {
+            console.log('❌ Token verification failed:', err.message);
+            return res.status(403).json({ message: 'Invalid or expired token' });
+        }
         req.user = user;
         next();
     });
@@ -80,7 +86,10 @@ const authenticateCustomer = (req, res, next) => {
     if (!token) return res.status(401).json({ message: 'Access token required' });
 
     jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret-key', (err, decoded) => {
-        if (err) return res.status(403).json({ message: 'Invalid token' });
+        if (err) {
+            console.log('❌ Customer token verification failed:', err.message);
+            return res.status(403).json({ message: 'Invalid or expired token' });
+        }
         if (decoded.type !== 'customer') return res.status(403).json({ message: 'Invalid token type' });
         
         req.customer = decoded;
@@ -91,21 +100,25 @@ const authenticateCustomer = (req, res, next) => {
 // MongoDB Connect
 const MONGO_URI = process.env.MONGODB_URI || 'mongodb+srv://aifoodies:mahalkitaivy@aifoodies.ylsnhql.mongodb.net/nachos?retryWrites=true&w=majority';
 
-mongoose.connect(MONGO_URI)
-.then(() => console.log('✅ MongoDB Connected'))
-.catch(err => console.log('❌ MongoDB Error:', err.message));
-
-// Create Default Admin
-const initializeAdmin = async () => {
-    const adminExists = await Admin.findOne({ username: 'admin' });
-    if (!adminExists) {
-        const hashed = await bcrypt.hash('admin123', 10);
-        await Admin.create({
-            username: 'admin',
-            password: hashed,
-            email: 'admin@aifoodies.com'
-        });
-        console.log('✅ Default Admin Created');
+// Create Default Admin Function
+const createDefaultAdmin = async () => {
+    try {
+        const adminExists = await Admin.findOne({ username: 'admin' });
+        if (!adminExists) {
+            const hashedPassword = await bcrypt.hash('admin123', 10);
+            await Admin.create({
+                username: 'admin',
+                password: hashedPassword,
+                email: 'admin@aifoodies.com',
+                role: 'admin',
+                createdAt: new Date()
+            });
+            console.log('✅ Default admin created: username=admin, password=admin123');
+        } else {
+            console.log('✅ Admin already exists in database');
+        }
+    } catch (error) {
+        console.error('❌ Error creating default admin:', error);
     }
 };
 
@@ -135,6 +148,18 @@ async function initializeDefaultAvailability() {
         console.log('❌ Default availability initialization failed:', error.message);
     }
 }
+
+// Connect to MongoDB and initialize
+mongoose.connect(MONGO_URI)
+.then(async () => {
+    console.log('✅ MongoDB Connected');
+    await createDefaultAdmin();
+    await initializeDefaultAvailability();
+})
+.catch(err => {
+    console.log('❌ MongoDB Error:', err.message);
+    process.exit(1);
+});
 
 // Add notification to recent notifications
 function addNotification(notification) {
@@ -176,7 +201,6 @@ async function sendPushNotification(notification) {
             console.log('📱 Push notification sent successfully');
         } catch (error) {
             console.log('❌ Push notification failed:', error);
-            // Remove invalid subscriptions
             if (error.statusCode === 410) {
                 pushSubscriptions = pushSubscriptions.filter(
                     sub => sub.endpoint !== subscription.endpoint
@@ -188,29 +212,200 @@ async function sendPushNotification(notification) {
     await Promise.allSettled(promises);
 }
 
+// ======================
+// API ENDPOINTS
+// ======================
+
 // ✅ HEALTH CHECK
 app.get('/api/health', (req, res) => {
     res.json({
         status: 'OK',
         database: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected',
         pushNotifications: vapidKeys.publicKey && vapidKeys.privateKey ? 'Enabled' : 'Disabled',
-        availability: 'Enabled'
+        adminExists: true,
+        time: new Date().toISOString()
     });
 });
 
-// ✅ ITEM AVAILABILITY ENDPOINTS
+// ✅ CHECK ADMIN EXISTS (Public)
+app.get('/api/admin/check', async (req, res) => {
+    try {
+        const admin = await Admin.findOne({ username: 'admin' });
+        
+        if (admin) {
+            res.json({
+                exists: true,
+                username: admin.username,
+                email: admin.email,
+                created: admin.createdAt,
+                message: 'Admin user is ready'
+            });
+        } else {
+            res.json({
+                exists: false,
+                message: 'Admin not found. Please create one.'
+            });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
 
-// ✅ GET ALL ITEM AVAILABILITY
+// ✅ CREATE DEFAULT ADMIN (Public - for testing)
+app.post('/api/admin/create-default', async (req, res) => {
+    try {
+        const adminExists = await Admin.findOne({ username: 'admin' });
+        
+        if (adminExists) {
+            return res.json({
+                message: 'Admin already exists',
+                username: adminExists.username,
+                email: adminExists.email
+            });
+        }
+        
+        const hashedPassword = await bcrypt.hash('admin123', 10);
+        const admin = await Admin.create({
+            username: 'admin',
+            password: hashedPassword,
+            email: 'admin@aifoodies.com',
+            role: 'admin',
+            createdAt: new Date()
+        });
+        
+        res.status(201).json({
+            message: 'Default admin created successfully',
+            credentials: {
+                username: 'admin',
+                password: 'admin123',
+                note: 'Use these credentials to login'
+            },
+            admin: {
+                id: admin._id,
+                username: admin.username,
+                email: admin.email
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ✅ ADMIN LOGIN (Enhanced with detailed logging)
+app.post('/api/admin/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        
+        console.log('🔐 Login attempt:', { username, password: password ? '***' : 'empty' });
+        
+        if (!username || !password) {
+            console.log('❌ Missing credentials');
+            return res.status(400).json({ 
+                message: 'Username and password are required',
+                code: 'MISSING_CREDENTIALS'
+            });
+        }
+
+        const admin = await Admin.findOne({ username });
+        
+        if (!admin) {
+            console.log('❌ Admin not found in database:', username);
+            return res.status(401).json({ 
+                message: 'Invalid username or password',
+                code: 'USER_NOT_FOUND'
+            });
+        }
+
+        console.log('✅ Admin found:', admin.username);
+        console.log('🔍 Comparing password...');
+        
+        // Use bcrypt.compare for password verification
+        const validPassword = await bcrypt.compare(password, admin.password);
+        
+        if (!validPassword) {
+            console.log('❌ Password incorrect for:', username);
+            return res.status(401).json({ 
+                message: 'Invalid username or password',
+                code: 'INVALID_PASSWORD'
+            });
+        }
+
+        console.log('✅ Password verified successfully');
+        
+        const token = jwt.sign(
+            { 
+                id: admin._id, 
+                username: admin.username,
+                role: admin.role || 'admin'
+            },
+            process.env.JWT_SECRET || 'fallback-secret-key',
+            { expiresIn: '24h' }
+        );
+
+        console.log('✅ Login successful for:', username);
+        
+        res.json({ 
+            token, 
+            message: 'Login successful',
+            admin: {
+                id: admin._id,
+                username: admin.username,
+                email: admin.email,
+                role: admin.role
+            }
+        });
+    } catch (error) {
+        console.error('❌ Login error:', error);
+        res.status(500).json({ 
+            message: 'Internal server error during login',
+            error: error.message 
+        });
+    }
+});
+
+// ✅ VERIFY ADMIN TOKEN
+app.get('/api/admin/verify', authenticateToken, (req, res) => {
+    res.json({ 
+        valid: true, 
+        admin: req.user,
+        message: 'Token is valid'
+    });
+});
+
+// ✅ VERIFY ADMIN ROLE (For admin panel)
+app.get('/api/admin/verify-role', authenticateToken, async (req, res) => {
+    try {
+        const admin = await Admin.findById(req.user.id);
+        if (!admin) {
+            return res.status(404).json({ valid: false, message: 'Admin not found' });
+        }
+        
+        res.json({ 
+            valid: true, 
+            admin: {
+                id: admin._id,
+                username: admin.username,
+                email: admin.email,
+                role: admin.role || 'admin'
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ valid: false, message: error.message });
+    }
+});
+
+// ======================
+// OTHER ENDPOINTS (Keep existing)
+// ======================
+
+// ✅ ITEM AVAILABILITY ENDPOINTS
 app.get('/api/availability', async (req, res) => {
     try {
         const availability = await Availability.find();
-        
-        // Convert to object format for easier client-side use
         const availabilityObj = {};
         availability.forEach(item => {
             availabilityObj[item.name] = item.available;
         });
-        
         res.json(availabilityObj);
     } catch (error) {
         console.error('❌ Availability fetch error:', error);
@@ -221,7 +416,6 @@ app.get('/api/availability', async (req, res) => {
     }
 });
 
-// ✅ UPDATE ITEM AVAILABILITY (Protected)
 app.put('/api/availability/:itemName', authenticateToken, async (req, res) => {
     try {
         const itemName = decodeURIComponent(req.params.itemName);
@@ -231,16 +425,15 @@ app.put('/api/availability/:itemName', authenticateToken, async (req, res) => {
             return res.status(400).json({ message: 'Available field must be boolean' });
         }
 
-        // Find and update or create availability record
         const availability = await Availability.findOneAndUpdate(
             { name: itemName },
             { 
                 name: itemName,
                 available: available,
-                category: 'nachos' // Default category, you can customize this
+                category: 'nachos'
             },
             { 
-                upsert: true, // Create if doesn't exist
+                upsert: true,
                 new: true 
             }
         );
@@ -264,56 +457,7 @@ app.put('/api/availability/:itemName', authenticateToken, async (req, res) => {
     }
 });
 
-// ✅ BULK UPDATE AVAILABILITY (Protected)
-app.put('/api/availability', authenticateToken, async (req, res) => {
-    try {
-        const { updates } = req.body;
-
-        if (!updates || typeof updates !== 'object') {
-            return res.status(400).json({ message: 'Updates object required' });
-        }
-
-        const results = [];
-        
-        for (const [itemName, available] of Object.entries(updates)) {
-            if (typeof available === 'boolean') {
-                const availability = await Availability.findOneAndUpdate(
-                    { name: itemName },
-                    { 
-                        name: itemName,
-                        available: available,
-                        category: 'nachos'
-                    },
-                    { 
-                        upsert: true,
-                        new: true 
-                    }
-                );
-                results.push({
-                    name: availability.name,
-                    available: availability.available
-                });
-            }
-        }
-
-        console.log(`📦 Bulk availability update: ${results.length} items updated`);
-
-        res.json({
-            message: 'Bulk availability update successful',
-            updatedItems: results
-        });
-    } catch (error) {
-        console.error('❌ Bulk availability update error:', error);
-        res.status(500).json({ 
-            message: 'Error updating availability in bulk',
-            error: error.message 
-        });
-    }
-});
-
 // ✅ PUSH NOTIFICATION ENDPOINTS
-
-// Get VAPID public key
 app.get('/api/push/vapid-public-key', (req, res) => {
     if (!vapidKeys.publicKey) {
         return res.status(503).json({ error: 'Push notifications not configured' });
@@ -321,7 +465,6 @@ app.get('/api/push/vapid-public-key', (req, res) => {
     res.json({ publicKey: vapidKeys.publicKey });
 });
 
-// Subscribe to push notifications
 app.post('/api/push/subscribe', authenticateToken, (req, res) => {
     if (!vapidKeys.publicKey) {
         return res.status(503).json({ error: 'Push notifications not configured' });
@@ -329,7 +472,6 @@ app.post('/api/push/subscribe', authenticateToken, (req, res) => {
 
     const subscription = req.body;
     
-    // Check if subscription already exists
     const exists = pushSubscriptions.some(sub => 
         sub.endpoint === subscription.endpoint
     );
@@ -342,19 +484,7 @@ app.post('/api/push/subscribe', authenticateToken, (req, res) => {
     res.status(201).json({ message: 'Subscription registered' });
 });
 
-// Unsubscribe from push notifications
-app.post('/api/push/unsubscribe', authenticateToken, (req, res) => {
-    const subscription = req.body;
-    pushSubscriptions = pushSubscriptions.filter(sub => 
-        sub.endpoint !== subscription.endpoint
-    );
-    console.log('📱 Push subscription removed');
-    res.json({ message: 'Unsubscribed successfully' });
-});
-
-// ✅ CUSTOMER ACCOUNT ENDPOINTS
-
-// ✅ CUSTOMER REGISTRATION
+// ✅ CUSTOMER ENDPOINTS (Keep existing)
 app.post('/api/customers/register', async (req, res) => {
     try {
         const { name, phone, email, password } = req.body;
@@ -363,16 +493,13 @@ app.post('/api/customers/register', async (req, res) => {
             return res.status(400).json({ message: 'Name, phone, and password are required' });
         }
 
-        // Check if customer already exists
         const existingCustomer = await Customer.findOne({ phone });
         if (existingCustomer) {
             return res.status(400).json({ message: 'Customer with this phone number already exists' });
         }
 
-        // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Create new customer
         const customer = await Customer.create({
             name,
             phone,
@@ -402,7 +529,6 @@ app.post('/api/customers/register', async (req, res) => {
     }
 });
 
-// ✅ GET CUSTOMER BY PHONE
 app.get('/api/customers/phone/:phone', async (req, res) => {
     try {
         const customer = await Customer.findOne({ phone: req.params.phone });
@@ -421,7 +547,6 @@ app.get('/api/customers/phone/:phone', async (req, res) => {
     }
 });
 
-// ✅ CUSTOMER LOGIN
 app.post('/api/customers/login', async (req, res) => {
     try {
         const { phone, password } = req.body;
@@ -435,18 +560,15 @@ app.post('/api/customers/login', async (req, res) => {
             return res.status(401).json({ message: 'Invalid phone number or password' });
         }
 
-        // Check if customer has password (new customers might not have one)
         if (!customer.password) {
             return res.status(401).json({ message: 'Account not set up with password. Please register first.' });
         }
 
-        // Use bcrypt.compare for secure password verification
         const validPassword = await bcrypt.compare(password, customer.password);
         if (!validPassword) {
             return res.status(401).json({ message: 'Invalid phone number or password' });
         }
 
-        // Create JWT token for customer
         const token = jwt.sign(
             { 
                 id: customer._id, 
@@ -475,186 +597,9 @@ app.post('/api/customers/login', async (req, res) => {
     }
 });
 
-// ✅ GET CUSTOMER PROFILE & ORDER HISTORY
-app.get('/api/customers/profile', authenticateCustomer, async (req, res) => {
-    try {
-        const customer = await Customer.findById(req.customer.id)
-            .populate('orderHistory.orderId');
-        
-        if (!customer) {
-            return res.status(404).json({ message: 'Customer not found' });
-        }
-
-        res.json({
-            customer: {
-                id: customer._id,
-                name: customer.name,
-                phone: customer.phone,
-                email: customer.email,
-                loyaltyPoints: customer.loyaltyPoints,
-                totalOrders: customer.totalOrders,
-                totalSpent: customer.totalSpent,
-                favoriteItems: customer.favoriteItems,
-                orderHistory: customer.orderHistory,
-                createdAt: customer.createdAt
-            }
-        });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
-
-// Update customer profile
-app.put('/api/customers/profile', authenticateCustomer, async (req, res) => {
-    try {
-        const { name, email } = req.body;
-        
-        const updatedCustomer = await Customer.findByIdAndUpdate(
-            req.customer.id,
-            { name, email },
-            { new: true }
-        ).select('-password');
-
-        if (!updatedCustomer) {
-            return res.status(404).json({ message: 'Customer not found' });
-        }
-
-        res.json({
-            customer: updatedCustomer,
-            message: 'Profile updated successfully'
-        });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
-
-// Update customer loyalty points (internal use)
-app.patch('/api/customers/:id/loyalty', authenticateToken, async (req, res) => {
-    try {
-        const { points, orderAmount } = req.body;
-        const customerId = req.params.id;
-
-        const customer = await Customer.findById(customerId);
-        if (!customer) {
-            return res.status(404).json({ message: 'Customer not found' });
-        }
-
-        // Update loyalty points (1 point per 100 pesos spent)
-        const pointsEarned = orderAmount ? Math.floor(orderAmount / 100) : points;
-        
-        customer.loyaltyPoints += pointsEarned;
-        customer.totalOrders += 1;
-        customer.totalSpent += orderAmount || 0;
-
-        await customer.save();
-
-        console.log(`⭐ Loyalty points updated for ${customer.name}: +${pointsEarned} points`);
-
-        res.json({
-            message: 'Loyalty points updated',
-            loyaltyPoints: customer.loyaltyPoints,
-            pointsEarned: pointsEarned
-        });
-
-    } catch (error) {
-        console.error('❌ Loyalty points update error:', error);
-        res.status(500).json({ 
-            message: 'Error updating loyalty points',
-            error: error.message 
-        });
-    }
-});
-
-// Get customer order history
-app.get('/api/customers/:id/orders', authenticateToken, async (req, res) => {
-    try {
-        const customerId = req.params.id;
-        
-        const orders = await Order.find({ customerId })
-            .sort({ timestamp: -1 })
-            .select('items total status timestamp pickupTime customerName');
-
-        res.json(orders);
-
-    } catch (error) {
-        console.error('❌ Customer orders error:', error);
-        res.status(500).json({ 
-            message: 'Error fetching customer orders',
-            error: error.message 
-        });
-    }
-});
-
-// Get customer's own orders
-app.get('/api/customers/orders/my-orders', authenticateCustomer, async (req, res) => {
-    try {
-        const orders = await Order.find({ customerId: req.customer.id })
-            .sort({ timestamp: -1 })
-            .select('items total status timestamp pickupTime customerName');
-
-        res.json(orders);
-
-    } catch (error) {
-        console.error('❌ Customer orders error:', error);
-        res.status(500).json({ 
-            message: 'Error fetching your orders',
-            error: error.message 
-        });
-    }
-});
-
-// ✅ CUSTOMER PUSH NOTIFICATION SUBSCRIPTION
-app.post('/api/customers/push/subscribe', authenticateCustomer, async (req, res) => {
-    try {
-        const subscription = req.body;
-        await Customer.findByIdAndUpdate(req.customer.id, {
-            pushSubscription: subscription
-        });
-        
-        console.log(`📱 Customer ${req.customer.id} push subscription registered`);
-        res.status(201).json({ message: 'Subscription registered' });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
-
-// ✅ SEND ORDER READY NOTIFICATION TO CUSTOMER
-app.post('/api/customers/notify-order-ready/:orderId', authenticateToken, async (req, res) => {
-    try {
-        const order = await Order.findById(req.params.orderId);
-        if (!order) {
-            return res.status(404).json({ message: 'Order not found' });
-        }
-
-        // Find customer and send notification
-        if (order.customerId) {
-            const customer = await Customer.findById(order.customerId);
-            if (customer && customer.pushSubscription) {
-                const payload = JSON.stringify({
-                    title: '🍿 Order Ready! - Ai-Maize-ing Nachos',
-                    body: `Your order is ready for pickup, ${customer.name}!`,
-                    icon: '/icon-192x192.png',
-                    badge: '/badge-72x72.png',
-                    tag: 'order-ready',
-                    data: {
-                        url: '/customer-profile.html',
-                        orderId: order._id
-                    }
-                });
-
-                try {
-                    await webpush.sendNotification(customer.pushSubscription, payload);
-                    console.log(`📱 Order ready notification sent to ${customer.name}`);
-                } catch (error) {
-                    console.log('❌ Customer push notification failed:', error);
-                }
-            }
-        }
-
-        res.json({ message: 'Notification sent' });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+// ✅ VERIFY CUSTOMER TOKEN
+app.get('/api/customers/verify', authenticateCustomer, (req, res) => {
+    res.json({ valid: true, customer: req.customer });
 });
 
 // ✅ GET NOTIFICATIONS (Protected)
@@ -677,35 +622,6 @@ app.delete('/api/admin/notifications', authenticateToken, (req, res) => {
     res.json({ message: 'Notifications cleared' });
 });
 
-// ✅ LOGIN
-app.post('/api/admin/login', async (req, res) => {
-    const { username, password } = req.body;
-    const admin = await Admin.findOne({ username });
-
-    if (!admin) return res.status(401).json({ message: 'Invalid credentials' });
-
-    const valid = await bcrypt.compare(password, admin.password);
-    if (!valid) return res.status(401).json({ message: 'Invalid credentials' });
-
-    const token = jwt.sign(
-        { id: admin._id, username: admin.username },
-        process.env.JWT_SECRET || 'fallback-secret-key',
-        { expiresIn: '24h' }
-    );
-
-    res.json({ token, message: 'Login successful' });
-});
-
-// ✅ VERIFY TOKEN
-app.get('/api/admin/verify', authenticateToken, (req, res) => {
-    res.json({ valid: true, admin: req.user });
-});
-
-// ✅ VERIFY CUSTOMER TOKEN
-app.get('/api/customers/verify', authenticateCustomer, (req, res) => {
-    res.json({ valid: true, customer: req.customer });
-});
-
 // ✅ GET ORDERS (Protected)
 app.get('/api/orders', authenticateToken, async (req, res) => {
     try {
@@ -716,19 +632,17 @@ app.get('/api/orders', authenticateToken, async (req, res) => {
     }
 });
 
-// ✅ CREATE ORDER (Public) - WITH ENHANCED CUSTOMER HISTORY TRACKING
+// ✅ CREATE ORDER (Public)
 app.post('/api/orders', async (req, res) => {
     try {
         const { customerId, customerPhone, customerName, items, total, pickupTime, paymentMethod, specialInstructions } = req.body;
 
-        // Validate required fields
         if (!items || !total || !pickupTime) {
             return res.status(400).json({ 
                 message: 'Items, total, and pickup time are required' 
             });
         }
 
-        // Check item availability before creating order
         for (const item of items) {
             const availability = await Availability.findOne({ name: item.name });
             if (availability && !availability.available) {
@@ -741,7 +655,6 @@ app.post('/api/orders', async (req, res) => {
         let customer = null;
         let finalCustomerId = customerId;
 
-        // If customerPhone is provided but no customerId, try to find customer by phone
         if (!customerId && customerPhone) {
             customer = await Customer.findOne({ phone: customerPhone });
             if (customer) {
@@ -750,12 +663,10 @@ app.post('/api/orders', async (req, res) => {
             }
         }
 
-        // If customerId is provided, get customer details
         if (finalCustomerId && !customer) {
             customer = await Customer.findById(finalCustomerId);
         }
 
-        // Create order with customer information
         const orderData = {
             items,
             total: parseFloat(total),
@@ -766,7 +677,6 @@ app.post('/api/orders', async (req, res) => {
             timestamp: new Date()
         };
 
-        // Add customer information if available
         if (finalCustomerId) {
             orderData.customerId = finalCustomerId;
             orderData.customerName = customer ? customer.name : customerName;
@@ -776,13 +686,10 @@ app.post('/api/orders', async (req, res) => {
 
         const order = await Order.create(orderData);
         
-        // If customer exists, update customer history and loyalty points
         if (customer) {
             try {
-                // Calculate loyalty points (1 point per 100 pesos spent)
                 const pointsEarned = Math.floor(order.total / 100);
                 
-                // Update customer order history
                 await Customer.findByIdAndUpdate(customer._id, {
                     $push: {
                         orderHistory: {
@@ -804,7 +711,6 @@ app.post('/api/orders', async (req, res) => {
                     }
                 });
 
-                // Update favorite items
                 const updatedCustomer = await Customer.findById(customer._id);
                 order.items.forEach(item => {
                     const existingFavorite = updatedCustomer.favoriteItems.find(fav => 
@@ -822,25 +728,21 @@ app.post('/api/orders', async (req, res) => {
                     }
                 });
 
-                // Sort favorite items by count (descending)
                 updatedCustomer.favoriteItems.sort((a, b) => b.count - a.count);
                 
-                // Keep only top 10 favorite items
                 if (updatedCustomer.favoriteItems.length > 10) {
                     updatedCustomer.favoriteItems = updatedCustomer.favoriteItems.slice(0, 10);
                 }
 
                 await updatedCustomer.save();
 
-                console.log(`📊 Customer history updated for ${customer.name}: +${pointsEarned} loyalty points, ${order.items.length} items`);
+                console.log(`📊 Customer history updated for ${customer.name}: +${pointsEarned} loyalty points`);
 
             } catch (customerError) {
                 console.error('❌ Error updating customer history:', customerError);
-                // Don't fail the order if customer update fails
             }
         }
 
-        // Create notification
         const notification = {
             id: Date.now().toString(),
             type: 'new_order',
@@ -876,7 +778,7 @@ app.post('/api/orders', async (req, res) => {
     }
 });
 
-// ✅ UPDATE ORDER (Protected) - WITH NOTIFICATION
+// ✅ UPDATE ORDER (Protected)
 app.put('/api/orders/:id', authenticateToken, async (req, res) => {
     try {
         const updated = await Order.findByIdAndUpdate(
@@ -898,7 +800,6 @@ app.put('/api/orders/:id', authenticateToken, async (req, res) => {
 
             addNotification(notification);
 
-            // If order is completed and has customer, send ready notification
             if (updated.status === 'completed' && updated.customerId) {
                 try {
                     const customer = await Customer.findById(updated.customerId);
@@ -967,11 +868,9 @@ app.get('/api/admin/stats', authenticateToken, async (req, res) => {
         ]);
         const todaySales = todaySalesResult[0]?.total || 0;
 
-        // Customer stats
         const totalCustomers = await Customer.countDocuments();
         const loyalCustomers = await Customer.countDocuments({ loyaltyPoints: { $gte: 10 } });
 
-        // Popular items
         const popularItemsResult = await Order.aggregate([
             { $unwind: '$items' },
             { $group: { 
@@ -983,7 +882,6 @@ app.get('/api/admin/stats', authenticateToken, async (req, res) => {
             { $limit: 5 }
         ]);
 
-        // Availability stats
         const totalItems = await Availability.countDocuments();
         const availableItems = await Availability.countDocuments({ available: true });
         const unavailableItems = await Availability.countDocuments({ available: false });
@@ -1012,6 +910,7 @@ app.get('/api/admin/stats', authenticateToken, async (req, res) => {
         });
     }
 });
+
 // ✅ VAPID KEY ENDPOINTS
 app.get('/api/admin/push/vapid-public-key', (req, res) => {
     if (!vapidKeys.publicKey) {
@@ -1047,24 +946,52 @@ app.post('/api/admin/push/unsubscribe', authenticateToken, (req, res) => {
     console.log('📱 Push subscription removed');
     res.json({ message: 'Unsubscribed successfully' });
 });
+
+// ✅ TEST ENDPOINT FOR ADMIN (Public)
+app.get('/api/admin/test', async (req, res) => {
+    try {
+        const adminCount = await Admin.countDocuments();
+        const admin = await Admin.findOne({ username: 'admin' });
+        
+        res.json({
+            message: 'Admin API Test Endpoint',
+            adminCount,
+            defaultAdminExists: !!admin,
+            defaultAdmin: admin ? {
+                username: admin.username,
+                email: admin.email,
+                role: admin.role,
+                createdAt: admin.createdAt
+            } : null,
+            testCredentials: {
+                username: 'admin',
+                password: 'admin123'
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // ✅ SERVE FRONTEND
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Initialize everything and start server
-Promise.all([initializeAdmin(), initializeDefaultAvailability()]).then(() => {
-    app.listen(PORT, '0.0.0.0', () => {
-        console.log(`🚀 Server running on port ${PORT}`);
-        console.log(`📢 Notification system ready`);
-        console.log(`👥 Customer account system ready`);
-        console.log(`📊 Enhanced customer history tracking enabled`);
-        console.log(`📦 Item availability management enabled`);
-        if (vapidKeys.publicKey && vapidKeys.privateKey) {
-            console.log(`📱 Push notifications enabled`);
-        } else {
-            console.log(`⚠️  Push notifications disabled - no valid VAPID keys`);
-        }
-        console.log(`🌐 Health: http://localhost:${PORT}/api/health`);
-    });
+// Start server
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`📢 Notification system ready`);
+    console.log(`👥 Customer account system ready`);
+    console.log(`📊 Enhanced customer history tracking enabled`);
+    console.log(`📦 Item availability management enabled`);
+    if (vapidKeys.publicKey && vapidKeys.privateKey) {
+        console.log(`📱 Push notifications enabled`);
+    } else {
+        console.log(`⚠️  Push notifications disabled - no valid VAPID keys`);
+    }
+    console.log(`🌐 Health: http://localhost:${PORT}/api/health`);
+    console.log(`👤 Admin Test: http://localhost:${PORT}/api/admin/test`);
+    console.log(`🔐 Admin Login: http://localhost:${PORT}/api/admin/login`);
+    console.log(`ℹ️  Default Credentials: admin / admin123`);
 });

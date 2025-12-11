@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin System Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
+        button { padding: 10px 20px; margin: 5px; background: #8b4513; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #6b3513; }
+        .result { margin-top: 10px; padding: 10px; background: #f5f5f5; border-radius: 5px; white-space: pre-wrap; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Admin System Test</h1>
+        
+        <div class="test-section">
+            <h3>1. Server Health Check</h3>
+            <button onclick="testHealth()">Test Server Health</button>
+            <div id="health-result" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>2. Check Admin Exists</h3>
+            <button onclick="checkAdmin()">Check Admin</button>
+            <div id="admin-check-result" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>3. Create Default Admin</h3>
+            <button onclick="createDefaultAdmin()">Create Default Admin</button>
+            <div id="create-admin-result" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>4. Test Login</h3>
+            <div>
+                <input type="text" id="username" placeholder="Username" value="admin" style="padding: 10px; margin: 5px;">
+                <input type="password" id="password" placeholder="Password" value="admin123" style="padding: 10px; margin: 5px;">
+                <button onclick="testLogin()">Test Login</button>
+            </div>
+            <div id="login-result" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>5. Verify Token</h3>
+            <button onclick="verifyToken()">Verify Token</button>
+            <div id="verify-result" class="result"></div>
+        </div>
+    </div>
+    
+    <script>
+        const backendURL = 'https://aifoodies.up.railway.app';
+        
+        async function testHealth() {
+            try {
+                const response = await fetch(`${backendURL}/api/health`);
+                const data = await response.json();
+                document.getElementById('health-result').innerHTML = 
+                    `<span class="${response.ok ? 'success' : 'error'}">✅ Health Check: ${JSON.stringify(data, null, 2)}</span>`;
+            } catch (error) {
+                document.getElementById('health-result').innerHTML = 
+                    `<span class="error">❌ Error: ${error.message}</span>`;
+            }
+        }
+        
+        async function checkAdmin() {
+            try {
+                const response = await fetch(`${backendURL}/api/admin/check`);
+                const data = await response.json();
+                document.getElementById('admin-check-result').innerHTML = 
+                    `<span class="${response.ok ? 'success' : 'error'}">${JSON.stringify(data, null, 2)}</span>`;
+            } catch (error) {
+                document.getElementById('admin-check-result').innerHTML = 
+                    `<span class="error">❌ Error: ${error.message}</span>`;
+            }
+        }
+        
+        async function createDefaultAdmin() {
+            try {
+                const response = await fetch(`${backendURL}/api/admin/create-default`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                document.getElementById('create-admin-result').innerHTML = 
+                    `<span class="${response.ok ? 'success' : 'error'}">${JSON.stringify(data, null, 2)}</span>`;
+            } catch (error) {
+                document.getElementById('create-admin-result').innerHTML = 
+                    `<span class="error">❌ Error: ${error.message}</span>`;
+            }
+        }
+        
+        async function testLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch(`${backendURL}/api/admin/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                const resultDiv = document.getElementById('login-result');
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `<span class="success">✅ Login Successful!<br>Token: ${data.token.substring(0, 50)}...</span>`;
+                    localStorage.setItem('testToken', data.token);
+                } else {
+                    resultDiv.innerHTML = `<span class="error">❌ Login Failed: ${data.message}</span>`;
+                }
+            } catch (error) {
+                document.getElementById('login-result').innerHTML = 
+                    `<span class="error">❌ Error: ${error.message}</span>`;
+            }
+        }
+        
+        async function verifyToken() {
+            const token = localStorage.getItem('testToken');
+            if (!token) {
+                document.getElementById('verify-result').innerHTML = 
+                    `<span class="error">❌ No token found. Please login first.</span>`;
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${backendURL}/api/admin/verify`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                document.getElementById('verify-result').innerHTML = 
+                    `<span class="${response.ok ? 'success' : 'error'}">${JSON.stringify(data, null, 2)}</span>`;
+            } catch (error) {
+                document.getElementById('verify-result').innerHTML = 
+                    `<span class="error">❌ Error: ${error.message}</span>`;
+            }
+        }
+    </script>
+</body>
+</html>
