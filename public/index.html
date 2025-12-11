@@ -3,911 +3,2277 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ai-Maize-ing Nachos - Home</title>
-    <link rel="stylesheet" href="menu.css">
-    <link rel="stylesheet" href="slideshow.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Shrikhand&display=swap" rel="stylesheet">
+    <title>Ai-Maize-ing Nachos</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <style>
-        /* Additional home page styles */
-        .home-content {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
         }
-        
-        /* Welcome section with slideshow */
-        .welcome-section {
-            margin-bottom: 40px;
-        }
-        
-        .page-title {
-            text-align: center;
-            color: #8b4513;
-            font-size: 2.8rem;
-            margin-bottom: 10px;
-            font-family: 'Shrikhand', cursive;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .page-subtitle {
-            text-align: center;
-            color: #666;
-            font-size: 1.2rem;
+
+        /* Header Styles */
+        header {
+            background: linear-gradient(135deg, #FF6B6B 0%, #FFE66D 100%);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.2);
             margin-bottom: 30px;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        
-        /* Slideshow wrapper */
-        .slideshow-wrapper {
             position: relative;
-            margin: 30px 0;
+            overflow: hidden;
         }
-        
-        /* Current slide title - MOVED OUTSIDE SLIDESHOW */
-        .current-slide-title {
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(30deg);
+        }
+
+        .logo {
             text-align: center;
-            color: #8b4513;
-            font-size: 2.2rem;
+            margin-bottom: 25px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo h1 {
+            font-size: 3.5em;
+            color: #2d3436;
+            text-shadow: 3px 3px 0px rgba(255, 230, 109, 0.5);
+            margin-bottom: 10px;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+        }
+
+        .logo .tagline {
+            font-size: 1.3em;
+            color: #636e72;
+            font-style: italic;
+            font-weight: 500;
+        }
+
+        .nav-bar {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+
+        .nav-btn {
+            padding: 14px 32px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid transparent;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            background: #FFE66D;
+            border-color: #FF6B6B;
+        }
+
+        .nav-btn.active {
+            background: #FF6B6B;
+            color: white;
+            border-color: #FF6B6B;
+            transform: translateY(-3px);
+        }
+
+        .nav-btn i {
+            font-size: 1.2em;
+        }
+
+        /* Main Content */
+        .main-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            min-height: 600px;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .section {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Slideshow Styles */
+        .slideshow-container {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            overflow: hidden;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .slide.active {
+            opacity: 1;
+        }
+
+        .slide-content {
+            display: flex;
+            height: 100%;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 60px;
+            color: white;
+            position: relative;
+        }
+
+        .slide-text {
+            flex: 1;
+            max-width: 50%;
+            animation: slideText 0.8s ease 0.3s both;
+        }
+
+        @keyframes slideText {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .slide-title {
+            font-size: 3.5em;
             margin-bottom: 20px;
-            font-family: 'Shrikhand', cursive;
-            min-height: 60px;
-            transition: opacity 0.5s ease;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+            line-height: 1.2;
+        }
+
+        .slide-description {
+            font-size: 1.5em;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            line-height: 1.5;
+        }
+
+        .slide-price {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #FFE66D;
+            text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.3);
+            display: inline-block;
+            padding: 10px 25px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+
+        .slide-image-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: slideImage 0.8s ease 0.5s both;
+        }
+
+        @keyframes slideImage {
+            from { opacity: 0; transform: translateX(30px) scale(0.9); }
+            to { opacity: 1; transform: translateX(0) scale(1); }
+        }
+
+        .slide-image {
+            max-width: 350px;
+            max-height: 350px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            object-fit: cover;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .slide-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            border: none;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.8em;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 0 20px;
-        }
-        
-        .current-slide-description {
-            text-align: center;
-            color: #666;
-            font-size: 1.1rem;
-            margin-bottom: 20px;
-            min-height: 40px;
-            padding: 0 20px;
-        }
-        
-        /* Admin Button Container */
-        .admin-button-container {
-            position: fixed;
-            top: 100px;
-            right: 20px;
-            z-index: 1000;
+            transition: all 0.3s ease;
+            z-index: 10;
+            backdrop-filter: blur(5px);
         }
 
-        #admin-access-btn {
-            background: linear-gradient(135deg, #8b4513, #e65100);
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 25px;
+        .slide-nav:hover {
+            background: rgba(0, 0, 0, 0.6);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .slide-nav.prev {
+            left: 25px;
+        }
+
+        .slide-nav.next {
+            right: 25px;
+        }
+
+        .slide-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        .indicator {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.2);
             cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .indicator.active {
+            background: #FF6B6B;
+            transform: scale(1.3);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .slideshow-controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .control-btn {
+            padding: 12px 28px;
+            background: #FF6B6B;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1em;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .control-btn:hover {
+            background: #FF5252;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        /* Menu Styles */
+        .menu-categories {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .category-btn {
+            padding: 12px 28px;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1em;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .category-btn:hover {
+            background: #e9ecef;
+            transform: translateY(-3px);
+        }
+
+        .category-btn.active {
+            background: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+            padding: 20px 0;
+        }
+
+        .menu-item {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid #f1f3f4;
+        }
+
+        .menu-item:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .menu-item-image {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .menu-item:hover .menu-item-image {
+            transform: scale(1.05);
+        }
+
+        .menu-item-content {
+            padding: 25px;
+        }
+
+        .menu-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .menu-item-title {
+            font-size: 1.4em;
+            margin-bottom: 10px;
+            color: #2d3436;
+            font-weight: 700;
+            flex: 1;
+        }
+
+        .menu-item-price {
+            font-size: 1.6em;
             font-weight: bold;
-            font-size: 16px;
-            box-shadow: 0 4px 15px rgba(139, 69, 19, 0.3);
+            color: #FF6B6B;
+            background: rgba(255, 107, 107, 0.1);
+            padding: 6px 15px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        .menu-item-description {
+            color: #636e72;
+            margin-bottom: 20px;
+            line-height: 1.6;
+            font-size: 0.95em;
+        }
+
+        .menu-item-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .availability {
+            font-size: 0.9em;
+            font-weight: 600;
+            padding: 6px 15px;
+            border-radius: 20px;
+        }
+
+        .available {
+            background: rgba(76, 175, 80, 0.1);
+            color: #4CAF50;
+        }
+
+        .unavailable {
+            background: rgba(255, 107, 107, 0.1);
+            color: #FF6B6B;
+        }
+
+        .add-to-cart {
+            padding: 10px 22px;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
             gap: 8px;
-            animation: pulse 2s infinite;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
         }
 
-        #admin-access-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(139, 69, 19, 0.4);
+        .add-to-cart:hover:not(:disabled) {
+            background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
         }
 
-        #admin-access-btn:active {
-            transform: translateY(0);
+        .add-to-cart:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
-        @keyframes pulse {
-            0% { box-shadow: 0 4px 15px rgba(139, 69, 19, 0.3); }
-            50% { box-shadow: 0 4px 20px rgba(139, 69, 19, 0.5); }
-            100% { box-shadow: 0 4px 15px rgba(139, 69, 19, 0.3); }
-        }
-        
-        /* Promotional Banner */
-        .promo-banner {
-            background: linear-gradient(135deg, #8b4513, #e65100);
-            color: white;
-            text-align: center;
-            padding: 15px 20px;
-            margin: 30px 0;
+        /* Cart Styles */
+        .cart-container {
+            background: #f8f9fa;
+            padding: 30px;
             border-radius: 15px;
-            box-shadow: 0 6px 20px rgba(139, 69, 19, 0.3);
-            border: 2px solid #ffcc00;
-            position: relative;
-            overflow: hidden;
+            border: 1px solid #e9ecef;
         }
-        
-        .promo-banner::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
-            animation: shine 3s infinite;
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 2px solid #e9ecef;
+            background: white;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
         }
-        
-        @keyframes shine {
-            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+
+        .cart-item:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transform: translateX(5px);
         }
-        
-        .promo-banner p {
-            margin: 0;
-            font-size: 1.2rem;
+
+        .cart-item-info {
+            flex: 1;
+        }
+
+        .cart-item-name {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #2d3436;
+            margin-bottom: 5px;
+        }
+
+        .cart-item-price {
+            color: #FF6B6B;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .cart-item-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f1f3f4;
+            padding: 8px 15px;
+            border-radius: 50px;
+        }
+
+        .quantity-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: white;
+            color: #333;
+            cursor: pointer;
+            font-size: 1.2em;
             font-weight: bold;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .quantity-btn:hover:not(:disabled) {
+            background: #FF6B6B;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .quantity-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .quantity-display {
+            font-size: 1.2em;
+            font-weight: 600;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .remove-btn {
+            padding: 10px 20px;
+            background: #FF6B6B;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .remove-btn:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .cart-total {
+            text-align: right;
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 3px solid #e9ecef;
+            color: #2d3436;
+        }
+
+        .cart-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            gap: 20px;
+        }
+
+        .clear-cart-btn {
+            padding: 12px 28px;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .clear-cart-btn:hover {
+            background: #5a6268;
+            transform: translateY(-3px);
+        }
+
+        .checkout-btn {
+            padding: 14px 35px;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(76, 175, 80, 0.3);
+        }
+
+        .checkout-btn:hover {
+            background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(76, 175, 80, 0.4);
+        }
+
+        /* Order Form Styles */
+        .order-form {
+            max-width: 800px;
+            margin: 0 auto;
+            display: grid;
+            gap: 25px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-label {
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #2d3436;
+            font-size: 1.1em;
+        }
+
+        .form-input {
+            padding: 15px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+
+        .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .payment-method {
             position: relative;
-            z-index: 1;
         }
-        
-        .promo-banner .promo-icon {
-            margin-right: 10px;
-            font-size: 1.4rem;
-            animation: bounce 2s infinite;
+
+        .payment-method input {
+            position: absolute;
+            opacity: 0;
         }
-        
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-            40% { transform: translateY(-5px); }
-            60% { transform: translateY(-3px); }
+
+        .payment-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
         }
-        
-        /* Responsive adjustments */
+
+        .payment-label:hover {
+            border-color: #4CAF50;
+            background: white;
+        }
+
+        .payment-label.active {
+            border-color: #4CAF50;
+            background: rgba(76, 175, 80, 0.1);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.1);
+        }
+
+        .payment-label i {
+            font-size: 2em;
+            margin-bottom: 10px;
+            color: #4CAF50;
+        }
+
+        .order-summary {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+        }
+
+        .order-summary h3 {
+            margin-bottom: 20px;
+            color: #2d3436;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+        }
+
+        .order-items {
+            margin-bottom: 20px;
+        }
+
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #dee2e6;
+        }
+
+        .submit-btn {
+            padding: 16px 40px;
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF5252 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 25px rgba(255, 107, 107, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #FF5252 0%, #ff3d3d 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(255, 107, 107, 0.4);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Admin Styles */
+        .admin-login-form {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 40px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .admin-login-form h2 {
+            margin-bottom: 30px;
+            color: #2d3436;
+        }
+
+        .admin-dashboard {
+            animation: fadeIn 0.5s ease;
+        }
+
+        .admin-welcome {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .admin-welcome h2 {
+            margin-bottom: 10px;
+        }
+
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #FF6B6B;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #636e72;
+            font-weight: 600;
+        }
+
+        .admin-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .admin-action-btn {
+            padding: 20px;
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .admin-action-btn:hover {
+            border-color: #4CAF50;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .admin-action-btn i {
+            font-size: 2.5em;
+            color: #4CAF50;
+        }
+
+        .admin-action-btn span {
+            font-weight: 600;
+            color: #2d3436;
+            font-size: 1.1em;
+        }
+
+        .logout-btn {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            padding: 10px 20px;
+            background: #FF6B6B;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logout-btn:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: #636e72;
+            font-size: 0.95em;
+            border-top: 1px solid #e9ecef;
+            margin-top: 40px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        footer p {
+            margin: 10px 0;
+        }
+
+        .social-icons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #636e72;
+            font-size: 1.2em;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .social-icon:hover {
+            background: #FF6B6B;
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .logo h1 {
+                font-size: 2.8em;
+            }
+            
+            .slide-content {
+                flex-direction: column;
+                text-align: center;
+                padding: 40px 20px;
+            }
+            
+            .slide-text {
+                max-width: 100%;
+                margin-bottom: 30px;
+            }
+            
+            .slide-title {
+                font-size: 2.5em;
+            }
+            
+            .menu-grid {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            }
+        }
+
         @media (max-width: 768px) {
-            .current-slide-title {
-                font-size: 1.8rem;
-                min-height: 50px;
-                margin-bottom: 15px;
+            .nav-bar {
+                flex-direction: column;
+                align-items: center;
             }
             
-            .current-slide-description {
-                font-size: 1rem;
-                margin-bottom: 15px;
+            .nav-btn {
+                width: 100%;
+                max-width: 300px;
+                justify-content: center;
             }
             
-            .page-title {
-                font-size: 2.2rem;
+            .slideshow-container {
+                height: 400px;
             }
             
-            .page-subtitle {
-                font-size: 1rem;
+            .slide-title {
+                font-size: 2em;
             }
             
-            .admin-button-container {
-                top: auto;
-                bottom: 80px;
-                right: 10px;
+            .slide-description {
+                font-size: 1.2em;
             }
             
-            #admin-access-btn {
-                padding: 10px 20px;
-                font-size: 14px;
+            .cart-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .cart-item-controls {
+                width: 100%;
+                justify-content: space-between;
             }
         }
-        
-        @media (max-width: 480px) {
-            .current-slide-title {
-                font-size: 1.5rem;
-                min-height: 40px;
-                margin-bottom: 10px;
+
+        @media (max-width: 576px) {
+            .container {
+                padding: 15px;
             }
             
-            .current-slide-description {
-                font-size: 0.9rem;
-                margin-bottom: 10px;
+            .main-content {
+                padding: 25px;
             }
             
-            .page-title {
-                font-size: 1.8rem;
+            .logo h1 {
+                font-size: 2.2em;
             }
+            
+            .slideshow-container {
+                height: 350px;
+            }
+            
+            .menu-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .payment-methods {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: #4CAF50;
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(76, 175, 80, 0.3);
+            z-index: 1000;
+            animation: slideInRight 0.3s ease, fadeOut 0.3s ease 2.7s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-width: 300px;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            to { opacity: 0; }
+        }
+
+        /* Loading Spinner */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
-<body class="index-page">
-    
-    <!-- Small Corner Logo -->
-    <div class="corner-logo">
-        <img src="image/LOGO.jpg" alt="Ai-Maize-ing Nachos Logo" onerror="this.style.display='none'">
-    </div>
-
+<body>
     <div class="container">
-        <!-- Header Buttons -->
-        <div class="header-buttons">
-            <div id="admin-panel">
-                <button id="admin-toggle">
-                    <i class="fas fa-user-shield"></i> <span id="admin-btn-text">Admin</span>
-                </button>
-                <button id="admin-logout-btn" style="display: none; background: #dc3545; margin-left: 5px;">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </button>
-            </div>
-        </div>
-
-        <!-- Admin Access Button (Controlled by SuperAdmin) -->
-        <div class="admin-button-container">
-            <button id="admin-access-btn" style="display: none;">
-                <i class="fas fa-user-shield"></i> Admin Panel
-            </button>
-        </div>
-
-        <!-- Welcome Section -->
-        <section class="welcome-section">
-            <h1 class="page-title">Ai-Maize-ing Nachos</h1>
-            <p class="page-subtitle">Delicious nachos and desserts made with love and premium ingredients</p>
-            
-            <!-- Promotional Banner -->
-            <div class="promo-banner">
-                <p>
-                    <span class="promo-icon">🎉</span>
-                    Order now and get 10% off on your first purchase! Use code: WELCOME10
-                </p>
+        <header>
+            <div class="logo">
+                <h1><i class="fas fa-utensils"></i> Ai-Maize-ing Nachos</h1>
+                <div class="tagline">Delicious Nachos & Desserts Made with Love</div>
             </div>
             
-            <!-- SLIDESHOW SECTION -->
-            <div class="slideshow-wrapper">
-                <!-- Title for current slide (OUTSIDE slideshow) -->
-                <h2 class="current-slide-title" id="current-slide-title">Welcome to Ai-Maize-ing Nachos</h2>
-                <p class="current-slide-description" id="current-slide-description">Your go-to spot for the most delicious nachos and desserts in town!</p>
+            <div class="nav-bar">
+                <button class="nav-btn active" onclick="showSection('home')">
+                    <i class="fas fa-home"></i> Home
+                </button>
+                <button class="nav-btn" onclick="showSection('menu')">
+                    <i class="fas fa-utensils"></i> Menu
+                </button>
+                <button class="nav-btn" onclick="showSection('cart')">
+                    <i class="fas fa-shopping-cart"></i> Cart (<span id="cart-count">0</span>)
+                </button>
+                <button class="nav-btn" onclick="showSection('order')">
+                    <i class="fas fa-shopping-bag"></i> Order Now
+                </button>
+                <button class="nav-btn admin-btn" style="display: none;" onclick="showSection('admin')">
+                    <i class="fas fa-user-shield"></i> Admin
+                </button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- Home Section -->
+            <div id="home-section" class="section active">
+                <h2 style="text-align: center; margin-bottom: 30px; color: #2d3436;">
+                    <i class="fas fa-star"></i> Welcome to Ai-Maize-ing Nachos!
+                </h2>
                 
-                <!-- Slideshow container -->
-                <div class="slideshow-container">
-                    <div class="slideshow" id="slideshow">
-                        <!-- Slides will be dynamically loaded here WITHOUT TITLES -->
-                        <div class="slideshow-loading">
-                            <div class="spinner"></div>
-                            <p>Loading delicious content...</p>
-                        </div>
-                    </div>
-                    
-                    <div class="slideshow-dots" id="slideshow-dots">
-                        <!-- Dots will be dynamically added here -->
-                    </div>
-                    
-                    <!-- Timer Bar -->
-                    <div class="slideshow-timer">
-                        <div class="timer-bar" id="timer-bar"></div>
+                <div class="slideshow-container" id="slideshow-container">
+                    <!-- Slides will be loaded here -->
+                    <div class="slideshow-loading" style="text-align: center; padding: 100px;">
+                        <div class="loading" style="margin: 0 auto 20px;"></div>
+                        <p>Loading delicious treats...</p>
                     </div>
                 </div>
-            </div>
-        </section>
-
-        <!-- Category Selection -->
-        <div class="compact-category-grid">
-            <div class="compact-category-card" onclick="navigateTo('nachos.html')">
-                <div class="compact-category-image">
-                    <img src="image/overload chees nachos.jpg" alt="Nachos" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZmY2YTAwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSJ3aGl0ZSI+TmFjaG9zPC90ZXh0Pjwvc3ZnPg=='">
+                
+                <div class="slideshow-controls">
+                    <button class="control-btn" onclick="prevSlide()">
+                        <i class="fas fa-chevron-left"></i> Previous
+                    </button>
+                    <button class="control-btn" onclick="toggleAutoPlay()" id="autoplay-btn">
+                        <i class="fas fa-pause"></i> Pause Auto-play
+                    </button>
+                    <button class="control-btn" onclick="nextSlide()">
+                        Next <i class="fas fa-chevron-right"></i>
+                    </button>
                 </div>
-                <div class="compact-category-content">
-                    <div>
-                        <h2>Our Nachos</h2>
-                        <p>Delicious, cheesy nachos with various toppings and flavors</p>
-                    </div>
-                    <div>
-                        <div class="compact-price-range">₱35 - ₱180</div>
-                        <button class="compact-category-btn">Order Nachos</button>
-                    </div>
+                
+                <div class="slide-indicators" id="slide-indicators">
+                    <!-- Indicators will be added here -->
+                </div>
+                
+                <div style="text-align: center; margin-top: 40px;">
+                    <button class="checkout-btn" onclick="showSection('menu')">
+                        <i class="fas fa-utensils"></i> View Full Menu
+                    </button>
                 </div>
             </div>
 
-            <div class="compact-category-card" onclick="navigateTo('aifoodies.html')">
-                <div class="compact-category-image">
-                    <img src="image/mango.gif" alt="AI Foodies" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNGNhZjUwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSJ3aGl0ZSI+QUkgRm9vZGllczwvdGV4dD48L3N2Zz4='">
+            <!-- Menu Section -->
+            <div id="menu-section" class="section">
+                <h2 style="text-align: center; margin-bottom: 30px; color: #2d3436;">
+                    <i class="fas fa-book-open"></i> Our Delicious Menu
+                </h2>
+                
+                <div class="menu-categories" id="menu-categories">
+                    <button class="category-btn active" onclick="filterMenu('all')">All Items</button>
+                    <button class="category-btn" onclick="filterMenu('nachos')">Nachos</button>
+                    <button class="category-btn" onclick="filterMenu('desserts')">Desserts</button>
+                    <button class="category-btn" onclick="filterMenu('drinks')">Drinks</button>
                 </div>
-                <div class="compact-category-content">
-                    <div>
-                        <h2>Desserts</h2>
-                        <p>Sweet desserts and treats including mango graham, biscoff, and more</p>
-                    </div>
-                    <div>
-                        <div class="compact-price-range">₱40 - ₱159</div>
-                        <button class="compact-category-btn">Order Desserts</button>
+                
+                <div class="menu-grid" id="menu-grid">
+                    <!-- Menu items will be loaded here -->
+                    <div style="grid-column: 1/-1; text-align: center; padding: 50px;">
+                        <div class="loading" style="margin: 0 auto 20px;"></div>
+                        <p>Loading menu items...</p>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Quick Stats -->
-        <div class="compact-quick-stats">
-            <h2>Why Choose Us?</h2>
-            <div class="compact-stats-grid">
-                <div class="compact-stat-item">
-                    <i class="fas fa-shipping-fast"></i>
-                    <h3>Fast Pickup</h3>
-                    <p>Ready when you are</p>
-                </div>
-                <div class="compact-stat-item">
-                    <i class="fas fa-utensils"></i>
-                    <h3>Fresh Ingredients</h3>
-                    <p>Made with love</p>
-                </div>
-                <div class="compact-stat-item">
-                    <i class="fas fa-tags"></i>
-                    <h3>Best Prices</h3>
-                    <p>Great value</p>
-                </div>
-                <div class="compact-stat-item">
-                    <i class="fas fa-star"></i>
-                    <h3>Loyalty Points</h3>
-                    <p>Earn rewards</p>
+            <!-- Cart Section -->
+            <div id="cart-section" class="section">
+                <h2 style="text-align: center; margin-bottom: 30px; color: #2d3436;">
+                    <i class="fas fa-shopping-cart"></i> Your Shopping Cart
+                </h2>
+                
+                <div class="cart-container" id="cart-container">
+                    <div style="text-align: center; padding: 50px;">
+                        <i class="fas fa-shopping-cart" style="font-size: 3em; color: #e9ecef; margin-bottom: 20px;"></i>
+                        <p style="color: #636e72; font-size: 1.1em;">Your cart is empty</p>
+                    </div>
                 </div>
             </div>
-        </div>
+
+            <!-- Order Section -->
+            <div id="order-section" class="section">
+                <h2 style="text-align: center; margin-bottom: 30px; color: #2d3436;">
+                    <i class="fas fa-shopping-bag"></i> Place Your Order
+                </h2>
+                
+                <div class="order-form" id="order-form">
+                    <!-- Order form will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Admin Section -->
+            <div id="admin-section" class="section">
+                <div id="admin-content">
+                    <!-- Admin content will be loaded here -->
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <div style="margin-bottom: 20px;">
+                <h3 style="color: #2d3436; margin-bottom: 15px;">Ai-Maize-ing Nachos</h3>
+                <p>Delicious food made with love and care</p>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <p><i class="fas fa-map-marker-alt"></i> 123 Food Street, City, Country</p>
+                <p><i class="fas fa-phone"></i> +63 123 456 7890</p>
+                <p><i class="fas fa-envelope"></i> info@aimaizeingnachos.com</p>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <p><strong>Opening Hours:</strong></p>
+                <p>Monday - Sunday: 10:00 AM - 10:00 PM</p>
+            </div>
+            
+            <div class="social-icons">
+                <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-tiktok"></i></a>
+            </div>
+            
+            <p style="margin-top: 20px;">&copy; 2024 Ai-Maize-ing Nachos. All rights reserved.</p>
+        </footer>
     </div>
 
-    <!-- Cart Trigger Button -->
-    <button id="cart-trigger">View Cart (<span id="cart-count">0</span>)</button>
-
-    <!-- Cart Popup -->
-    <div id="cart-popup">
-        <div class="cart-header">
-            <h3>Your Order</h3>
-            <button class="close-btn">X</button>
-        </div>
-        <ul id="cart-items"></ul>
-        <p>Total: <span id="cart-total">₱0</span></p>
-
-        <div class="order-details">
-            <input type="text" id="customer-name" placeholder="Your Name for Pickup">
-            <input type="tel" id="customer-phone" placeholder="Phone Number (Optional)">
-            <input type="text" id="pickup-time" placeholder="Pick-up Time (e.g., 6:30 PM)">
-        </div>
-
-        <div class="payment-options">
-            <select id="payment-method">
-                <option value="Cash on Pick-up">Cash on Pick-up</option>
-                <option value="Gcash">Gcash / PayMaya</option>
-                <option value="Bank Transfer">Bank Transfer</option>
-            </select>
-        </div>
-
-        <button id="checkout-btn">Send Order</button>
-    </div>
-
-    <!-- Modals -->
-    <div id="custom-alert" class="modal-overlay" style="display: none;">
-        <div class="modal-content">
-            <p id="custom-alert-message"></p>
-            <button id="custom-alert-ok">OK</button>
-        </div>
-    </div>
-
-    <div id="login-modal" class="modal-overlay" style="display: none;">
-        <div class="login-container">
-            <h2>Admin Login</h2>
-            <input type="text" id="admin-username" placeholder="Username">
-            <input type="password" id="admin-password" placeholder="Password">
-            <button id="login-btn">Login</button>
-        </div>
-    </div>
-
-    <!-- JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="script.js"></script>
-    
-    <!-- Updated Slideshow JavaScript with external titles -->
     <script>
-        // Slideshow functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🏠 Home page initialized');
-            
-            // Initialize slideshow
-            initSlideshow();
-            
-            // Check if customer is logged in and update button text
-            const customerData = localStorage.getItem('customerData');
-            const customerToggle = document.getElementById('customer-toggle');
-            if (customerData && customerToggle) {
-                customerToggle.innerHTML = '<i class="fas fa-user"></i> My Profile';
-            }
-            
-            // Initialize admin button visibility from SuperAdmin settings
-            updateAdminButtonVisibility();
-            
-            // Add click handler for admin button
-            const adminBtn = document.getElementById('admin-access-btn');
-            if (adminBtn) {
-                adminBtn.addEventListener('click', function() {
-                    // Check if admin is logged in
-                    const isAdminLoggedIn = localStorage.getItem('adminToken') !== null;
-                    if (isAdminLoggedIn) {
-                        window.location.href = 'admin.html';
-                    } else {
-                        // Show login modal
-                        showAdminLoginModal();
-                    }
-                });
-            }
-        });
+        // =========== GLOBAL VARIABLES ===========
+        const API_BASE_URL = window.location.origin;
+        let currentSlides = [];
+        let currentSlideIndex = 0;
+        let autoPlayInterval;
+        let isAutoPlay = true;
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        let currentAdmin = null;
+        let adminToken = null;
 
-        function updateAdminButtonVisibility() {
-            const adminBtn = document.getElementById('admin-access-btn');
-            if (!adminBtn) return;
-            
-            // Get superadmin settings
-            const superAdminSettings = JSON.parse(localStorage.getItem('superAdminSettings') || '{}');
-            
-            // Default to showing button if not specified
-            const shouldShow = superAdminSettings.showAdminButton !== false;
-            
-            if (shouldShow) {
-                adminBtn.style.display = 'flex';
-            } else {
-                adminBtn.style.display = 'none';
-            }
-            
-            console.log('Admin button visibility:', shouldShow ? 'Visible' : 'Hidden');
-        }
-
-        function showAdminLoginModal() {
-            const modalHTML = `
-                <div id="admin-login-modal" class="modal-overlay" style="display: flex; z-index: 9999;">
-                    <div class="modal-content" style="max-width: 400px;">
-                        <h2><i class="fas fa-user-shield"></i> Admin Login</h2>
-                        <p style="text-align: center; margin-bottom: 20px;">Login to access admin panel</p>
-                        
-                        <input type="text" id="admin-username" placeholder="Username" value="admin">
-                        <input type="password" id="admin-password" placeholder="Password" value="admin123">
-                        
-                        <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
-                            <button id="login-admin-btn" style="background: #FF6A00;">Login as Admin</button>
-                            <button id="login-superadmin-btn" style="background: #8b4513;">Login as SuperAdmin</button>
-                            <button onclick="closeAdminLoginModal()" style="background: #6c757d;">Cancel</button>
-                        </div>
-                        
-                        <div style="margin-top: 20px; font-size: 12px; color: #666; text-align: center;">
-                            <p><strong>Demo Credentials:</strong></p>
-                            <p>Admin: admin / admin123</p>
-                            <p>SuperAdmin: superadmin / superadmin123</p>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            const existingModal = document.getElementById('admin-login-modal');
-            if (existingModal) {
-                existingModal.remove();
-            }
-            
-            document.body.insertAdjacentHTML('beforeend', modalHTML);
-            
-            setTimeout(() => {
-                const loginAdminBtn = document.getElementById('login-admin-btn');
-                const loginSuperadminBtn = document.getElementById('login-superadmin-btn');
-                const modal = document.getElementById('admin-login-modal');
-                
-                if (loginAdminBtn) {
-                    loginAdminBtn.addEventListener('click', function() {
-                        handleAdminLogin('admin');
-                    });
-                }
-                
-                if (loginSuperadminBtn) {
-                    loginSuperadminBtn.addEventListener('click', function() {
-                        handleAdminLogin('superadmin');
-                    });
-                }
-                
-                if (modal) {
-                    modal.addEventListener('click', function(e) {
-                        if (e.target === this) {
-                            this.remove();
-                        }
-                    });
-                }
-            }, 100);
-        }
-
-        async function handleAdminLogin(role) {
-            let username, password;
-            
-            if (role === 'admin') {
-                username = 'admin';
-                password = 'admin123';
-            } else {
-                username = 'superadmin';
-                password = 'superadmin123';
-            }
-            
-            const inputUsername = document.getElementById('admin-username').value;
-            const inputPassword = document.getElementById('admin-password').value;
-            
-            if (inputUsername === username && inputPassword === password) {
-                try {
-                    const API_BASE_URL = 'https://aifoodies.up.railway.app/api';
-                    const response = await fetch(`${API_BASE_URL}/admin/login`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            username: inputUsername,
-                            password: inputPassword
-                        })
-                    });
-                    
-                    if (response.ok) {
-                        const data = await response.json();
-                        
-                        // Store token and role
-                        localStorage.setItem('adminToken', data.token);
-                        localStorage.setItem('adminRole', data.user.role);
-                        
-                        const modal = document.getElementById('admin-login-modal');
-                        if (modal) modal.remove();
-                        
-                        showAlert(`✅ Welcome, ${data.user.role === 'superadmin' ? 'SuperAdmin' : 'Admin'}! Redirecting...`);
-                        
-                        setTimeout(() => {
-                            window.location.href = 'admin.html';
-                        }, 1000);
-                        
-                    } else {
-                        showAlert('❌ Login failed. Please check credentials.');
-                    }
-                } catch (error) {
-                    console.error('Login error:', error);
-                    showAlert('❌ Login failed. Please try again.');
-                }
-            } else {
-                showAlert('❌ Invalid username or password!');
-            }
-        }
-
-        function closeAdminLoginModal() {
-            const modal = document.getElementById('admin-login-modal');
-            if (modal) {
-                modal.remove();
-            }
-        }
-
-        function showAlert(message) {
-            const alertModal = document.getElementById('custom-alert');
-            const alertMessage = document.getElementById('custom-alert-message');
-            const alertOk = document.getElementById('custom-alert-ok');
-            
-            if (alertModal && alertMessage && alertOk) {
-                alertMessage.innerHTML = message;
-                alertModal.style.display = 'flex';
-                
-                alertOk.onclick = function() {
-                    alertModal.style.display = 'none';
-                };
-                
-                alertModal.addEventListener('click', function(e) {
-                    if (e.target === this) {
-                        alertModal.style.display = 'none';
-                    }
-                });
-            } else {
-                alert(message);
-            }
-        }
-
-        // Slideshow variables
-        let currentSlide = 0;
-        let slides = [];
-        let slideInterval;
-        let isPaused = false;
-        const SLIDE_DURATION = 5000; // 5 seconds per slide
-
+        // =========== SLIDESHOW FUNCTIONS ===========
         async function initSlideshow() {
             console.log('Initializing slideshow...');
+            const container = document.getElementById('slideshow-container');
             
             try {
-                // Try to load slides from server
-                const API_BASE_URL = 'https://aifoodies.up.railway.app/api';
-                const response = await fetch(`${API_BASE_URL}/slideshow`);
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 100px;">
+                        <div class="loading" style="margin: 0 auto 20px;"></div>
+                        <p>Loading slideshow...</p>
+                    </div>
+                `;
                 
-                if (response.ok) {
-                    slides = await response.json();
-                    console.log('Loaded slides from server:', slides.length);
-                } else {
-                    // Fallback to localStorage or demo slides
-                    slides = JSON.parse(localStorage.getItem('slideshowSlides') || '[]');
-                    
-                    if (!slides || slides.length === 0) {
-                        console.log('No slides found, using demo slides');
-                        slides = getDemoSlides();
-                        localStorage.setItem('slideshowSlides', JSON.stringify(slides));
+                const response = await fetch(`${API_BASE_URL}/api/slideshow`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Slideshow data received:', data);
+                
+                if (data && data.success && Array.isArray(data.data)) {
+                    currentSlides = data.data;
+                    if (currentSlides.length > 0) {
+                        renderSlideshow();
+                        startAutoPlay();
+                    } else {
+                        createFallbackSlides();
                     }
+                } else {
+                    console.warn('Unexpected data format:', data);
+                    createFallbackSlides();
                 }
-                
-                // Filter only active slides
-                const activeSlides = slides.filter(slide => slide.active);
-                
-                if (activeSlides.length === 0) {
-                    showEmptySlideshow();
-                    return;
-                }
-                
-                // Render slideshow (without titles in slide content)
-                renderSlideshow(activeSlides);
-                
-                // Setup controls
-                setupSlideshowControls();
-                
-                // Start autoplay
-                startSlideshow();
-                
-                // Timer bar animation
-                updateTimerBar();
-                
-                // Set initial title and description
-                updateSlideTitleAndDescription(activeSlides[0]);
                 
             } catch (error) {
-                console.error('Error initializing slideshow:', error);
-                showErrorSlideshow();
+                console.error('Error loading slideshow:', error);
+                createFallbackSlides();
             }
         }
 
-        function getDemoSlides() {
-            return [
+        function createFallbackSlides() {
+            console.log('Creating fallback slides...');
+            currentSlides = [
                 {
-                    _id: 'slide_1',
-                    title: 'Welcome to Ai-Maize-ing Nachos',
-                    description: 'Your go-to spot for the most delicious nachos and desserts in town!',
-                    imageUrl: 'image/LOGO.jpg',
+                    _id: '1',
+                    title: 'Welcome to Ai-Maize-ing Nachos!',
+                    description: 'Delicious food made with love and care. Try our amazing selection of nachos and desserts.',
+                    imageUrl: '/image/LOGO.jpg',
                     order: 1,
-                    active: true,
-                    createdAt: new Date(),
-                    promoBadge: 'New'
+                    active: true
                 },
                 {
-                    _id: 'slide_2',
-                    title: 'Fresh Ingredients Daily',
-                    description: 'We use only the freshest, highest quality ingredients in all our dishes',
-                    imageUrl: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+                    _id: '2',
+                    title: 'Overload Cheesy Nachos',
+                    description: 'Loaded with premium cheese and delicious toppings. Our most popular item!',
+                    imageUrl: '/image/overload chees nachos.jpg',
                     order: 2,
                     active: true,
-                    createdAt: new Date(Date.now() - 86400000)
+                    price: 95
                 },
                 {
-                    _id: 'slide_3',
-                    title: 'Special Offers Every Week',
-                    description: 'Check out our weekly specials and get amazing discounts',
-                    imageUrl: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+                    _id: '3',
+                    title: 'Mango Graham Special',
+                    description: 'Sweet and refreshing mango dessert. Perfect for any occasion.',
+                    imageUrl: '/image/mango.gif',
                     order: 3,
                     active: true,
-                    createdAt: new Date(Date.now() - 172800000),
-                    promoBadge: '20% OFF'
+                    price: 40
+                },
+                {
+                    _id: '4',
+                    title: 'Supreme Nachos',
+                    description: 'Premium nachos experience with triple cheese and guacamole.',
+                    imageUrl: '/image/Supreme Nachos.png',
+                    order: 4,
+                    active: true,
+                    price: 180
+                }
+            ];
+            
+            renderSlideshow();
+            startAutoPlay();
+        }
+
+        function renderSlideshow() {
+            const container = document.getElementById('slideshow-container');
+            const indicatorsContainer = document.getElementById('slide-indicators');
+            
+            if (currentSlides.length === 0) {
+                container.innerHTML = '<div class="slideshow-error">No slides available</div>';
+                indicatorsContainer.innerHTML = '';
+                return;
+            }
+            
+            // Create slides HTML
+            let slidesHTML = '';
+            currentSlides.forEach((slide, index) => {
+                const imagePath = slide.imageUrl || '/image/default-food.jpg';
+                slidesHTML += `
+                    <div class="slide ${index === 0 ? 'active' : ''}" data-index="${index}">
+                        <div class="slide-content">
+                            <div class="slide-text">
+                                <h3 class="slide-title">${slide.title}</h3>
+                                <p class="slide-description">${slide.description || 'Delicious treat'}</p>
+                                ${slide.price ? `<div class="slide-price">₱${slide.price}</div>` : ''}
+                            </div>
+                            <div class="slide-image-container">
+                                <img src="${imagePath}" alt="${slide.title}" class="slide-image"
+                                     onerror="this.src='/image/default-food.jpg'">
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            // Add navigation arrows
+            slidesHTML += `
+                <button class="slide-nav prev" onclick="prevSlide()">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="slide-nav next" onclick="nextSlide()">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            `;
+            
+            container.innerHTML = slidesHTML;
+            
+            // Create indicators
+            let indicatorsHTML = '';
+            currentSlides.forEach((_, index) => {
+                indicatorsHTML += `
+                    <div class="indicator ${index === 0 ? 'active' : ''}" 
+                         onclick="goToSlide(${index})"
+                         data-index="${index}"></div>
+                `;
+            });
+            
+            indicatorsContainer.innerHTML = indicatorsHTML;
+            
+            console.log(`Slideshow rendered with ${currentSlides.length} slides`);
+        }
+
+        function goToSlide(index) {
+            if (index < 0 || index >= currentSlides.length) return;
+            
+            const slides = document.querySelectorAll('.slide');
+            const indicators = document.querySelectorAll('.indicator');
+            
+            // Hide all slides and remove active from indicators
+            slides.forEach(slide => slide.classList.remove('active'));
+            indicators.forEach(indicator => indicator.classList.remove('active'));
+            
+            // Show selected slide
+            slides[index].classList.add('active');
+            if (indicators[index]) {
+                indicators[index].classList.add('active');
+            }
+            
+            currentSlideIndex = index;
+            resetAutoPlay();
+        }
+
+        function nextSlide() {
+            const nextIndex = (currentSlideIndex + 1) % currentSlides.length;
+            goToSlide(nextIndex);
+        }
+
+        function prevSlide() {
+            const prevIndex = (currentSlideIndex - 1 + currentSlides.length) % currentSlides.length;
+            goToSlide(prevIndex);
+        }
+
+        function startAutoPlay() {
+            if (currentSlides.length <= 1) return;
+            
+            clearInterval(autoPlayInterval);
+            isAutoPlay = true;
+            
+            autoPlayInterval = setInterval(() => {
+                if (isAutoPlay) {
+                    nextSlide();
+                }
+            }, 5000);
+            
+            updateAutoPlayButton();
+        }
+
+        function toggleAutoPlay() {
+            isAutoPlay = !isAutoPlay;
+            updateAutoPlayButton();
+            
+            if (isAutoPlay) {
+                startAutoPlay();
+            } else {
+                clearInterval(autoPlayInterval);
+            }
+        }
+
+        function updateAutoPlayButton() {
+            const btn = document.getElementById('autoplay-btn');
+            if (btn) {
+                btn.innerHTML = isAutoPlay ? 
+                    '<i class="fas fa-pause"></i> Pause Auto-play' : 
+                    '<i class="fas fa-play"></i> Start Auto-play';
+            }
+        }
+
+        function resetAutoPlay() {
+            if (isAutoPlay) {
+                clearInterval(autoPlayInterval);
+                startAutoPlay();
+            }
+        }
+
+        // =========== MENU FUNCTIONS ===========
+        async function loadMenuItems() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/menu-items`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.data && data.data.items) {
+                        renderMenuItems(data.data.items);
+                    } else {
+                        renderMenuItems(getFallbackMenuItems());
+                    }
+                } else {
+                    renderMenuItems(getFallbackMenuItems());
+                }
+            } catch (error) {
+                console.error('Error loading menu:', error);
+                renderMenuItems(getFallbackMenuItems());
+            }
+        }
+
+        function getFallbackMenuItems() {
+            return [
+                {
+                    _id: '1',
+                    name: 'Regular Nachos',
+                    price: 35,
+                    category: 'nachos',
+                    description: 'Classic nachos with delicious toppings',
+                    isAvailable: true,
+                    imageUrl: '/image/classic nachos.jpg'
+                },
+                {
+                    _id: '2',
+                    name: 'Veggie Nachos',
+                    price: 65,
+                    category: 'nachos',
+                    description: 'Vegetarian delight with fresh vegetables',
+                    isAvailable: true,
+                    imageUrl: '/image/veggie nachos.jpg'
+                },
+                {
+                    _id: '3',
+                    name: 'Overload Cheesy Nachos',
+                    price: 95,
+                    category: 'nachos',
+                    description: 'Extra cheesy goodness with premium toppings',
+                    isAvailable: true,
+                    imageUrl: '/image/overload chees nachos.jpg'
+                },
+                {
+                    _id: '4',
+                    name: 'Mango Graham',
+                    price: 40,
+                    category: 'desserts',
+                    description: 'Sweet mango graham dessert with cream',
+                    isAvailable: true,
+                    imageUrl: '/image/mango.gif'
+                },
+                {
+                    _id: '5',
+                    name: 'Biscoff',
+                    price: 159,
+                    category: 'desserts',
+                    description: 'Delicious Biscoff cookie dessert',
+                    isAvailable: true,
+                    imageUrl: '/image/biscoff.jpeg'
+                },
+                {
+                    _id: '6',
+                    name: 'Nacho Combo',
+                    price: 75,
+                    category: 'nachos',
+                    description: 'Nachos with your choice of drink',
+                    isAvailable: true,
+                    imageUrl: '/image/combo.png'
                 }
             ];
         }
 
-        function renderSlideshow(slidesToShow) {
-            const slideshow = document.getElementById('slideshow');
-            const dotsContainer = document.getElementById('slideshow-dots');
+        function renderMenuItems(items) {
+            const container = document.getElementById('menu-grid');
+            if (!container) return;
             
-            // Clear existing content
-            slideshow.innerHTML = '';
-            dotsContainer.innerHTML = '';
+            if (!items || items.length === 0) {
+                container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 50px;">No menu items available</div>';
+                return;
+            }
             
-            // Sort slides by order
-            slidesToShow.sort((a, b) => a.order - b.order);
-            
-            // Create slides WITHOUT TITLES in content
-            slidesToShow.forEach((slide, index) => {
-                // Create slide element
-                const slideElement = document.createElement('div');
-                slideElement.className = 'slide';
-                slideElement.id = `slide-${index}`;
-                slideElement.dataset.title = slide.title;
-                slideElement.dataset.description = slide.description;
+            let html = '';
+            items.forEach(item => {
+                const imagePath = item.imageUrl || '/image/default-food.jpg';
                 
-                // Add promo badge if present
-                let promoBadge = '';
-                if (slide.promoBadge) {
-                    promoBadge = `<div class="promo-badge">${slide.promoBadge}</div>`;
-                }
-                
-                // Note: No title in slide-content anymore
-                slideElement.innerHTML = `
-                    <img src="${slide.imageUrl}" alt="${slide.title}" class="slide-image" 
-                         onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjM1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjOGI0NTEzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSJ3aGl0ZSI+JHtzbGlkZS50aXRsZX08L3RleHQ+PC9zdmc+'">
-                    <div class="slide-content">
-                        <p class="slide-description">${slide.description}</p>
+                html += `
+                    <div class="menu-item" data-category="${item.category}">
+                        <img src="${imagePath}" alt="${item.name}" class="menu-item-image"
+                             onerror="this.src='/image/default-food.jpg'">
+                        <div class="menu-item-content">
+                            <div class="menu-item-header">
+                                <h3 class="menu-item-title">${item.name}</h3>
+                                <div class="menu-item-price">₱${item.price}</div>
+                            </div>
+                            <p class="menu-item-description">${item.description || 'Delicious treat'}</p>
+                            <div class="menu-item-actions">
+                                <span class="availability ${item.isAvailable ? 'available' : 'unavailable'}">
+                                    ${item.isAvailable ? 'Available' : 'Out of Stock'}
+                                </span>
+                                ${item.isAvailable ? 
+                                    `<button class="add-to-cart" onclick="addToCart('${item._id}', '${item.name}', ${item.price})">
+                                        <i class="fas fa-cart-plus"></i> Add to Cart
+                                    </button>` : 
+                                    `<button class="add-to-cart" disabled>
+                                        <i class="fas fa-times"></i> Out of Stock
+                                    </button>`
+                                }
+                            </div>
+                        </div>
                     </div>
-                    ${promoBadge}
                 `;
-                
-                slideshow.appendChild(slideElement);
-                
-                // Create dot
-                const dot = document.createElement('div');
-                dot.className = 'dot';
-                dot.dataset.index = index;
-                dot.addEventListener('click', () => goToSlide(index));
-                dotsContainer.appendChild(dot);
             });
             
-            // Show first slide
-            if (slidesToShow.length > 0) {
-                goToSlide(0);
+            container.innerHTML = html;
+        }
+
+        function filterMenu(category) {
+            const categoryBtns = document.querySelectorAll('.category-btn');
+            categoryBtns.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const items = document.querySelectorAll('.menu-item');
+            items.forEach(item => {
+                if (category === 'all' || item.dataset.category === category) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        // =========== CART FUNCTIONS ===========
+        function addToCart(id, name, price) {
+            const existingItem = cart.find(item => item.id === id);
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({
+                    id,
+                    name,
+                    price,
+                    quantity: 1
+                });
+            }
+            
+            updateCartStorage();
+            updateCartDisplay();
+            showNotification(`${name} added to cart!`);
+        }
+
+        function updateCartStorage() {
+            localStorage.setItem('cart', JSON.stringify(cart));
+        }
+
+        function updateCartDisplay() {
+            const count = cart.reduce((total, item) => total + item.quantity, 0);
+            document.getElementById('cart-count').textContent = count;
+            
+            if (document.getElementById('cart-section').style.display === 'block') {
+                renderCart();
             }
         }
 
-        function setupSlideshowControls() {
-            // Previous button
-            const prevBtn = document.getElementById('prev-slide');
-            if (prevBtn) {
-                prevBtn.addEventListener('click', () => {
-                    pauseSlideshow();
-                    prevSlide();
-                    setTimeout(resumeSlideshow, 3000); // Resume after 3 seconds
-                });
+        function renderCart() {
+            const container = document.getElementById('cart-container');
+            if (!container) return;
+            
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 50px;">
+                        <i class="fas fa-shopping-cart" style="font-size: 3em; color: #e9ecef; margin-bottom: 20px;"></i>
+                        <p style="color: #636e72; font-size: 1.1em;">Your cart is empty</p>
+                        <button class="checkout-btn" onclick="showSection('menu')" style="margin-top: 20px;">
+                            <i class="fas fa-utensils"></i> Browse Menu
+                        </button>
+                    </div>
+                `;
+                return;
             }
             
-            // Next button
-            const nextBtn = document.getElementById('next-slide');
-            if (nextBtn) {
-                nextBtn.addEventListener('click', () => {
-                    pauseSlideshow();
-                    nextSlide();
-                    setTimeout(resumeSlideshow, 3000); // Resume after 3 seconds
-                });
-            }
+            let html = '';
+            let total = 0;
             
-            // Pause on hover
-            const slideshowContainer = document.querySelector('.slideshow-container');
-            if (slideshowContainer) {
-                slideshowContainer.addEventListener('mouseenter', pauseSlideshow);
-                slideshowContainer.addEventListener('mouseleave', resumeSlideshow);
+            cart.forEach((item, index) => {
+                const itemTotal = item.price * item.quantity;
+                total += itemTotal;
                 
-                // Touch events for mobile
-                slideshowContainer.addEventListener('touchstart', pauseSlideshow);
-                slideshowContainer.addEventListener('touchend', () => {
-                    setTimeout(resumeSlideshow, 3000);
+                html += `
+                    <div class="cart-item">
+                        <div class="cart-item-info">
+                            <div class="cart-item-name">${item.name}</div>
+                            <div class="cart-item-price">₱${item.price} × ${item.quantity}</div>
+                        </div>
+                        <div class="cart-item-controls">
+                            <div class="quantity-controls">
+                                <button class="quantity-btn" onclick="updateQuantity(${index}, ${item.quantity - 1})" ${item.quantity <= 1 ? 'disabled' : ''}>-</button>
+                                <span class="quantity-display">${item.quantity}</span>
+                                <button class="quantity-btn" onclick="updateQuantity(${index}, ${item.quantity + 1})">+</button>
+                            </div>
+                            <div style="font-weight: bold; font-size: 1.2em;">₱${itemTotal.toFixed(2)}</div>
+                            <button class="remove-btn" onclick="removeFromCart(${index})">
+                                <i class="fas fa-trash"></i> Remove
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                <div class="cart-actions">
+                    <button class="clear-cart-btn" onclick="clearCart()">
+                        <i class="fas fa-trash-alt"></i> Clear Cart
+                    </button>
+                    <div style="text-align: right;">
+                        <div class="cart-total">Total: ₱${total.toFixed(2)}</div>
+                        <button class="checkout-btn" onclick="showSection('order')" style="margin-top: 10px;">
+                            <i class="fas fa-shopping-bag"></i> Proceed to Checkout
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        function updateQuantity(index, newQuantity) {
+            if (newQuantity < 1) {
+                removeFromCart(index);
+                return;
+            }
+            
+            cart[index].quantity = newQuantity;
+            updateCartStorage();
+            updateCartDisplay();
+            showNotification('Cart updated');
+        }
+
+        function removeFromCart(index) {
+            const itemName = cart[index].name;
+            cart.splice(index, 1);
+            updateCartStorage();
+            updateCartDisplay();
+            showNotification(`${itemName} removed from cart`);
+        }
+
+        function clearCart() {
+            if (cart.length === 0) return;
+            
+            if (confirm('Are you sure you want to clear your cart?')) {
+                cart = [];
+                updateCartStorage();
+                updateCartDisplay();
+                showNotification('Cart cleared');
+            }
+        }
+
+        // =========== ORDER FUNCTIONS ===========
+        function renderOrderForm() {
+            const container = document.getElementById('order-form');
+            if (!container) return;
+            
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 50px;">
+                        <i class="fas fa-shopping-cart" style="font-size: 3em; color: #e9ecef; margin-bottom: 20px;"></i>
+                        <p style="color: #636e72; font-size: 1.1em; margin-bottom: 20px;">Your cart is empty</p>
+                        <button class="checkout-btn" onclick="showSection('menu')">
+                            <i class="fas fa-utensils"></i> Browse Menu
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Calculate totals
+            let subtotal = 0;
+            cart.forEach(item => {
+                subtotal += item.price * item.quantity;
+            });
+            const tax = subtotal * 0.12; // 12% tax
+            const total = subtotal + tax;
+            
+            // Get items HTML
+            let itemsHTML = '';
+            cart.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                itemsHTML += `
+                    <div class="order-item">
+                        <span>${item.name} × ${item.quantity}</span>
+                        <span>₱${itemTotal.toFixed(2)}</span>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = `
+                <div class="order-summary">
+                    <h3>Order Summary</h3>
+                    <div class="order-items">
+                        ${itemsHTML}
+                    </div>
+                    <div class="order-item">
+                        <span>Subtotal</span>
+                        <span>₱${subtotal.toFixed(2)}</span>
+                    </div>
+                    <div class="order-item">
+                        <span>Tax (12%)</span>
+                        <span>₱${tax.toFixed(2)}</span>
+                    </div>
+                    <div class="order-item" style="font-weight: bold; border-top: 2px solid #dee2e6; padding-top: 10px;">
+                        <span>Total</span>
+                        <span>₱${total.toFixed(2)}</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="order-name" class="form-label">Full Name *</label>
+                    <input type="text" id="order-name" class="form-input" placeholder="Enter your full name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="order-phone" class="form-label">Phone Number *</label>
+                    <input type="tel" id="order-phone" class="form-input" placeholder="Enter your phone number" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="order-email" class="form-label">Email Address (optional)</label>
+                    <input type="email" id="order-email" class="form-input" placeholder="Enter your email address">
+                </div>
+                
+                <div class="form-group">
+                    <label for="order-pickup" class="form-label">Pickup Time *</label>
+                    <input type="datetime-local" id="order-pickup" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Payment Method *</label>
+                    <div class="payment-methods">
+                        <div class="payment-method">
+                            <input type="radio" id="cash" name="payment" value="cash" checked>
+                            <label for="cash" class="payment-label active">
+                                <i class="fas fa-money-bill-wave"></i>
+                                <span>Cash</span>
+                            </label>
+                        </div>
+                        <div class="payment-method">
+                            <input type="radio" id="gcash" name="payment" value="gcash">
+                            <label for="gcash" class="payment-label">
+                                <i class="fas fa-mobile-alt"></i>
+                                <span>GCash</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="order-notes" class="form-label">Special Instructions (optional)</label>
+                    <textarea id="order-notes" class="form-input" rows="4" placeholder="Any special requests or dietary restrictions..."></textarea>
+                </div>
+                
+                <button onclick="submitOrder()" class="submit-btn" id="submit-order-btn">
+                    <i class="fas fa-paper-plane"></i> Place Order
+                </button>
+            `;
+            
+            // Set minimum pickup time (30 minutes from now)
+            const now = new Date();
+            now.setMinutes(now.getMinutes() + 30);
+            const minDate = now.toISOString().slice(0, 16);
+            document.getElementById('order-pickup').min = minDate;
+            
+            // Set default pickup time (1 hour from now)
+            now.setMinutes(now.getMinutes() + 30);
+            const defaultDate = now.toISOString().slice(0, 16);
+            document.getElementById('order-pickup').value = defaultDate;
+            
+            // Handle payment method selection
+            document.querySelectorAll('.payment-label').forEach(label => {
+                label.addEventListener('click', function() {
+                    document.querySelectorAll('.payment-label').forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                    const input = this.previousElementSibling;
+                    input.checked = true;
                 });
+            });
+        }
+
+        async function submitOrder() {
+            const btn = document.getElementById('submit-order-btn');
+            const originalText = btn.innerHTML;
+            
+            try {
+                // Disable button and show loading
+                btn.disabled = true;
+                btn.innerHTML = '<div class="loading"></div> Processing...';
+                
+                // Get form values
+                const name = document.getElementById('order-name').value.trim();
+                const phone = document.getElementById('order-phone').value.trim();
+                const email = document.getElementById('order-email').value.trim();
+                const pickupTime = document.getElementById('order-pickup').value;
+                const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
+                const notes = document.getElementById('order-notes').value.trim();
+                
+                // Validation
+                if (!name || !phone || !pickupTime) {
+                    throw new Error('Please fill in all required fields');
+                }
+                
+                // Calculate totals
+                let subtotal = 0;
+                const items = cart.map(item => {
+                    const itemTotal = item.price * item.quantity;
+                    subtotal += itemTotal;
+                    return {
+                        name: item.name,
+                        quantity: item.quantity,
+                        price: item.price,
+                        total: itemTotal
+                    };
+                });
+                
+                const tax = subtotal * 0.12;
+                const total = subtotal + tax;
+                
+                // Prepare order data
+                const orderData = {
+                    customerName: name,
+                    customerPhone: phone,
+                    customerEmail: email || undefined,
+                    items,
+                    subtotal: parseFloat(subtotal.toFixed(2)),
+                    tax: parseFloat(tax.toFixed(2)),
+                    total: parseFloat(total.toFixed(2)),
+                    pickupTime: new Date(pickupTime).toISOString(),
+                    paymentMethod,
+                    notes: notes || undefined
+                };
+                
+                // Submit order
+                const response = await fetch(`${API_BASE_URL}/api/orders`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(orderData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    // Clear cart
+                    cart = [];
+                    updateCartStorage();
+                    updateCartDisplay();
+                    
+                    // Show success message
+                    showNotification(`Order placed successfully! Order #: ${data.data.orderNumber}`, 'success');
+                    
+                    // Return to home after delay
+                    setTimeout(() => {
+                        showSection('home');
+                    }, 3000);
+                    
+                } else {
+                    throw new Error(data.message || 'Failed to place order');
+                }
+                
+            } catch (error) {
+                console.error('Order submission error:', error);
+                showNotification(error.message || 'Failed to place order. Please try again.', 'error');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
             }
         }
 
-        function goToSlide(index, direction = 'right') {
-            const activeSlides = slides.filter(slide => slide.active);
-            if (activeSlides.length === 0) return;
+        // =========== ADMIN FUNCTIONS ===========
+        function checkAdminAuth() {
+            const token = localStorage.getItem('adminToken');
+            const adminData = localStorage.getItem('adminData');
             
-            const oldIndex = currentSlide;
-            currentSlide = (index + activeSlides.length) % activeSlides.length;
+            if (token && adminData) {
+                try {
+                    adminToken = token;
+                    currentAdmin = JSON.parse(adminData);
+                    showAdminButton(true);
+                    
+                    // Verify token is still valid
+                    verifyAdminToken();
+                } catch (e) {
+                    clearAdminAuth();
+                }
+            } else {
+                showAdminButton(false);
+            }
+        }
+
+        function showAdminButton(show) {
+            const adminBtn = document.querySelector('.admin-btn');
+            if (adminBtn) {
+                adminBtn.style.display = show ? 'flex' : 'none';
+            }
+        }
+
+        function clearAdminAuth() {
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminData');
+            adminToken = null;
+            currentAdmin = null;
+            showAdminButton(false);
+        }
+
+        async function verifyAdminToken() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/admin/verify-role`, {
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    clearAdminAuth();
+                    return false;
+                }
+                
+                const data = await response.json();
+                if (data.valid) {
+                    currentAdmin = data.admin;
+                    localStorage.setItem('adminData', JSON.stringify(data.admin));
+                    showAdminButton(true);
+                    return true;
+                } else {
+                    clearAdminAuth();
+                    return false;
+                }
+            } catch (error) {
+                console.error('Token verification failed:', error);
+                clearAdminAuth();
+                return false;
+            }
+        }
+
+        async function adminLogin(username, password) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/admin/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    adminToken = data.token;
+                    currentAdmin = data.user;
+                    
+                    localStorage.setItem('adminToken', data.token);
+                    localStorage.setItem('adminData', JSON.stringify(data.user));
+                    
+                    showAdminButton(true);
+                    showAdminDashboard();
+                    
+                    return { success: true, user: data.user };
+                } else {
+                    return { success: false, message: data.message || 'Login failed' };
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                return { success: false, message: 'Network error' };
+            }
+        }
+
+        function adminLogout() {
+            clearAdminAuth();
             
-            // Update slide classes
-            const slidesElements = document.querySelectorAll('.slide');
-            const dots = document.querySelectorAll('.dot');
+            if (document.getElementById('admin-section').style.display === 'block') {
+                showSection('home');
+            }
             
-            // Remove active classes
-            slidesElements.forEach(slide => slide.classList.remove('active'));
-            dots.forEach(dot => dot.classList.remove('active'));
+            showNotification('Logged out successfully');
+        }
+
+        function showAdminLoginForm() {
+            const container = document.getElementById('admin-content');
+            if (!container) return;
             
-            // Add animation class based on direction
-            const currentSlideElement = slidesElements[currentSlide];
-            currentSlideElement.classList.add('active');
-            currentSlideElement.classList.add(`slide-in-${direction}`);
+            container.innerHTML = `
+                <div class="admin-login-form">
+                    <h2><i class="fas fa-user-shield"></i> Admin Login</h2>
+                    <div class="form-group">
+                        <label for="admin-username">Username:</label>
+                        <input type="text" id="admin-username" class="form-input" placeholder="Enter username">
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-password">Password:</label>
+                        <input type="password" id="admin-password" class="form-input" placeholder="Enter password">
+                    </div>
+                    <button onclick="handleAdminLogin()" class="submit-btn" style="width: 100%;">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </button>
+                    <div id="admin-login-error" style="color: #FF6B6B; margin-top: 15px; font-weight: 600;"></div>
+                </div>
+            `;
+        }
+
+        async function handleAdminLogin() {
+            const username = document.getElementById('admin-username').value;
+            const password = document.getElementById('admin-password').value;
+            const errorDiv = document.getElementById('admin-login-error');
             
-            // Remove animation class after animation completes
+            if (!username || !password) {
+                errorDiv.textContent = 'Please enter both username and password';
+                return;
+            }
+            
+            errorDiv.textContent = '';
+            
+            const result = await adminLogin(username, password);
+            
+            if (result.success) {
+                showAdminDashboard();
+            } else {
+                errorDiv.textContent = result.message || 'Login failed';
+            }
+        }
+
+        function showAdminDashboard() {
+            const container = document.getElementById('admin-content');
+            if (!container) return;
+            
+            container.innerHTML = `
+                <div class="admin-dashboard">
+                    <div class="admin-welcome">
+                        <h2><i class="fas fa-user-shield"></i> Welcome, ${currentAdmin.fullName}!</h2>
+                        <p>Role: ${currentAdmin.role} | Username: ${currentAdmin.username}</p>
+                    </div>
+                    
+                    <button class="logout-btn" onclick="adminLogout()">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                    
+                    <div class="admin-stats" id="admin-stats">
+                        <div style="grid-column: 1/-1; text-align: center; padding: 30px;">
+                            <div class="loading" style="margin: 0 auto;"></div>
+                            <p>Loading dashboard...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-actions">
+                        <div class="admin-action-btn" onclick="manageOrders()">
+                            <i class="fas fa-clipboard-list"></i>
+                            <span>Manage Orders</span>
+                        </div>
+                        <div class="admin-action-btn" onclick="manageMenu()">
+                            <i class="fas fa-utensils"></i>
+                            <span>Manage Menu</span>
+                        </div>
+                        <div class="admin-action-btn" onclick="viewReports()">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>View Reports</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            loadAdminStats();
+        }
+
+        async function loadAdminStats() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/admin/dashboard-stats`, {
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        const stats = data.data;
+                        const statsContainer = document.getElementById('admin-stats');
+                        
+                        statsContainer.innerHTML = `
+                            <div class="stat-card">
+                                <div class="stat-value">${stats.totalOrders}</div>
+                                <div class="stat-label">Total Orders</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">₱${stats.totalSales.toFixed(2)}</div>
+                                <div class="stat-label">Total Sales</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${stats.todayOrders}</div>
+                                <div class="stat-label">Today's Orders</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">₱${stats.todaySales.toFixed(2)}</div>
+                                <div class="stat-label">Today's Sales</div>
+                            </div>
+                        `;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading admin stats:', error);
+            }
+        }
+
+        function manageOrders() {
+            alert('Orders management feature coming soon!');
+        }
+
+        function manageMenu() {
+            alert('Menu management feature coming soon!');
+        }
+
+        function viewReports() {
+            alert('Reports feature coming soon!');
+        }
+
+        // =========== UTILITY FUNCTIONS ===========
+        function showNotification(message, type = 'success') {
+            // Remove existing notifications
+            const existingNotifications = document.querySelectorAll('.notification');
+            existingNotifications.forEach(n => n.remove());
+            
+            // Create new notification
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.style.background = type === 'error' ? '#FF6B6B' : '#4CAF50';
+            
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'error' ? 'exclamation-circle' : 'check-circle'}"></i>
+                <span>${message}</span>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Remove after 3 seconds
             setTimeout(() => {
-                currentSlideElement.classList.remove(`slide-in-${direction}`);
-            }, 800);
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 3000);
+        }
+
+        function showSection(sectionId) {
+            // Hide all sections
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(section => {
+                section.classList.remove('active');
+            });
             
-            // Update dot
-            if (dots[currentSlide]) {
-                dots[currentSlide].classList.add('active');
+            // Remove active class from all nav buttons
+            const navBtns = document.querySelectorAll('.nav-btn');
+            navBtns.forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected section and activate its button
+            const section = document.getElementById(`${sectionId}-section`);
+            const btn = document.querySelector(`.nav-btn[onclick*="${sectionId}"]`);
+            
+            if (section) {
+                section.classList.add('active');
             }
             
-            // Update title and description outside slideshow
-            updateSlideTitleAndDescription(activeSlides[currentSlide]);
-            
-            // Reset timer bar
-            updateTimerBar();
-        }
-
-        function updateSlideTitleAndDescription(slide) {
-            const titleElement = document.getElementById('current-slide-title');
-            const descriptionElement = document.getElementById('current-slide-description');
-            
-            if (titleElement && slide.title) {
-                titleElement.textContent = slide.title;
+            if (btn) {
+                btn.classList.add('active');
             }
             
-            if (descriptionElement && slide.description) {
-                descriptionElement.textContent = slide.description;
+            // Special handling for each section
+            switch(sectionId) {
+                case 'home':
+                    if (currentSlides.length === 0) {
+                        initSlideshow();
+                    } else {
+                        resetAutoPlay();
+                    }
+                    break;
+                case 'menu':
+                    loadMenuItems();
+                    break;
+                case 'cart':
+                    renderCart();
+                    break;
+                case 'order':
+                    renderOrderForm();
+                    break;
+                case 'admin':
+                    if (!currentAdmin) {
+                        showAdminLoginForm();
+                    } else {
+                        showAdminDashboard();
+                    }
+                    break;
             }
+            
+            updateCartDisplay();
         }
 
-        function nextSlide() {
-            goToSlide(currentSlide + 1, 'right');
-        }
+        // =========== INITIALIZATION ===========
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Page loaded, initializing...');
+            
+            // Initialize slideshow
+            initSlideshow();
+            
+            // Load initial data
+            loadMenuItems();
+            
+            // Update cart display
+            updateCartDisplay();
+            
+            // Check admin auth
+            checkAdminAuth();
+            
+            console.log('Initialization complete');
+        });
 
-        function prevSlide() {
-            goToSlide(currentSlide - 1, 'left');
-        }
-
-        function startSlideshow() {
-            if (slideInterval) clearInterval(slideInterval);
-            slideInterval = setInterval(nextSlide, SLIDE_DURATION);
-            isPaused = false;
-        }
-
-        function pauseSlideshow() {
-            if (slideInterval) {
-                clearInterval(slideInterval);
-                slideInterval = null;
-                isPaused = true;
+        // Handle page visibility change
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden && document.getElementById('home-section').classList.contains('active')) {
+                resetAutoPlay();
             }
-        }
-
-        function resumeSlideshow() {
-            if (isPaused) {
-                startSlideshow();
-            }
-        }
-
-        function updateTimerBar() {
-            const timerBar = document.getElementById('timer-bar');
-            if (!timerBar) return;
-            
-            // Reset timer bar
-            timerBar.style.transition = 'none';
-            timerBar.style.width = '0%';
-            
-            // Force reflow
-            timerBar.offsetWidth;
-            
-            // Start animation
-            timerBar.style.transition = `width ${SLIDE_DURATION}ms linear`;
-            timerBar.style.width = '100%';
-        }
-
-        function showEmptySlideshow() {
-            const slideshow = document.getElementById('slideshow');
-            slideshow.innerHTML = `
-                <div class="slideshow-empty">
-                    <i class="fas fa-images"></i>
-                    <h3>No Slides Available</h3>
-                    <p>Check back soon for promotions and updates!</p>
-                </div>
-            `;
-            
-            // Hide controls
-            const controls = document.querySelector('.slideshow-controls');
-            if (controls) controls.style.display = 'none';
-            
-            // Update title and description for empty state
-            const titleElement = document.getElementById('current-slide-title');
-            const descriptionElement = document.getElementById('current-slide-description');
-            if (titleElement) titleElement.textContent = 'Check Back Soon!';
-            if (descriptionElement) descriptionElement.textContent = 'We\'re preparing something special for you!';
-        }
-
-        function showErrorSlideshow() {
-            const slideshow = document.getElementById('slideshow');
-            slideshow.innerHTML = `
-                <div class="slideshow-empty">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <h3>Unable to Load Slideshow</h3>
-                    <p>Please check your connection and try again.</p>
-                </div>
-            `;
-            
-            // Update title and description for error state
-            const titleElement = document.getElementById('current-slide-title');
-            const descriptionElement = document.getElementById('current-slide-description');
-            if (titleElement) titleElement.textContent = 'Oops! Something went wrong';
-            if (descriptionElement) descriptionElement.textContent = 'Please try refreshing the page';
-        }
-
-        // Global function for navigation
-        function navigateTo(page) {
-            window.location.href = page;
-        }
+        });
     </script>
 </body>
 </html>
