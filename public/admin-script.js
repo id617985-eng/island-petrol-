@@ -1,2051 +1,1747 @@
 // ================================
-// ADMIN PANEL SCRIPT - SERVER INTEGRATION VERSION
+// ENHANCED ADMIN PANEL SCRIPT
+// Complete with caching, real-time updates, and better UX
 // ================================
 
-const API_BASE_URL = 'https://aifoodies.up.railway.app/api';
-let adminToken = localStorage.getItem('adminToken');
-let adminRole = localStorage.getItem('adminRole') || 'admin';
-let currentSection = 'dashboard';
-let superAdminSettings = JSON.parse(localStorage.getItem('superAdminSettings') || '{"showAdminButton": true}');
-let currentEditingSlideId = null;
-let currentEditingProductId = null;
-
-// Menu items data
-let menuItems = {
-    nachos: [],
-    desserts: []
-};
-
-// Real orders data
-let realOrders = [];
-let orderUpdateInterval = null;
-let currentOrdersFilter = 'all';
-
-// ================================
-// INITIALIZATION
-// ================================
-
-document.addEventListener('DOMContentLoaded', async function() {
-    console.log('🔧 Admin panel initialized');
-    
-    // Check if admin is logged in
-    if (!adminToken) {
-        console.log('No admin token found, showing login modal');
-        showLoginModal();
-        return;
+class EnhancedAdminPanel {
+    constructor() {
+        this.config = {
+            API_BASE_URL: 'https://aifoodies.up.railway.app/api',
+            POLLING_INTERVAL: 30000,
+            CACHE_TTL: 300000,
+            MAX_RETRIES: 3
+        };
+        
+        this.state = {
+            adminToken: localStorage.getItem('adminToken'),
+            adminRole: localStorage.getItem('adminRole') || 'admin',
+            currentSection: 'dashboard',
+            menuItems: { nachos: [], desserts: [] },
+            orders: [],
+            filters: {
+                orders: { status: 'all', date: '', search: '' },
+                products: { category: '', search: '' }
+            },
+            pagination: {
+                orders: { current: 1, total: 1, perPage: 10 },
+                products: { current: 1, total: 1, perPage: 12 }
+            },
+            isLoading: false,
+            cache: new Map(),
+            updateIntervals: {}
+        };
+        
+        this.init();
     }
     
-    // Verify token with server
-    try {
-        const isValid = await verifyAdminToken();
-        if (!isValid) {
-            showLoginModal();
+    async init() {
+        console.log('🚀 Enhanced Admin Panel Initializing...');
+        
+        // Check authentication
+        if (!this.state.adminToken || !(await this.verifyToken())) {
+            this.showLoginModal();
             return;
         }
-    } catch (error) {
-        console.error('Token verification failed:', error);
-        showLoginModal();
-        return;
+        
+        // Setup UI
+        this.setupUI();
+        this.setupEventListeners();
+        
+        // Load initial data
+        await this.loadInitialData();
+        
+        // Start real-time updates
+        this.startRealTimeUpdates();
+        
+        // Show keyboard shortcuts hint
+        setTimeout(() => {
+            this.showNotification('💡 Press ? to see keyboard shortcuts', 'info');
+        }, 3000);
+        
+        console.log('✅ Admin Panel Ready');
     }
     
-    // Setup UI based on role
-    setupAdminRoleUI();
-    
-    // Load data from server
-    await loadInitialData();
-    
-    // Setup event listeners
-    setupAdminEventListeners();
-    
-    // Show dashboard initially
-    showSection('dashboard');
-    
-    // Setup real-time order listener
-    setupOrderListener();
-});
-
-async function verifyAdminToken() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/admin/verify-role`, {
-            headers: {
-                'Authorization': `Bearer ${adminToken}`,
-                'Content-Type': 'application/json'
-            }
-        });
+    setupUI() {
+        // Role-specific UI
+        if (this.state.adminRole === 'superadmin') {
+            this.addSuperAdminFeatures();
+        }
         
-        if (response.ok) {
-            const data = await response.json();
-            if (data.valid) {
-                adminRole = data.admin.role;
-                localStorage.setItem('adminRole', adminRole);
-                return true;
+        // Update role badge
+        const roleBadge = document.getElementById('admin-role-badge');
+        if (roleBadge) {
+            if (this.state.adminRole === 'superadmin') {
+                roleBadge.textContent = 'SUPERADMIN';
+                roleBadge.style.display = 'inline-block';
+            } else {
+                roleBadge.style.display = 'none';
             }
         }
-        return false;
-    } catch (error) {
-        console.error('Token verification error:', error);
-        return false;
+        
+        // Initialize charts
+        this.initCharts();
     }
-}
-
-function setupAdminRoleUI() {
-    const roleBadge = document.getElementById('admin-role-badge');
-    if (roleBadge) {
-        if (adminRole === 'superadmin') {
-            roleBadge.textContent = 'SuperAdmin';
-            roleBadge.style.display = 'inline-block';
-            
-            // Add SuperAdmin section to navigation
-            addSuperAdminNav();
-            addSuperAdminSection();
-        } else {
-            roleBadge.style.display = 'none';
-        }
-    }
-}
-
-async function loadInitialData() {
-    try {
-        // Load menu items from server
-        await loadMenuItemsFromServer();
-        
-        // Load orders from server
-        await loadOrdersFromServer();
-        
-        console.log('✅ Initial data loaded successfully');
-    } catch (error) {
-        console.error('❌ Error loading initial data:', error);
-        // Fallback to localStorage
-        loadMenuItemsFromStorage();
-    }
-}
-
-function loadMenuItemsFromStorage() {
-    const storedItems = localStorage.getItem('menuItems');
-    if (storedItems) {
-        menuItems = JSON.parse(storedItems);
-    } else {
-        // Default items
-        menuItems = {
-            nachos: [
-                { 
-                    id: 'nachos_1',
-                    name: "Regular Nachos", 
-                    price: 35, 
-                    image: "image/classic nachos.jpg", 
-                    category: "nachos",
-                    description: "Classic nachos with delicious toppings",
-                    isAvailable: true,
-                    createdAt: new Date()
-                },
-                { 
-                    id: 'nachos_2',
-                    name: "Veggie Nachos", 
-                    price: 65, 
-                    image: "image/veggie nachos.jpg", 
-                    category: "nachos",
-                    description: "Fresh vegetable nachos",
-                    isAvailable: true,
-                    createdAt: new Date()
-                },
-                { 
-                    id: 'nachos_3',
-                    name: "Overload Cheesy Nachos", 
-                    price: 95, 
-                    image: "image/overload chees nachos.jpg", 
-                    category: "nachos",
-                    description: "Extra cheesy nachos overload",
-                    isAvailable: true,
-                    createdAt: new Date()
-                },
-                { 
-                    id: 'nachos_4',
-                    name: "Nacho Combo", 
-                    price: 75, 
-                    image: "image/combo.png", 
-                    category: "nachos",
-                    description: "Nachos combo meal",
-                    isAvailable: true,
-                    createdAt: new Date()
-                },
-                { 
-                    id: 'nachos_5',
-                    name: "Nacho Fries", 
-                    price: 85, 
-                    image: "image/nacho fries.jpg", 
-                    category: "nachos",
-                    description: "Nachos with crispy fries",
-                    isAvailable: true,
-                    createdAt: new Date()
-                },
-                { 
-                    id: 'nachos_6',
-                    name: "Supreme Nachos", 
-                    price: 180, 
-                    image: "image/Supreme Nachos.png", 
-                    category: "nachos",
-                    description: "Supreme nachos special",
-                    isAvailable: true,
-                    createdAt: new Date()
-                },
-                { 
-                    id: 'nachos_7',
-                    name: "Shawarma fries", 
-                    price: 120, 
-                    image: "image/shawarma fries.jpeg", 
-                    category: "nachos",
-                    description: "Shawarma style fries",
-                    isAvailable: true,
-                    createdAt: new Date()
-                }
-            ],
-            desserts: [
-                { 
-                    id: 'desserts_1',
-                    name: "Mango Graham", 
-                    price: 40, 
-                    image: "image/mango.gif", 
-                    category: "desserts",
-                    description: "Refreshing mango graham",
-                    isAvailable: true,
-                    createdAt: new Date()
-                },
-                { 
-                    id: 'desserts_2',
-                    name: "Mango tiramisu on tube", 
-                    price: 100, 
-                    image: "image/mango tiramisu on tub-price 100.jpeg", 
-                    category: "desserts",
-                    description: "Mango tiramisu in a tube",
-                    isAvailable: true,
-                    createdAt: new Date()
-                },
-                { 
-                    id: 'desserts_3',
-                    name: "Biscoff", 
-                    price: 159, 
-                    image: "image/biscoff.jpeg", 
-                    category: "desserts",
-                    description: "Delicious biscoff dessert",
-                    isAvailable: true,
-                    createdAt: new Date()
-                },
-                { 
-                    id: 'desserts_4',
-                    name: "Oreo", 
-                    price: 149, 
-                    image: "image/oreo and bisscoff.png", 
-                    category: "desserts",
-                    description: "Creamy oreo dessert",
-                    isAvailable: true,
-                    createdAt: new Date()
-                },
-                { 
-                    id: 'desserts_5',
-                    name: "Mango Graham Float", 
-                    price: 40, 
-                    image: "image/Mango Graham Floa.jpg", 
-                    category: "desserts",
-                    description: "Mango graham float special",
-                    isAvailable: true,
-                    createdAt: new Date()
-                }
-            ]
-        };
-        localStorage.setItem('menuItems', JSON.stringify(menuItems));
-    }
-    return menuItems;
-}
-
-// ================================
-// SERVER API FUNCTIONS
-// ================================
-
-async function loadMenuItemsFromServer() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/menu-items`, {
-            headers: {
-                'Authorization': `Bearer ${adminToken}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (response.ok) {
-            const items = await response.json();
-            
-            // Organize by category
-            menuItems.nachos = items.filter(item => item.category === 'nachos');
-            menuItems.desserts = items.filter(item => item.category === 'desserts');
-            
-            console.log(`✅ Loaded ${items.length} menu items from server`);
-            return true;
-        }
-        return false;
-    } catch (error) {
-        console.error('Error loading menu items from server:', error);
-        return false;
-    }
-}
-
-async function loadOrdersFromServer() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/admin/orders`, {
-            headers: {
-                'Authorization': `Bearer ${adminToken}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            realOrders = data.orders || [];
-            console.log(`✅ Loaded ${realOrders.length} orders from server`);
-            return true;
-        }
-        return false;
-    } catch (error) {
-        console.error('Error loading orders from server:', error);
-        return false;
-    }
-}
-
-async function saveProductToServer(product, isNew = false) {
-    try {
-        const url = isNew ? 
-            `${API_BASE_URL}/admin/menu-items` : 
-            `${API_BASE_URL}/admin/menu-items/${product._id || product.id}`;
-        
-        const method = isNew ? 'POST' : 'PUT';
-        
-        const response = await fetch(url, {
-            method: method,
-            headers: {
-                'Authorization': `Bearer ${adminToken}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(product)
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            console.log(`✅ Product ${isNew ? 'created' : 'updated'} on server:`, data);
-            return data;
-        }
-        
-        const error = await response.json();
-        throw new Error(error.message || 'Server error');
-    } catch (error) {
-        console.error('Error saving product to server:', error);
-        throw error;
-    }
-}
-
-async function deleteProductFromServer(productId) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/admin/menu-items/${productId}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${adminToken}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (response.ok) {
-            console.log(`✅ Product deleted from server: ${productId}`);
-            return true;
-        }
-        return false;
-    } catch (error) {
-        console.error('Error deleting product from server:', error);
-        throw error;
-    }
-}
-
-async function updateAvailabilityOnServer(itemName, isAvailable) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/admin/menu-items/${itemName}/availability`, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${adminToken}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ isAvailable })
-        });
-        
-        if (response.ok) {
-            console.log(`✅ Availability updated on server: ${itemName} = ${isAvailable}`);
-            return true;
-        }
-        return false;
-    } catch (error) {
-        console.error('Error updating availability on server:', error);
-        throw error;
-    }
-}
-
-async function batchUpdateAvailabilityOnServer(updates) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/admin/menu-items/availability/batch`, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${adminToken}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ updates })
-        });
-        
-        if (response.ok) {
-            console.log(`✅ Batch updated ${updates.length} items on server`);
-            return true;
-        }
-        return false;
-    } catch (error) {
-        console.error('Error batch updating availability on server:', error);
-        throw error;
-    }
-}
-
-// ================================
-// EVENT LISTENERS SETUP
-// ================================
-
-function setupAdminEventListeners() {
-    console.log('🔧 Setting up event listeners');
     
-    // Navigation buttons
-    document.querySelectorAll('.admin-nav-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const sectionId = this.getAttribute('data-section');
-            showSection(sectionId);
+    setupEventListeners() {
+        // Navigation
+        document.querySelectorAll('.admin-nav-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const section = e.currentTarget.dataset.section;
+                this.showSection(section);
+            });
         });
-    });
-    
-    // Back to store button
-    document.getElementById('back-to-store').addEventListener('click', function() {
-        window.location.href = 'index.html';
-    });
-    
-    // Logout button
-    document.getElementById('logout-btn').addEventListener('click', function() {
-        if (confirm('Are you sure you want to logout?')) {
-            localStorage.removeItem('adminToken');
-            localStorage.removeItem('adminRole');
+        
+        // Header actions
+        document.getElementById('back-to-store')?.addEventListener('click', () => {
             window.location.href = 'index.html';
-        }
-    });
-    
-    // View all orders button
-    document.getElementById('view-all-orders').addEventListener('click', function() {
-        showSection('orders');
-    });
-    
-    // Refresh orders button
-    document.getElementById('refresh-orders').addEventListener('click', async function() {
-        await loadOrdersFromServer();
-        showAlert('✅ Orders refreshed!', 'success');
-    });
-    
-    // Order filter
-    document.getElementById('order-filter').addEventListener('change', function() {
-        currentOrdersFilter = this.value;
-        filterOrders();
-    });
-    
-    // Order search
-    document.getElementById('order-search').addEventListener('input', function() {
-        searchOrders();
-    });
-    
-    // Export orders button
-    document.getElementById('export-orders').addEventListener('click', function() {
-        exportOrders();
-    });
-    
-    // Availability buttons
-    document.getElementById('reset-all-availability').addEventListener('click', async function() {
-        await resetAllAvailability();
-        showAlert('✅ All items marked as available!', 'success');
-    });
-    
-    document.getElementById('toggle-all-availability').addEventListener('click', async function() {
-        await toggleAllAvailability();
-    });
-    
-    document.getElementById('save-availability').addEventListener('click', async function() {
-        await saveAvailabilityChanges();
-    });
-    
-    // Slideshow buttons
-    document.getElementById('add-slide-btn').addEventListener('click', function() {
-        showAddSlideModal();
-    });
-    
-    document.getElementById('refresh-slideshow').addEventListener('click', async function() {
-        await loadSlideshowFromServer();
-        showAlert('✅ Slideshow refreshed!', 'success');
-    });
-    
-    document.getElementById('reorder-slides').addEventListener('click', function() {
-        showReorderSlidesModal();
-    });
-    
-    // Products buttons
-    document.getElementById('add-product-btn').addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('➕ Add Product button clicked');
-        showAddProductModal();
-    });
-    
-    document.getElementById('refresh-products').addEventListener('click', async function() {
-        await loadMenuItemsFromServer();
-        loadProducts();
-        showAlert('✅ Products refreshed!', 'success');
-    });
-    
-    // Save product button in modal
-    document.getElementById('save-product-btn').addEventListener('click', async function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('💾 Save Product button clicked');
-        await saveProduct();
-    });
-    
-    // Cancel button in modal
-    document.getElementById('cancel-add-product').addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('❌ Cancel button clicked');
-        hideAddProductModal();
-    });
-    
-    // Custom alert OK button
-    document.getElementById('custom-alert-ok').addEventListener('click', function() {
-        document.getElementById('custom-alert').style.display = 'none';
-    });
-    
-    // Image preview for product image URL
-    const productImageInput = document.getElementById('product-image');
-    if (productImageInput) {
-        productImageInput.addEventListener('input', updateProductImagePreview);
+        });
+        
+        document.getElementById('logout-btn')?.addEventListener('click', () => {
+            if (confirm('Are you sure you want to logout?')) {
+                this.logout();
+            }
+        });
+        
+        // Quick actions
+        document.getElementById('view-all-orders')?.addEventListener('click', () => {
+            this.showSection('orders');
+        });
+        
+        document.getElementById('quick-refresh')?.addEventListener('click', () => {
+            this.refreshAllData();
+        });
+        
+        document.getElementById('quick-shortcuts')?.addEventListener('click', () => {
+            this.toggleKeyboardShortcuts();
+        });
+        
+        // Search and filters
+        this.setupSearchFilters();
+        
+        // Product management
+        this.setupProductManagement();
+        
+        // Availability controls
+        this.setupAvailabilityControls();
+        
+        // Modal handling
+        this.setupModalHandlers();
+        
+        // Keyboard shortcuts
+        this.setupKeyboardShortcuts();
+        
+        // Floating actions
+        this.setupFloatingActions();
     }
     
-    // Close modals when clicking outside
-    document.querySelectorAll('.modal-overlay').forEach(modal => {
-        modal.addEventListener('click', function(e) {
-            if (e.target === this) {
-                this.style.display = 'none';
-                if (this.id === 'add-product-modal') {
-                    currentEditingProductId = null;
-                    resetProductForm();
+    setupSearchFilters() {
+        const searchInputs = ['order-search', 'product-search', 'availability-search'];
+        
+        searchInputs.forEach(id => {
+            const input = document.getElementById(id);
+            if (input) {
+                input.addEventListener('input', (e) => {
+                    const value = e.target.value;
+                    if (id === 'order-search') {
+                        this.state.filters.orders.search = value;
+                        this.filterOrders();
+                    } else if (id === 'product-search') {
+                        this.state.filters.products.search = value;
+                        this.filterProducts();
+                    } else if (id === 'availability-search') {
+                        this.filterAvailability(value);
+                    }
+                });
+            }
+        });
+        
+        // Order filters
+        const orderFilter = document.getElementById('order-filter');
+        const orderDate = document.getElementById('order-date');
+        
+        if (orderFilter) {
+            orderFilter.addEventListener('change', (e) => {
+                this.state.filters.orders.status = e.target.value;
+                this.filterOrders();
+            });
+        }
+        
+        if (orderDate) {
+            orderDate.addEventListener('change', (e) => {
+                this.state.filters.orders.date = e.target.value;
+                this.filterOrders();
+            });
+        }
+        
+        // Product category filter
+        const productCategoryFilter = document.getElementById('product-category-filter');
+        if (productCategoryFilter) {
+            productCategoryFilter.addEventListener('change', (e) => {
+                this.state.filters.products.category = e.target.value;
+                this.filterProducts();
+            });
+        }
+    }
+    
+    setupProductManagement() {
+        document.getElementById('add-product-btn')?.addEventListener('click', () => {
+            this.showAddProductModal();
+        });
+        
+        document.getElementById('refresh-products')?.addEventListener('click', () => {
+            this.loadProducts(true);
+        });
+        
+        document.getElementById('export-products')?.addEventListener('click', () => {
+            this.exportProducts();
+        });
+        
+        document.getElementById('save-product-btn')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.saveProduct();
+        });
+        
+        document.getElementById('cancel-add-product')?.addEventListener('click', () => {
+            this.hideAddProductModal();
+        });
+        
+        // Image preview
+        const productImageInput = document.getElementById('product-image');
+        if (productImageInput) {
+            productImageInput.addEventListener('input', () => {
+                this.updateProductImagePreview();
+            });
+        }
+    }
+    
+    setupAvailabilityControls() {
+        document.getElementById('reset-all-availability')?.addEventListener('click', () => {
+            this.resetAllAvailability();
+        });
+        
+        document.getElementById('toggle-all-availability')?.addEventListener('click', () => {
+            this.toggleAllAvailability();
+        });
+        
+        document.getElementById('save-availability')?.addEventListener('click', () => {
+            this.saveAvailabilityChanges();
+        });
+    }
+    
+    setupModalHandlers() {
+        // Close modals when clicking outside
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                    if (modal.id === 'add-product-modal') {
+                        this.resetProductForm();
+                    }
+                }
+            });
+        });
+        
+        // Custom alert
+        document.getElementById('custom-alert-ok')?.addEventListener('click', () => {
+            document.getElementById('custom-alert').style.display = 'none';
+        });
+        
+        // Order details modal
+        document.getElementById('close-order-details')?.addEventListener('click', () => {
+            document.getElementById('order-details-modal').style.display = 'none';
+        });
+    }
+    
+    setupKeyboardShortcuts() {
+        document.addEventListener('keydown', (e) => {
+            // Don't trigger if user is typing in an input
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                return;
+            }
+            
+            switch(e.key) {
+                case 'Escape':
+                    this.closeAllModals();
+                    break;
+                    
+                case 'k':
+                case 'K':
+                    if (e.ctrlKey) {
+                        e.preventDefault();
+                        const searchInput = document.getElementById('order-search') || 
+                                           document.getElementById('product-search');
+                        if (searchInput) {
+                            searchInput.focus();
+                        }
+                    }
+                    break;
+                    
+                case 'r':
+                case 'R':
+                    if (e.ctrlKey) {
+                        e.preventDefault();
+                        this.refreshCurrentSection();
+                    }
+                    break;
+                    
+                case '?':
+                    e.preventDefault();
+                    this.toggleKeyboardShortcuts();
+                    break;
+                    
+                case 'F5':
+                    e.preventDefault();
+                    this.refreshAllData();
+                    break;
+            }
+        });
+    }
+    
+    setupFloatingActions() {
+        const floatingBtn = document.querySelector('.floating-btn');
+        const floatingMenu = document.querySelector('.floating-actions-menu');
+        
+        if (floatingBtn && floatingMenu) {
+            floatingBtn.addEventListener('click', () => {
+                floatingMenu.style.display = floatingMenu.style.display === 'flex' ? 'none' : 'flex';
+            });
+            
+            // Close menu when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!floatingBtn.contains(e.target) && !floatingMenu.contains(e.target)) {
+                    floatingMenu.style.display = 'none';
+                }
+            });
+        }
+    }
+    
+    async loadInitialData() {
+        this.showGlobalLoader();
+        
+        try {
+            await Promise.allSettled([
+                this.loadMenuItems(),
+                this.loadOrders(),
+                this.loadDashboardStats()
+            ]);
+            
+            this.hideGlobalLoader();
+        } catch (error) {
+            console.error('Failed to load initial data:', error);
+            this.showNotification('Failed to load data. Please refresh the page.', 'error');
+        }
+    }
+    
+    async verifyToken() {
+        try {
+            const response = await fetch(`${this.config.API_BASE_URL}/admin/verify-role`, {
+                headers: {
+                    'Authorization': `Bearer ${this.state.adminToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.valid) {
+                    this.state.adminRole = data.admin.role;
+                    localStorage.setItem('adminRole', this.state.adminRole);
+                    return true;
+                }
+            }
+            return false;
+        } catch (error) {
+            console.error('Token verification error:', error);
+            return false;
+        }
+    }
+    
+    async loadMenuItems(forceRefresh = false) {
+        const cacheKey = 'menuItems';
+        
+        if (!forceRefresh) {
+            const cached = this.getCached(cacheKey);
+            if (cached) {
+                this.state.menuItems = cached;
+                this.updateProductsDisplay();
+                return;
+            }
+        }
+        
+        try {
+            const response = await this.apiRequest(`${this.config.API_BASE_URL}/menu-items`);
+            
+            if (response) {
+                this.state.menuItems = this.organizeByCategory(response);
+                this.cacheData(cacheKey, this.state.menuItems);
+                this.updateProductsDisplay();
+                this.updateAvailabilityDisplay();
+            }
+        } catch (error) {
+            console.error('Failed to load menu items:', error);
+            // Fallback to local storage
+            this.loadFromLocalStorage();
+        }
+    }
+    
+    async loadOrders(forceRefresh = false) {
+        const cacheKey = 'orders';
+        
+        if (!forceRefresh) {
+            const cached = this.getCached(cacheKey);
+            if (cached) {
+                this.state.orders = cached;
+                this.updateOrdersDisplay();
+                this.updateDashboardStats();
+                return;
+            }
+        }
+        
+        try {
+            const response = await this.apiRequest(`${this.config.API_BASE_URL}/admin/orders`);
+            
+            if (response && response.orders) {
+                this.state.orders = response.orders;
+                this.cacheData(cacheKey, this.state.orders);
+                this.updateOrdersDisplay();
+                this.updateDashboardStats();
+                this.updateRecentOrders();
+            }
+        } catch (error) {
+            console.error('Failed to load orders:', error);
+        }
+    }
+    
+    async loadDashboardStats() {
+        try {
+            const response = await this.apiRequest(`${this.config.API_BASE_URL}/admin/stats`);
+            
+            if (response) {
+                this.updateStatsDisplay(response);
+            }
+        } catch (error) {
+            console.error('Failed to load dashboard stats:', error);
+            // Calculate from local data
+            this.calculateLocalStats();
+        }
+    }
+    
+    updateStatsDisplay(stats) {
+        const elements = {
+            'total-orders': stats.totalOrders || 0,
+            'total-sales': `₱${(stats.totalSales || 0).toFixed(2)}`,
+            'today-orders': stats.todayOrders || 0,
+            'today-sales': `₱${(stats.todaySales || 0).toFixed(2)}`,
+            'quick-total-orders': stats.totalOrders || 0,
+            'quick-total-sales': `₱${(stats.totalSales || 0).toFixed(0)}`,
+            'quick-today-orders': stats.todayOrders || 0,
+            'quick-today-sales': `₱${(stats.todaySales || 0).toFixed(0)}`,
+            'quick-avg-order': stats.avgOrderValue ? `₱${stats.avgOrderValue.toFixed(0)}` : '₱0'
+        };
+        
+        Object.entries(elements).forEach(([id, value]) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = value;
+            }
+        });
+        
+        // Update sales chart
+        this.updateSalesChart(stats);
+    }
+    
+    calculateLocalStats() {
+        const totalOrders = this.state.orders.length;
+        const totalSales = this.state.orders.reduce((sum, order) => sum + (order.total || 0), 0);
+        const today = new Date().toDateString();
+        const todayOrders = this.state.orders.filter(order => {
+            const orderDate = new Date(order.timestamp || order.orderTime).toDateString();
+            return orderDate === today;
+        });
+        const todaySales = todayOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+        const avgOrderValue = totalOrders > 0 ? totalSales / totalOrders : 0;
+        
+        const localStats = {
+            totalOrders,
+            totalSales,
+            todayOrders: todayOrders.length,
+            todaySales,
+            avgOrderValue
+        };
+        
+        this.updateStatsDisplay(localStats);
+    }
+    
+    updateSalesChart(stats) {
+        const ctx = document.getElementById('sales-chart');
+        if (!ctx) return;
+        
+        // Destroy existing chart if any
+        if (window.salesChart) {
+            window.salesChart.destroy();
+        }
+        
+        const data = {
+            labels: ['Last 7 Days', 'Last 30 Days', 'Total'],
+            datasets: [{
+                label: 'Sales (₱)',
+                data: [
+                    stats.last7DaysSales || (stats.todaySales * 7) || 10000,
+                    stats.last30DaysSales || (stats.todaySales * 30) || 30000,
+                    stats.totalSales || 50000
+                ],
+                backgroundColor: 'rgba(139, 69, 19, 0.1)',
+                borderColor: '#8b4513',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#FF6A00',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 6
+            }]
+        };
+        
+        window.salesChart = new Chart(ctx, {
+            type: 'line',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(44, 62, 80, 0.9)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: '#8b4513',
+                        borderWidth: 1,
+                        callbacks: {
+                            label: function(context) {
+                                return `₱${context.parsed.y.toFixed(2)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return '₱' + value.toLocaleString();
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    }
+                },
+                animation: {
+                    duration: 1000,
+                    easing: 'easeOutQuart'
                 }
             }
         });
-    });
-    
-    console.log('✅ All event listeners setup complete');
-}
-
-// ================================
-// SECTION NAVIGATION
-// ================================
-
-function showSection(sectionId) {
-    console.log(`📋 Switching to section: ${sectionId}`);
-    
-    // Update current section
-    currentSection = sectionId;
-    
-    // Hide all sections
-    document.querySelectorAll('.admin-section').forEach(section => {
-        section.classList.remove('active');
-        section.style.display = 'none';
-    });
-    
-    // Remove active class from all nav buttons
-    document.querySelectorAll('.admin-nav-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    
-    // Show selected section
-    const sectionElement = document.getElementById(`${sectionId}-section`);
-    if (sectionElement) {
-        sectionElement.classList.add('active');
-        sectionElement.style.display = 'block';
     }
     
-    // Add active class to clicked nav button
-    const navBtn = document.querySelector(`.admin-nav-btn[data-section="${sectionId}"]`);
-    if (navBtn) {
-        navBtn.classList.add('active');
-    }
-    
-    // Load section data
-    switch(sectionId) {
-        case 'dashboard':
-            loadAdminDashboard();
-            break;
-        case 'availability':
-            loadAvailabilityControls();
-            break;
-        case 'slideshow':
-            loadSlideshow();
-            break;
-        case 'orders':
-            loadOrders();
-            break;
-        case 'products':
-            loadProducts();
-            break;
-        case 'superadmin':
-            if (adminRole === 'superadmin') {
-                loadSuperAdminSection();
-            }
-            break;
-    }
-}
-
-// ================================
-// PRODUCT MANAGEMENT FUNCTIONS
-// ================================
-
-function loadProducts() {
-    console.log('📦 Loading products...');
-    
-    // Combine all menu items
-    const allProducts = [...(menuItems.nachos || []), ...(menuItems.desserts || [])];
-    
-    const productsList = document.getElementById('products-list');
-    if (!productsList) return;
-    
-    if (allProducts.length === 0) {
-        productsList.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-box-open"></i>
-                <h3>No Products Found</h3>
-                <p>Add your first product to get started</p>
-            </div>
-        `;
-        return;
-    }
-    
-    // Sort by category and name
-    allProducts.sort((a, b) => {
-        if (a.category !== b.category) {
-            return a.category.localeCompare(b.category);
+    updateProductsDisplay() {
+        const container = document.getElementById('products-list');
+        if (!container) return;
+        
+        let filteredProducts = this.getAllProducts();
+        
+        // Apply filters
+        if (this.state.filters.products.search) {
+            const searchTerm = this.state.filters.products.search.toLowerCase();
+            filteredProducts = filteredProducts.filter(product =>
+                product.name.toLowerCase().includes(searchTerm) ||
+                product.description?.toLowerCase().includes(searchTerm)
+            );
         }
-        return a.name.localeCompare(b.name);
-    });
-    
-    productsList.innerHTML = allProducts.map(product => `
-        <div class="product-item" data-product-id="${product._id || product.id}">
-            <div class="product-image">
-                <img src="${product.imageUrl || product.image || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjOGI0NTEzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSJ3aGl0ZSI+JHtwcm9kdWN0Lm5hbWUuc3Vic3RyaW5nKDAsMSl9PC90ZXh0Pjwvc3ZnPg=='}" 
-                     alt="${product.name}" 
-                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjOGI0NTEzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTIiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSJ3aGl0ZSI+JHtwcm9kdWN0Lm5hbWUuc3Vic3RyaW5nKDAsMSl9PC90ZXh0Pjwvc3ZnPg=='">
-            </div>
-            <div class="product-info">
-                <h4>${product.name}</h4>
-                <p>${product.description || 'No description'}</p>
-                <div class="product-meta">
-                    <span class="product-category">${product.category}</span>
-                    <span class="product-price">₱${product.price.toFixed(2)}</span>
-                    <span class="product-status ${product.isAvailable ? 'available' : 'unavailable'}">
-                        ${product.isAvailable ? 'Available' : 'Unavailable'}
-                    </span>
+        
+        if (this.state.filters.products.category) {
+            filteredProducts = filteredProducts.filter(
+                product => product.category === this.state.filters.products.category
+            );
+        }
+        
+        if (filteredProducts.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-box-open"></i>
+                    <h3>No Products Found</h3>
+                    <p>${this.state.filters.products.search || this.state.filters.products.category ? 
+                        'No products match your filters' : 
+                        'Add your first product to get started'}</p>
+                </div>
+            `;
+            return;
+        }
+        
+        // Pagination
+        const totalPages = Math.ceil(filteredProducts.length / this.state.pagination.products.perPage);
+        this.state.pagination.products.total = totalPages;
+        
+        const startIndex = (this.state.pagination.products.current - 1) * this.state.pagination.products.perPage;
+        const paginatedProducts = filteredProducts.slice(startIndex, startIndex + this.state.pagination.products.perPage);
+        
+        container.innerHTML = paginatedProducts.map(product => `
+            <div class="product-item" data-product-id="${product._id || product.id}">
+                <div class="product-image">
+                    <img src="${product.imageUrl || product.image || this.getPlaceholderImage(product.category)}" 
+                         alt="${product.name}"
+                         onerror="this.src='${this.getPlaceholderImage(product.category)}'">
+                </div>
+                <div class="product-info">
+                    <h4>${product.name}</h4>
+                    <p>${product.description || 'No description available'}</p>
+                    <div class="product-meta">
+                        <span class="product-category">${product.category}</span>
+                        <span class="product-price">₱${product.price.toFixed(2)}</span>
+                        <span class="product-status ${product.isAvailable ? 'available' : 'unavailable'}">
+                            ${product.isAvailable ? 'Available' : 'Unavailable'}
+                        </span>
+                    </div>
+                    <div class="product-actions-buttons">
+                        <button class="action-btn primary small" onclick="adminPanel.editProduct('${product._id || product.id}')">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="action-btn danger small" onclick="adminPanel.deleteProduct('${product._id || product.id}')">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
                 </div>
             </div>
-            <div class="product-actions-buttons">
-                <button class="action-btn primary small" onclick="editProduct('${product._id || product.id}')">
-                    <i class="fas fa-edit"></i> Edit
-                </button>
-                <button class="action-btn danger small" onclick="deleteProduct('${product._id || product.id}')">
-                    <i class="fas fa-trash"></i> Delete
-                </button>
+        `).join('');
+    }
+    
+    updateOrdersDisplay() {
+        const tableBody = document.getElementById('orders-table-body');
+        const mobileView = document.getElementById('orders-mobile-view');
+        
+        if (!tableBody || !mobileView) return;
+        
+        let filteredOrders = [...this.state.orders];
+        
+        // Apply filters
+        if (this.state.filters.orders.status !== 'all') {
+            filteredOrders = filteredOrders.filter(order => order.status === this.state.filters.orders.status);
+        }
+        
+        if (this.state.filters.orders.date) {
+            const filterDate = new Date(this.state.filters.orders.date).toDateString();
+            filteredOrders = filteredOrders.filter(order => {
+                const orderDate = new Date(order.timestamp || order.orderTime).toDateString();
+                return orderDate === filterDate;
+            });
+        }
+        
+        if (this.state.filters.orders.search) {
+            const searchTerm = this.state.filters.orders.search.toLowerCase();
+            filteredOrders = filteredOrders.filter(order =>
+                order.customerName?.toLowerCase().includes(searchTerm) ||
+                order._id?.toLowerCase().includes(searchTerm) ||
+                order.items?.some(item => item.name.toLowerCase().includes(searchTerm))
+            );
+        }
+        
+        // Sort by date (newest first)
+        filteredOrders.sort((a, b) => new Date(b.timestamp || b.orderTime) - new Date(a.timestamp || a.orderTime));
+        
+        if (filteredOrders.length === 0) {
+            tableBody.innerHTML = '';
+            mobileView.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-receipt"></i>
+                    <h3>No Orders Found</h3>
+                    <p>${this.state.filters.orders.search || this.state.filters.orders.date || this.state.filters.orders.status !== 'all' ? 
+                        'No orders match your filters' : 
+                        'No orders have been placed yet'}</p>
+                </div>
+            `;
+            return;
+        }
+        
+        // Pagination
+        const totalPages = Math.ceil(filteredOrders.length / this.state.pagination.orders.perPage);
+        this.state.pagination.orders.total = totalPages;
+        
+        const startIndex = (this.state.pagination.orders.current - 1) * this.state.pagination.orders.perPage;
+        const paginatedOrders = filteredOrders.slice(startIndex, startIndex + this.state.pagination.orders.perPage);
+        
+        // Desktop view
+        tableBody.innerHTML = paginatedOrders.map(order => `
+            <tr onclick="adminPanel.showOrderDetails('${order._id || order.id}')">
+                <td><strong>#${(order._id || '').substring(0, 8)}</strong></td>
+                <td>${order.customerName || 'Guest'}</td>
+                <td>${this.formatDate(order.timestamp || order.orderTime)}</td>
+                <td>${order.items?.length || 0} items</td>
+                <td><strong>₱${(order.total || 0).toFixed(2)}</strong></td>
+                <td><span class="order-status ${order.status || 'pending'}">${order.status || 'pending'}</span></td>
+                <td>
+                    <button class="action-btn primary small" onclick="event.stopPropagation(); adminPanel.showOrderDetails('${order._id || order.id}')">
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+        
+        // Mobile view
+        mobileView.innerHTML = paginatedOrders.map(order => `
+            <div class="data-card" onclick="adminPanel.showOrderDetails('${order._id || order.id}')">
+                <div class="card-field">
+                    <strong>Order ID:</strong>
+                    <span>#${(order._id || '').substring(0, 8)}</span>
+                </div>
+                <div class="card-field">
+                    <strong>Customer:</strong>
+                    <span>${order.customerName || 'Guest'}</span>
+                </div>
+                <div class="card-field">
+                    <strong>Date:</strong>
+                    <span>${this.formatDate(order.timestamp || order.orderTime, true)}</span>
+                </div>
+                <div class="card-field">
+                    <strong>Total:</strong>
+                    <span>₱${(order.total || 0).toFixed(2)}</span>
+                </div>
+                <div class="card-field">
+                    <strong>Status:</strong>
+                    <span class="order-status ${order.status || 'pending'}">${order.status || 'pending'}</span>
+                </div>
+                <div style="margin-top: 10px;">
+                    <button class="action-btn primary small" onclick="event.stopPropagation(); adminPanel.showOrderDetails('${order._id || order.id}')">
+                        <i class="fas fa-eye"></i> View Details
+                    </button>
+                </div>
             </div>
-        </div>
-    `).join('');
-    
-    console.log(`✅ Loaded ${allProducts.length} products`);
-}
-
-function showAddProductModal() {
-    console.log('📋 Showing add product modal');
-    
-    const modal = document.getElementById('add-product-modal');
-    if (!modal) {
-        console.error('❌ Add product modal not found!');
-        showAlert('Error: Modal not found. Please refresh the page.', 'error');
-        return;
-    }
-    
-    // Reset form
-    resetProductForm();
-    
-    // Set title
-    const modalTitle = document.getElementById('product-modal-title');
-    if (modalTitle) {
-        modalTitle.innerHTML = currentEditingProductId ? 
-            '<i class="fas fa-edit"></i> Edit Product' : 
-            '<i class="fas fa-plus-circle"></i> Add New Product';
-    }
-    
-    // Show modal
-    modal.style.display = 'flex';
-    
-    // Focus on first input
-    setTimeout(() => {
-        const productNameInput = document.getElementById('product-name');
-        if (productNameInput) {
-            productNameInput.focus();
-        }
-    }, 100);
-    
-    console.log('✅ Modal shown successfully');
-}
-
-function hideAddProductModal() {
-    const modal = document.getElementById('add-product-modal');
-    if (modal) {
-        modal.style.display = 'none';
-        currentEditingProductId = null;
-        resetProductForm();
-    }
-}
-
-function resetProductForm() {
-    // Reset all form fields
-    document.getElementById('product-name').value = '';
-    document.getElementById('product-price').value = '';
-    document.getElementById('product-category').value = '';
-    document.getElementById('product-description').value = '';
-    document.getElementById('product-image').value = '';
-    document.getElementById('product-available').checked = true;
-    
-    // Clear errors
-    clearProductFormErrors();
-    
-    // Reset image preview
-    updateProductImagePreview();
-    
-    // Hide success message
-    const successMsg = document.getElementById('add-product-success');
-    if (successMsg) {
-        successMsg.classList.remove('show');
-        successMsg.textContent = '';
-    }
-    
-    currentEditingProductId = null;
-}
-
-function clearProductFormErrors() {
-    const errorMessages = document.querySelectorAll('.error-message');
-    errorMessages.forEach(msg => {
-        msg.classList.remove('show');
-    });
-    
-    const inputs = document.querySelectorAll('#add-product-modal input, #add-product-modal select');
-    inputs.forEach(input => {
-        input.classList.remove('error');
-    });
-}
-
-function updateProductImagePreview() {
-    const imageUrl = document.getElementById('product-image')?.value || '';
-    const preview = document.getElementById('image-preview');
-    
-    if (!preview) return;
-    
-    if (imageUrl.trim()) {
-        preview.innerHTML = `
-            <img src="${imageUrl}" alt="Product Preview" 
-                 onerror="this.onerror=null; this.parentNode.innerHTML='<div class="image-preview-placeholder"><i class="fas fa-exclamation-triangle"></i><p>Invalid image URL</p></div>';">`;
-    } else {
-        preview.innerHTML = `
-            <div class="image-preview-placeholder">
-                <i class="fas fa-image"></i>
-                <p>No image selected</p>
-            </div>`;
-    }
-}
-
-function validateProductForm() {
-    let isValid = true;
-    
-    // Get form values
-    const productName = document.getElementById('product-name').value.trim();
-    const productPrice = document.getElementById('product-price').value;
-    const productCategory = document.getElementById('product-category').value;
-    
-    // Clear previous errors
-    clearProductFormErrors();
-    
-    // Validate product name
-    if (!productName) {
-        document.getElementById('name-error').classList.add('show');
-        document.getElementById('product-name').classList.add('error');
-        isValid = false;
-    }
-    
-    // Validate product price
-    if (!productPrice || parseFloat(productPrice) <= 0) {
-        document.getElementById('price-error').classList.add('show');
-        document.getElementById('product-price').classList.add('error');
-        isValid = false;
-    }
-    
-    // Validate product category
-    if (!productCategory) {
-        document.getElementById('category-error').classList.add('show');
-        document.getElementById('product-category').classList.add('error');
-        isValid = false;
-    }
-    
-    return isValid;
-}
-
-async function saveProduct() {
-    console.log('💾 Saving product...');
-    
-    // Validate form
-    if (!validateProductForm()) {
-        showAlert('❌ Please fix the errors in the form.', 'error');
-        return;
-    }
-    
-    // Get form values
-    const productName = document.getElementById('product-name').value.trim();
-    const productPrice = parseFloat(document.getElementById('product-price').value);
-    const productCategory = document.getElementById('product-category').value;
-    const productDescription = document.getElementById('product-description').value.trim();
-    const productImage = document.getElementById('product-image').value.trim();
-    const productAvailable = document.getElementById('product-available').checked;
-    
-    // Create product object
-    const product = {
-        name: productName,
-        price: productPrice,
-        category: productCategory,
-        description: productDescription,
-        imageUrl: productImage,
-        isAvailable: productAvailable,
-        displayOrder: 0
-    };
-    
-    // Add ingredients for compatibility with server
-    if (!product.ingredients) {
-        product.ingredients = 'Fresh ingredients';
-    }
-    
-    console.log('Product to save:', product);
-    
-    // Show loading state
-    const saveBtn = document.getElementById('save-product-btn');
-    const originalText = saveBtn.innerHTML;
-    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-    saveBtn.disabled = true;
-    
-    try {
-        // Save to server
-        const isNew = !currentEditingProductId;
-        const result = await saveProductToServer(product, isNew);
+        `).join('');
         
-        // Show success message
-        const successMsg = document.getElementById('add-product-success');
-        if (successMsg) {
-            successMsg.textContent = `✅ Product "${productName}" ${isNew ? 'created' : 'updated'} successfully!`;
-            successMsg.classList.add('show');
+        // Update summary
+        this.updateOrdersSummary(filteredOrders);
+    }
+    
+    updateRecentOrders() {
+        const container = document.getElementById('recent-orders-list');
+        if (!container) return;
+        
+        const recentOrders = [...this.state.orders]
+            .sort((a, b) => new Date(b.timestamp || b.orderTime) - new Date(a.timestamp || a.orderTime))
+            .slice(0, 5);
+        
+        if (recentOrders.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-shopping-cart"></i>
+                    <h3>No Recent Orders</h3>
+                    <p>Orders will appear here when customers place them</p>
+                </div>
+            `;
+            return;
         }
         
-        // Refresh data
-        await loadMenuItemsFromServer();
-        loadProducts();
-        
-        // Update availability section if open
-        if (currentSection === 'availability') {
-            loadAvailabilityControls();
-        }
-        
-        // Reset button
-        saveBtn.innerHTML = originalText;
-        saveBtn.disabled = false;
-        
-        // Clear form and close modal after delay for new products
-        if (isNew) {
-            setTimeout(() => {
-                hideAddProductModal();
-            }, 2000);
-        }
-        
-    } catch (error) {
-        showAlert(`❌ Error saving product: ${error.message}`, 'error');
-        saveBtn.innerHTML = originalText;
-        saveBtn.disabled = false;
-    }
-}
-
-function editProduct(productId) {
-    console.log('✏️ Editing product:', productId);
-    
-    // Find the product
-    let product = null;
-    for (let category in menuItems) {
-        const found = menuItems[category].find(p => (p._id || p.id) === productId);
-        if (found) {
-            product = found;
-            break;
-        }
-    }
-    
-    if (!product) {
-        showAlert('❌ Product not found!', 'error');
-        return;
-    }
-    
-    // Set editing state
-    currentEditingProductId = productId;
-    
-    // Fill form with product data
-    document.getElementById('product-name').value = product.name;
-    document.getElementById('product-price').value = product.price;
-    document.getElementById('product-category').value = product.category;
-    document.getElementById('product-description').value = product.description || '';
-    document.getElementById('product-image').value = product.imageUrl || product.image || '';
-    document.getElementById('product-available').checked = product.isAvailable !== false;
-    
-    // Update image preview
-    updateProductImagePreview();
-    
-    // Update modal title
-    document.getElementById('product-modal-title').innerHTML = '<i class="fas fa-edit"></i> Edit Product';
-    
-    // Show modal
-    document.getElementById('add-product-modal').style.display = 'flex';
-    
-    // Focus on first input
-    setTimeout(() => {
-        document.getElementById('product-name').focus();
-    }, 100);
-}
-
-async function deleteProduct(productId) {
-    if (!confirm('⚠️ Are you sure you want to delete this product? This action cannot be undone.')) {
-        return;
-    }
-    
-    try {
-        // Delete from server
-        await deleteProductFromServer(productId);
-        
-        // Refresh data from server
-        await loadMenuItemsFromServer();
-        
-        // Refresh products list
-        loadProducts();
-        
-        // Refresh availability controls if needed
-        if (currentSection === 'availability') {
-            loadAvailabilityControls();
-        }
-        
-        showAlert('✅ Product deleted successfully!', 'success');
-    } catch (error) {
-        showAlert(`❌ Error deleting product: ${error.message}`, 'error');
-    }
-}
-
-// ================================
-// AVAILABILITY FUNCTIONS
-// ================================
-
-async function loadAvailabilityControls() {
-    console.log('🔧 Loading availability controls...');
-    
-    // Load nachos availability
-    const nachosContainer = document.getElementById('nachos-availability');
-    if (nachosContainer && menuItems.nachos) {
-        nachosContainer.innerHTML = menuItems.nachos.map(item => `
-            <div class="availability-item">
-                <span class="item-name">${item.name}</span>
-                <span class="item-price">₱${item.price.toFixed(2)}</span>
-                <label class="toggle-switch">
-                    <input type="checkbox" ${item.isAvailable ? 'checked' : ''} 
-                           data-item-name="${item.name}"
-                           onchange="toggleItemAvailability('${item.name}', this.checked)">
-                    <span class="toggle-slider"></span>
-                </label>
+        container.innerHTML = recentOrders.map(order => `
+            <div class="order-preview-item" onclick="adminPanel.showOrderDetails('${order._id || order.id}')">
+                <div class="order-preview-header">
+                    <div class="customer-name">${order.customerName || 'Customer'}</div>
+                    <div class="order-status ${order.status || 'pending'}">${order.status || 'pending'}</div>
+                </div>
+                <div class="order-preview-details">
+                    <div class="order-items">${order.items?.length || 0} items</div>
+                    <div class="order-total">₱${(order.total || 0).toFixed(2)}</div>
+                </div>
+                <div class="order-preview-footer" style="margin-top: 10px; font-size: 12px; color: #666;">
+                    ${this.formatDate(order.timestamp || order.orderTime, true)}
+                </div>
             </div>
         `).join('');
     }
     
-    // Load desserts availability
-    const dessertsContainer = document.getElementById('desserts-availability');
-    if (dessertsContainer && menuItems.desserts) {
-        dessertsContainer.innerHTML = menuItems.desserts.map(item => `
-            <div class="availability-item">
-                <span class="item-name">${item.name}</span>
-                <span class="item-price">₱${item.price.toFixed(2)}</span>
-                <label class="toggle-switch">
-                    <input type="checkbox" ${item.isAvailable ? 'checked' : ''} 
-                           data-item-name="${item.name}"
-                           onchange="toggleItemAvailability('${item.name}', this.checked)">
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-        `).join('');
-    }
-}
-
-async function toggleItemAvailability(itemName, isAvailable) {
-    try {
-        await updateAvailabilityOnServer(itemName, isAvailable);
+    updateAvailabilityDisplay() {
+        const nachosContainer = document.getElementById('nachos-availability');
+        const dessertsContainer = document.getElementById('desserts-availability');
         
-        // Update local data
-        for (let category in menuItems) {
-            const item = menuItems[category].find(p => p.name === itemName);
-            if (item) {
-                item.isAvailable = isAvailable;
+        if (nachosContainer && this.state.menuItems.nachos) {
+            nachosContainer.innerHTML = this.state.menuItems.nachos.map(item => `
+                <div class="availability-item">
+                    <span class="item-name">${item.name}</span>
+                    <span class="item-price">₱${item.price.toFixed(2)}</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" ${item.isAvailable ? 'checked' : ''} 
+                               data-item-name="${item.name}"
+                               onchange="adminPanel.toggleItemAvailability('${item.name}', this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            `).join('');
+        }
+        
+        if (dessertsContainer && this.state.menuItems.desserts) {
+            dessertsContainer.innerHTML = this.state.menuItems.desserts.map(item => `
+                <div class="availability-item">
+                    <span class="item-name">${item.name}</span>
+                    <span class="item-price">₱${item.price.toFixed(2)}</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" ${item.isAvailable ? 'checked' : ''} 
+                               data-item-name="${item.name}"
+                               onchange="adminPanel.toggleItemAvailability('${item.name}', this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            `).join('');
+        }
+    }
+    
+    updateOrdersSummary(orders) {
+        const elements = {
+            'summary-total': orders.length,
+            'summary-pending': orders.filter(o => o.status === 'pending').length,
+            'summary-processing': orders.filter(o => o.status === 'processing').length,
+            'summary-completed': orders.filter(o => o.status === 'completed').length,
+            'summary-cancelled': orders.filter(o => o.status === 'cancelled').length
+        };
+        
+        Object.entries(elements).forEach(([id, count]) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.textContent = count;
+            }
+        });
+    }
+    
+    filterAvailability(searchTerm) {
+        const items = document.querySelectorAll('.availability-item');
+        const term = searchTerm.toLowerCase();
+        
+        items.forEach(item => {
+            const itemName = item.querySelector('.item-name').textContent.toLowerCase();
+            item.style.display = itemName.includes(term) ? 'flex' : 'none';
+        });
+    }
+    
+    filterProducts() {
+        this.state.pagination.products.current = 1;
+        this.updateProductsDisplay();
+    }
+    
+    filterOrders() {
+        this.state.pagination.orders.current = 1;
+        this.updateOrdersDisplay();
+    }
+    
+    showSection(sectionId) {
+        // Update current section
+        this.state.currentSection = sectionId;
+        
+        // Hide all sections
+        document.querySelectorAll('.admin-section').forEach(section => {
+            section.classList.remove('active');
+        });
+        
+        // Remove active class from all nav buttons
+        document.querySelectorAll('.admin-nav-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        // Show selected section
+        const sectionElement = document.getElementById(`${sectionId}-section`);
+        if (sectionElement) {
+            sectionElement.classList.add('active');
+        }
+        
+        // Add active class to clicked nav button
+        const navBtn = document.querySelector(`.admin-nav-btn[data-section="${sectionId}"]`);
+        if (navBtn) {
+            navBtn.classList.add('active');
+        }
+        
+        // Load section-specific data
+        switch(sectionId) {
+            case 'dashboard':
+                this.updateDashboardStats();
+                this.updateRecentOrders();
                 break;
+            case 'availability':
+                this.updateAvailabilityDisplay();
+                break;
+            case 'products':
+                this.updateProductsDisplay();
+                break;
+            case 'orders':
+                this.updateOrdersDisplay();
+                break;
+        }
+    }
+    
+    // API Methods
+    async apiRequest(url, options = {}, retryCount = 0) {
+        const defaultHeaders = {
+            'Authorization': `Bearer ${this.state.adminToken}`,
+            'Content-Type': 'application/json'
+        };
+        
+        const config = {
+            method: 'GET',
+            headers: { ...defaultHeaders, ...options.headers },
+            ...options
+        };
+        
+        try {
+            const response = await fetch(url, config);
+            
+            if (!response.ok) {
+                if (response.status === 401) {
+                    // Token expired
+                    this.logout();
+                    throw new Error('Authentication expired');
+                }
+                
+                const error = await response.json().catch(() => ({ message: 'Server error' }));
+                throw new Error(error.message || `HTTP ${response.status}`);
+            }
+            
+            return await response.json();
+        } catch (error) {
+            if (retryCount < this.config.MAX_RETRIES) {
+                console.warn(`Retrying request (${retryCount + 1}/${this.config.MAX_RETRIES})...`);
+                await this.delay(1000 * (retryCount + 1));
+                return this.apiRequest(url, options, retryCount + 1);
+            }
+            
+            throw error;
+        }
+    }
+    
+    delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    
+    // Cache Management
+    cacheData(key, data, ttl = this.config.CACHE_TTL) {
+        const cacheItem = {
+            data,
+            timestamp: Date.now(),
+            ttl
+        };
+        this.state.cache.set(key, cacheItem);
+    }
+    
+    getCached(key) {
+        const item = this.state.cache.get(key);
+        if (!item) return null;
+        
+        if (Date.now() - item.timestamp > item.ttl) {
+            this.state.cache.delete(key);
+            return null;
+        }
+        
+        return item.data;
+    }
+    
+    // Product Management Methods
+    showAddProductModal(productId = null) {
+        this.editingProductId = productId;
+        const modal = document.getElementById('add-product-modal');
+        
+        if (modal) {
+            // Reset form
+            this.resetProductForm();
+            
+            // Set title
+            document.getElementById('product-modal-title').innerHTML = productId ? 
+                '<i class="fas fa-edit"></i> Edit Product' : 
+                '<i class="fas fa-plus-circle"></i> Add New Product';
+            
+            // Fill form if editing
+            if (productId) {
+                this.fillProductForm(productId);
+            }
+            
+            modal.style.display = 'flex';
+            document.getElementById('product-name').focus();
+        }
+    }
+    
+    hideAddProductModal() {
+        const modal = document.getElementById('add-product-modal');
+        if (modal) {
+            modal.style.display = 'none';
+            this.editingProductId = null;
+            this.resetProductForm();
+        }
+    }
+    
+    resetProductForm() {
+        const form = document.getElementById('add-product-modal');
+        if (form) {
+            form.querySelectorAll('input, textarea, select').forEach(element => {
+                if (element.type === 'checkbox') {
+                    element.checked = true;
+                } else {
+                    element.value = '';
+                }
+            });
+            
+            // Clear errors
+            form.querySelectorAll('.error-message').forEach(error => {
+                error.classList.remove('show');
+            });
+            
+            form.querySelectorAll('.error').forEach(element => {
+                element.classList.remove('error');
+            });
+            
+            // Reset image preview
+            this.updateProductImagePreview();
+        }
+    }
+    
+    fillProductForm(productId) {
+        const product = this.findProductById(productId);
+        if (!product) return;
+        
+        document.getElementById('product-name').value = product.name;
+        document.getElementById('product-price').value = product.price;
+        document.getElementById('product-category').value = product.category;
+        document.getElementById('product-description').value = product.description || '';
+        document.getElementById('product-image').value = product.imageUrl || product.image || '';
+        document.getElementById('product-available').checked = product.isAvailable !== false;
+        
+        this.updateProductImagePreview();
+    }
+    
+    updateProductImagePreview() {
+        const imageUrl = document.getElementById('product-image')?.value || '';
+        const preview = document.getElementById('image-preview');
+        
+        if (!preview) return;
+        
+        if (imageUrl.trim()) {
+            preview.innerHTML = `
+                <img src="${imageUrl}" alt="Product Preview" 
+                     onerror="this.onerror=null; this.parentNode.innerHTML='<div class=\"image-preview-placeholder\"><i class=\"fas fa-exclamation-triangle\"></i><p>Invalid image URL</p></div>';">`;
+        } else {
+            preview.innerHTML = `
+                <div class="image-preview-placeholder">
+                    <i class="fas fa-image"></i>
+                    <p>No image selected</p>
+                </div>`;
+        }
+    }
+    
+    async saveProduct() {
+        const form = document.getElementById('add-product-modal');
+        if (!form) return;
+        
+        // Validate form
+        if (!this.validateProductForm()) {
+            this.showNotification('Please fix the errors in the form.', 'error');
+            return;
+        }
+        
+        // Get form values
+        const productData = {
+            name: document.getElementById('product-name').value.trim(),
+            price: parseFloat(document.getElementById('product-price').value),
+            category: document.getElementById('product-category').value,
+            description: document.getElementById('product-description').value.trim(),
+            imageUrl: document.getElementById('product-image').value.trim(),
+            isAvailable: document.getElementById('product-available').checked,
+            ingredients: 'Fresh ingredients' // Default for compatibility
+        };
+        
+        // Show loading
+        const saveBtn = document.getElementById('save-product-btn');
+        const originalText = saveBtn.innerHTML;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        saveBtn.disabled = true;
+        
+        try {
+            const isNew = !this.editingProductId;
+            const url = isNew ? 
+                `${this.config.API_BASE_URL}/admin/menu-items` : 
+                `${this.config.API_BASE_URL}/admin/menu-items/${this.editingProductId}`;
+            
+            const method = isNew ? 'POST' : 'PUT';
+            
+            await this.apiRequest(url, {
+                method,
+                body: JSON.stringify(productData)
+            });
+            
+            // Show success
+            const successMsg = document.getElementById('add-product-success');
+            if (successMsg) {
+                successMsg.textContent = `✅ Product "${productData.name}" ${isNew ? 'created' : 'updated'} successfully!`;
+                successMsg.classList.add('show');
+            }
+            
+            // Refresh data
+            await this.loadMenuItems(true);
+            
+            // Update UI
+            if (this.state.currentSection === 'availability') {
+                this.updateAvailabilityDisplay();
+            }
+            
+            // Reset button
+            saveBtn.innerHTML = originalText;
+            saveBtn.disabled = false;
+            
+            // Close modal after delay for new products
+            if (isNew) {
+                setTimeout(() => {
+                    this.hideAddProductModal();
+                }, 2000);
+            }
+            
+        } catch (error) {
+            this.showNotification(`❌ Error saving product: ${error.message}`, 'error');
+            saveBtn.innerHTML = originalText;
+            saveBtn.disabled = false;
+        }
+    }
+    
+    validateProductForm() {
+        let isValid = true;
+        const form = document.getElementById('add-product-modal');
+        
+        // Clear previous errors
+        form.querySelectorAll('.error-message').forEach(error => {
+            error.classList.remove('show');
+        });
+        
+        form.querySelectorAll('.error').forEach(element => {
+            element.classList.remove('error');
+        });
+        
+        // Validate required fields
+        const requiredFields = [
+            { id: 'product-name', errorId: 'name-error', message: 'Product name is required' },
+            { id: 'product-price', errorId: 'price-error', message: 'Valid price is required' },
+            { id: 'product-category', errorId: 'category-error', message: 'Category is required' }
+        ];
+        
+        requiredFields.forEach(field => {
+            const element = document.getElementById(field.id);
+            const errorElement = document.getElementById(field.errorId);
+            
+            if (!element.value.trim() || (field.id === 'product-price' && parseFloat(element.value) <= 0)) {
+                isValid = false;
+                element.classList.add('error');
+                if (errorElement) {
+                    errorElement.textContent = field.message;
+                    errorElement.classList.add('show');
+                }
+            }
+        });
+        
+        return isValid;
+    }
+    
+    editProduct(productId) {
+        this.showAddProductModal(productId);
+    }
+    
+    async deleteProduct(productId) {
+        if (!confirm('⚠️ Are you sure you want to delete this product? This action cannot be undone.')) {
+            return;
+        }
+        
+        try {
+            await this.apiRequest(`${this.config.API_BASE_URL}/admin/menu-items/${productId}`, {
+                method: 'DELETE'
+            });
+            
+            // Refresh data
+            await this.loadMenuItems(true);
+            
+            this.showNotification('✅ Product deleted successfully!', 'success');
+        } catch (error) {
+            this.showNotification(`❌ Error deleting product: ${error.message}`, 'error');
+        }
+    }
+    
+    // Availability Methods
+    async toggleItemAvailability(itemName, isAvailable) {
+        try {
+            await this.apiRequest(`${this.config.API_BASE_URL}/admin/menu-items/${itemName}/availability`, {
+                method: 'PUT',
+                body: JSON.stringify({ isAvailable })
+            });
+            
+            // Update local data
+            this.updateItemAvailability(itemName, isAvailable);
+            
+        } catch (error) {
+            this.showNotification(`❌ Error updating availability: ${error.message}`, 'error');
+            
+            // Revert checkbox
+            const checkbox = document.querySelector(`input[data-item-name="${itemName}"]`);
+            if (checkbox) {
+                checkbox.checked = !isAvailable;
             }
         }
-        
-        console.log(`✅ Availability toggled: ${itemName} = ${isAvailable}`);
-    } catch (error) {
-        showAlert(`❌ Error updating availability: ${error.message}`, 'error');
-        
-        // Revert checkbox
-        const checkbox = document.querySelector(`input[data-item-name="${itemName}"]`);
-        if (checkbox) {
-            checkbox.checked = !isAvailable;
-        }
     }
-}
-
-async function resetAllAvailability() {
-    try {
-        const updates = [];
+    
+    async resetAllAvailability() {
+        if (!confirm('Are you sure you want to mark ALL items as available?')) return;
         
-        // Collect all items
-        for (let category in menuItems) {
-            menuItems[category].forEach(item => {
-                updates.push({
-                    name: item.name,
-                    isAvailable: true
-                });
+        try {
+            const updates = this.getAllProducts().map(item => ({
+                name: item.name,
+                isAvailable: true
+            }));
+            
+            await this.apiRequest(`${this.config.API_BASE_URL}/admin/menu-items/availability/batch`, {
+                method: 'PUT',
+                body: JSON.stringify({ updates })
             });
-        }
-        
-        // Update on server
-        await batchUpdateAvailabilityOnServer(updates);
-        
-        // Update local data
-        for (let category in menuItems) {
-            menuItems[category].forEach(item => {
+            
+            // Update local data
+            this.getAllProducts().forEach(item => {
                 item.isAvailable = true;
             });
+            
+            // Update UI
+            this.updateAvailabilityDisplay();
+            
+            this.showNotification('✅ All items marked as available!', 'success');
+        } catch (error) {
+            this.showNotification(`❌ Error resetting availability: ${error.message}`, 'error');
         }
-        
-        // Update UI
-        loadAvailabilityControls();
-        
-    } catch (error) {
-        showAlert(`❌ Error resetting availability: ${error.message}`, 'error');
     }
-}
-
-async function toggleAllAvailability() {
-    try {
-        // Check current state
-        const allItems = [...menuItems.nachos, ...menuItems.desserts];
+    
+    async toggleAllAvailability() {
+        const allItems = this.getAllProducts();
         const allAvailable = allItems.every(item => item.isAvailable);
         
-        const updates = allItems.map(item => ({
-            name: item.name,
-            isAvailable: !allAvailable
-        }));
-        
-        // Update on server
-        await batchUpdateAvailabilityOnServer(updates);
-        
-        // Update local data
-        for (let category in menuItems) {
-            menuItems[category].forEach(item => {
+        try {
+            const updates = allItems.map(item => ({
+                name: item.name,
+                isAvailable: !allAvailable
+            }));
+            
+            await this.apiRequest(`${this.config.API_BASE_URL}/admin/menu-items/availability/batch`, {
+                method: 'PUT',
+                body: JSON.stringify({ updates })
+            });
+            
+            // Update local data
+            allItems.forEach(item => {
                 item.isAvailable = !allAvailable;
             });
+            
+            // Update UI
+            this.updateAvailabilityDisplay();
+            
+            this.showNotification(`✅ All items ${!allAvailable ? 'enabled' : 'disabled'}!`, 'success');
+        } catch (error) {
+            this.showNotification(`❌ Error toggling availability: ${error.message}`, 'error');
         }
-        
-        // Update UI
-        loadAvailabilityControls();
-        
-    } catch (error) {
-        showAlert(`❌ Error toggling availability: ${error.message}`, 'error');
     }
-}
-
-async function saveAvailabilityChanges() {
-    try {
-        // Collect changes
+    
+    async saveAvailabilityChanges() {
         const checkboxes = document.querySelectorAll('.toggle-switch input[type="checkbox"]');
         const updates = [];
         
         checkboxes.forEach(checkbox => {
             const itemName = checkbox.dataset.itemName;
             const isAvailable = checkbox.checked;
+            const item = this.findProductByName(itemName);
             
-            // Find item in local data
-            for (let category in menuItems) {
-                const item = menuItems[category].find(p => p.name === itemName);
-                if (item && item.isAvailable !== isAvailable) {
-                    updates.push({
-                        name: itemName,
-                        isAvailable: isAvailable
-                    });
-                    break;
-                }
+            if (item && item.isAvailable !== isAvailable) {
+                updates.push({ name: itemName, isAvailable });
             }
         });
         
         if (updates.length === 0) {
-            showAlert('✅ No changes to save.', 'info');
+            this.showNotification('✅ No changes to save.', 'info');
             return;
         }
         
-        // Update on server
-        await batchUpdateAvailabilityOnServer(updates);
-        
-        // Update local data
-        updates.forEach(update => {
-            for (let category in menuItems) {
-                const item = menuItems[category].find(p => p.name === update.name);
-                if (item) {
-                    item.isAvailable = update.isAvailable;
-                    break;
-                }
-            }
-        });
-        
-        showAlert(`✅ ${updates.length} availability changes saved!`, 'success');
-        
-    } catch (error) {
-        showAlert(`❌ Error saving availability changes: ${error.message}`, 'error');
-    }
-}
-
-// ================================
-// ORDERS FUNCTIONS
-// ================================
-
-async function loadOrders() {
-    await loadOrdersFromServer();
-    filterOrders();
-}
-
-function filterOrders() {
-    const ordersList = document.getElementById('orders-list');
-    if (!ordersList) return;
-    
-    let filteredOrders = [...realOrders];
-    
-    // Apply status filter
-    if (currentOrdersFilter !== 'all') {
-        filteredOrders = filteredOrders.filter(order => order.status === currentOrdersFilter);
-    }
-    
-    // Apply date filter
-    const dateFilter = document.getElementById('order-date').value;
-    if (dateFilter) {
-        const filterDate = new Date(dateFilter).toDateString();
-        filteredOrders = filteredOrders.filter(order => {
-            const orderDate = new Date(order.timestamp || order.orderTime || Date.now()).toDateString();
-            return orderDate === filterDate;
-        });
-    }
-    
-    // Apply search filter
-    const searchTerm = document.getElementById('order-search').value.toLowerCase();
-    if (searchTerm) {
-        filteredOrders = filteredOrders.filter(order => 
-            (order.customerName && order.customerName.toLowerCase().includes(searchTerm)) ||
-            (order._id && order._id.toLowerCase().includes(searchTerm)) ||
-            (order.items && order.items.some(item => item.name.toLowerCase().includes(searchTerm)))
-        );
-    }
-    
-    // Sort by date (newest first)
-    filteredOrders.sort((a, b) => {
-        return new Date(b.timestamp || b.orderTime || 0) - new Date(a.timestamp || a.orderTime || 0);
-    });
-    
-    // Display orders
-    if (filteredOrders.length === 0) {
-        ordersList.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-receipt"></i>
-                <h3>No Orders Found</h3>
-                <p>${realOrders.length === 0 ? 'No orders have been placed yet' : 'No orders match your filters'}</p>
-            </div>
-        `;
-    } else {
-        ordersList.innerHTML = filteredOrders.map(order => `
-            <div class="order-item" onclick="showOrderDetails('${order._id || order.id}')">
-                <div class="order-header">
-                    <div class="order-id">Order #${(order._id || '').substring(6, 12) || 'N/A'}</div>
-                    <div class="order-time">${formatDate(order.timestamp || order.orderTime)}</div>
-                    <div class="order-status ${order.status || 'pending'}">${order.status || 'pending'}</div>
-                </div>
-                <div class="order-content">
-                    <div class="order-customer">${order.customerName || 'Customer'}</div>
-                    <div class="order-amount">₱${(order.total || 0).toFixed(2)}</div>
-                    <div class="order-items">${(order.items || []).length} items</div>
-                </div>
-            </div>
-        `).join('');
-    }
-    
-    updateOrdersSummary(realOrders);
-}
-
-function searchOrders() {
-    filterOrders();
-}
-
-function exportOrders() {
-    const ordersToExport = [...realOrders];
-    
-    // Convert to CSV
-    const headers = ['Order ID', 'Customer', 'Date', 'Status', 'Total', 'Items Count', 'Payment Method'];
-    const csvData = ordersToExport.map(order => [
-        (order._id || '').substring(6, 12) || 'N/A',
-        order.customerName || 'Customer',
-        formatDate(order.timestamp || order.orderTime),
-        order.status || 'pending',
-        `₱${(order.total || 0).toFixed(2)}`,
-        (order.items || []).length,
-        order.paymentMethod || 'Cash'
-    ]);
-    
-    // Create CSV string
-    let csv = headers.join(',') + '\n';
-    csvData.forEach(row => {
-        csv += row.map(cell => `"${cell}"`).join(',') + '\n';
-    });
-    
-    // Create download link
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `orders-${new Date().toISOString().split('T')[0]}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    showAlert('✅ Orders exported successfully!', 'success');
-}
-
-// ================================
-// OTHER SECTION FUNCTIONS
-// ================================
-
-function loadAdminDashboard() {
-    console.log('📊 Loading dashboard...');
-    
-    // Update dashboard stats
-    updateDashboardStats();
-    
-    // Load recent orders
-    loadRecentOrders();
-    
-    // Load sales chart
-    updateSalesChart();
-}
-
-function updateDashboardStats() {
-    // Calculate totals
-    const totalOrders = realOrders.length;
-    const totalSales = realOrders.reduce((sum, order) => sum + (order.total || 0), 0);
-    
-    // Today's orders
-    const today = new Date().toDateString();
-    const todayOrders = realOrders.filter(order => {
-        const orderDate = new Date(order.timestamp || order.orderTime || Date.now()).toDateString();
-        return orderDate === today;
-    });
-    
-    const todayOrdersCount = todayOrders.length;
-    const todaySales = todayOrders.reduce((sum, order) => sum + (order.total || 0), 0);
-    
-    // Update dashboard
-    document.getElementById('total-orders').textContent = totalOrders;
-    document.getElementById('total-sales').textContent = `₱${totalSales.toFixed(2)}`;
-    document.getElementById('today-orders').textContent = todayOrdersCount;
-    document.getElementById('today-sales').textContent = `₱${todaySales.toFixed(2)}`;
-}
-
-function loadRecentOrders() {
-    const recentContainer = document.getElementById('recent-orders-list');
-    if (!recentContainer) return;
-    
-    // Get recent orders (last 5)
-    const recentOrders = [...realOrders]
-        .sort((a, b) => new Date(b.timestamp || b.orderTime || 0) - new Date(a.timestamp || a.orderTime || 0))
-        .slice(0, 5);
-    
-    if (recentOrders.length === 0) {
-        recentContainer.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-shopping-cart"></i>
-                <h3>No Recent Orders</h3>
-                <p>Orders will appear here when customers place them</p>
-            </div>
-        `;
-        return;
-    }
-    
-    recentContainer.innerHTML = recentOrders.map(order => `
-        <div class="order-preview-item" onclick="showOrderDetails('${order._id || order.id}')">
-            <div class="order-preview-header">
-                <div class="customer-name">${order.customerName || 'Customer'}</div>
-                <div class="order-status ${order.status || 'pending'}">${order.status || 'pending'}</div>
-            </div>
-            <div class="order-preview-details">
-                <div class="order-items">${(order.items || []).length} items</div>
-                <div class="order-total">₱${(order.total || 0).toFixed(2)}</div>
-            </div>
-        </div>
-    `).join('');
-}
-
-function updateSalesChart() {
-    const ctx = document.getElementById('sales-chart');
-    if (!ctx) return;
-    
-    // Group orders by date
-    const salesByDate = {};
-    realOrders.forEach(order => {
-        const date = new Date(order.timestamp || order.orderTime || Date.now()).toLocaleDateString();
-        if (!salesByDate[date]) {
-            salesByDate[date] = 0;
-        }
-        salesByDate[date] += order.total || 0;
-    });
-    
-    const dates = Object.keys(salesByDate).sort();
-    const sales = dates.map(date => salesByDate[date]);
-    
-    // Create chart
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: dates,
-            datasets: [{
-                label: 'Daily Sales (₱)',
-                data: sales,
-                backgroundColor: 'rgba(139, 69, 19, 0.1)',
-                borderColor: '#8b4513',
-                borderWidth: 2,
-                tension: 0.4,
-                fill: true
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return '₱' + value;
-                        }
-                    }
-                }
-            }
-        }
-    });
-}
-
-function updateOrdersSummary(orders) {
-    const total = orders.length;
-    const pending = orders.filter(o => o.status === 'pending').length;
-    const processing = orders.filter(o => o.status === 'processing').length;
-    const completed = orders.filter(o => o.status === 'completed').length;
-    const cancelled = orders.filter(o => o.status === 'cancelled').length;
-    
-    document.getElementById('summary-total').textContent = total;
-    document.getElementById('summary-pending').textContent = pending;
-    document.getElementById('summary-processing').textContent = processing;
-    document.getElementById('summary-completed').textContent = completed;
-    document.getElementById('summary-cancelled').textContent = cancelled;
-}
-
-function showOrderDetails(orderId) {
-    const order = realOrders.find(o => o._id === orderId || o.id === orderId);
-    if (!order) {
-        showAlert('❌ Order not found!', 'error');
-        return;
-    }
-    
-    const modal = document.getElementById('order-details-modal');
-    const content = document.getElementById('order-details-content');
-    
-    if (modal && content) {
-        content.innerHTML = `
-            <div style="margin-bottom: 20px;">
-                <p><strong>Order ID:</strong> ${(order._id || '').substring(6, 12) || 'N/A'}</p>
-                <p><strong>Customer:</strong> ${order.customerName || 'Unknown'}</p>
-                <p><strong>Date:</strong> ${formatDate(order.timestamp || order.orderTime)}</p>
-                <p><strong>Status:</strong> <span class="order-status ${order.status || 'pending'}">${order.status || 'pending'}</span></p>
-                <p><strong>Total:</strong> ₱${(order.total || 0).toFixed(2)}</p>
-                <p><strong>Payment Method:</strong> ${order.paymentMethod || 'Cash'}</p>
-                <p><strong>Pickup Time:</strong> ${order.pickupTime || 'ASAP'}</p>
-            </div>
+        try {
+            await this.apiRequest(`${this.config.API_BASE_URL}/admin/menu-items/availability/batch`, {
+                method: 'PUT',
+                body: JSON.stringify({ updates })
+            });
             
-            <div style="margin-top: 20px;">
-                <h4 style="color: #8b4513; margin-bottom: 10px;">Order Items:</h4>
-                ${(order.items || []).map(item => `
-                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee;">
-                        <span>${item.name} x${item.quantity || 1}</span>
-                        <span>₱${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</span>
+            // Update local data
+            updates.forEach(update => {
+                this.updateItemAvailability(update.name, update.isAvailable);
+            });
+            
+            this.showNotification(`✅ ${updates.length} availability changes saved!`, 'success');
+        } catch (error) {
+            this.showNotification(`❌ Error saving availability changes: ${error.message}`, 'error');
+        }
+    }
+    
+    // Order Methods
+    showOrderDetails(orderId) {
+        const order = this.state.orders.find(o => o._id === orderId || o.id === orderId);
+        if (!order) {
+            this.showNotification('Order not found!', 'error');
+            return;
+        }
+        
+        const modal = document.getElementById('order-details-modal');
+        const content = document.getElementById('order-details-content');
+        
+        if (modal && content) {
+            content.innerHTML = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 10px;">
+                        <h4 style="color: #8b4513; margin-bottom: 10px;">Order Info</h4>
+                        <p><strong>Order ID:</strong> ${(order._id || '').substring(6, 12) || 'N/A'}</p>
+                        <p><strong>Customer:</strong> ${order.customerName || 'Unknown'}</p>
+                        <p><strong>Phone:</strong> ${order.customerPhone || 'N/A'}</p>
+                        <p><strong>Date:</strong> ${this.formatDate(order.timestamp || order.orderTime)}</p>
                     </div>
-                `).join('')}
-            </div>
-        `;
-        
-        modal.style.display = 'flex';
-    }
-}
-
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
-}
-
-// ================================
-// SLIDESHOW FUNCTIONS
-// ================================
-
-async function loadSlideshowFromServer() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/slideshow`);
-        if (response.ok) {
-            const slides = await response.json();
-            displaySlides(slides);
-            return true;
-        }
-        return false;
-    } catch (error) {
-        console.error('Error loading slideshow:', error);
-        return false;
-    }
-}
-
-function displaySlides(slides) {
-    const slideshowCurrent = document.getElementById('slideshow-current');
-    if (!slideshowCurrent) return;
-    
-    const activeSlides = slides.filter(slide => slide.active);
-    
-    if (activeSlides.length === 0) {
-        slideshowCurrent.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-images"></i>
-                <h3>No Slides Configured</h3>
-                <p>Add slides to display on the homepage</p>
-            </div>
-        `;
-        return;
-    }
-    
-    slideshowCurrent.innerHTML = activeSlides.map(slide => `
-        <div class="slide-card ${slide.active ? 'active' : ''}">
-            <img src="${slide.imageUrl}" alt="${slide.title}" class="slide-image">
-            <div class="slide-info">
-                <h4>${slide.title}</h4>
-                <p>${slide.description}</p>
-                <div class="slide-order">Order: ${slide.order}</div>
-            </div>
-        </div>
-    `).join('');
-}
-
-function loadSlideshow() {
-    console.log('🖼️ Loading slideshow...');
-    loadSlideshowFromServer();
-}
-
-// ================================
-// SUPERADMIN FUNCTIONS
-// ================================
-
-function addSuperAdminNav() {
-    const adminNav = document.querySelector('.admin-nav');
-    if (!adminNav) return;
-    
-    // Check if already exists
-    if (document.querySelector('.admin-nav-btn[data-section="superadmin"]')) {
-        return;
-    }
-    
-    const superAdminBtn = document.createElement('button');
-    superAdminBtn.className = 'admin-nav-btn';
-    superAdminBtn.setAttribute('data-section', 'superadmin');
-    superAdminBtn.innerHTML = '<i class="fas fa-user-crown"></i> SuperAdmin';
-    
-    adminNav.appendChild(superAdminBtn);
-    
-    // Add click event listener
-    superAdminBtn.addEventListener('click', function() {
-        const sectionId = this.getAttribute('data-section');
-        showSection(sectionId);
-    });
-}
-
-function addSuperAdminSection() {
-    const adminSections = document.querySelector('.admin-sections');
-    if (!adminSections) return;
-    
-    // Check if already exists
-    if (document.getElementById('superadmin-section')) {
-        return;
-    }
-    
-    const superAdminSection = document.createElement('div');
-    superAdminSection.id = 'superadmin-section';
-    superAdminSection.className = 'admin-section';
-    superAdminSection.innerHTML = `
-        <div class="admin-section-header">
-            <h2><i class="fas fa-user-crown"></i> SuperAdmin Controls</h2>
-            <p>Advanced system settings and configurations</p>
-        </div>
-        
-        <div class="superadmin-controls">
-            <div class="control-card">
-                <div class="control-icon">
-                    <i class="fas fa-eye-slash"></i>
-                </div>
-                <div class="control-content">
-                    <h3>Admin Button Visibility</h3>
-                    <p>Control whether the Admin Panel button appears on the homepage</p>
-                    <button id="configure-admin-button" class="action-btn secondary">
-                        <i class="fas fa-cog"></i> Configure
-                    </button>
-                </div>
-            </div>
-            
-            <div class="control-card">
-                <div class="control-icon">
-                    <i class="fas fa-database"></i>
-                </div>
-                <div class="control-content">
-                    <h3>Data Management</h3>
-                    <p>Backup or reset application data</p>
-                    <div class="button-group">
-                        <button id="backup-data" class="action-btn secondary">
-                            <i class="fas fa-download"></i> Backup
-                        </button>
-                        <button id="reset-demo-data" class="action-btn danger">
-                            <i class="fas fa-redo"></i> Reset Demo
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="control-card">
-                <div class="control-icon">
-                    <i class="fas fa-users"></i>
-                </div>
-                <div class="control-content">
-                    <h3>User Management</h3>
-                    <p>Manage admin users and permissions</p>
-                    <button id="manage-users" class="action-btn secondary">
-                        <i class="fas fa-user-edit"></i> Manage Users
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <div class="superadmin-info">
-            <h3><i class="fas fa-info-circle"></i> Current Settings</h3>
-            <div class="settings-display">
-                <div class="setting-display-item">
-                    <span class="setting-label">Admin Button:</span>
-                    <span id="admin-button-status" class="setting-value enabled">Enabled</span>
-                </div>
-                <div class="setting-display-item">
-                    <span class="setting-label">Live Orders:</span>
-                    <span id="live-orders-status" class="setting-value enabled">Enabled</span>
-                </div>
-                <div class="setting-display-item">
-                    <span class="setting-label">Chart Animation:</span>
-                    <span id="chart-animation-status" class="setting-value enabled">Enabled</span>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    adminSections.appendChild(superAdminSection);
-    
-    // Add SuperAdmin Settings Modal
-    const superAdminModal = document.createElement('div');
-    superAdminModal.id = 'superadmin-settings-modal';
-    superAdminModal.className = 'modal-overlay';
-    superAdminModal.style.display = 'none';
-    superAdminModal.innerHTML = `
-        <div class="modal-content" style="max-width: 500px;">
-            <h2><i class="fas fa-user-crown"></i> SuperAdmin Settings</h2>
-            
-            <div class="superadmin-settings">
-                <div class="setting-item">
-                    <label class="setting-toggle">
-                        <input type="checkbox" id="toggle-admin-button" checked>
-                        <span class="toggle-slider"></span>
-                    </label>
-                    <div class="setting-info">
-                        <h4>Show Admin Button</h4>
-                        <p>Display the Admin Panel button on the homepage</p>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 10px;">
+                        <h4 style="color: #8b4513; margin-bottom: 10px;">Payment & Status</h4>
+                        <p><strong>Status:</strong> <span class="order-status ${order.status || 'pending'}">${order.status || 'pending'}</span></p>
+                        <p><strong>Total:</strong> <span style="color: #FF6A00; font-weight: bold;">₱${(order.total || 0).toFixed(2)}</span></p>
+                        <p><strong>Payment Method:</strong> ${order.paymentMethod || 'Cash'}</p>
+                        <p><strong>Pickup Time:</strong> ${order.pickupTime || 'ASAP'}</p>
                     </div>
                 </div>
                 
-                <div class="setting-item">
-                    <label class="setting-toggle">
-                        <input type="checkbox" id="toggle-live-orders" checked>
-                        <span class="toggle-slider"></span>
-                    </label>
-                    <div class="setting-info">
-                        <h4>Live Order Updates</h4>
-                        <p>Enable real-time order notifications</p>
+                <div style="margin-top: 20px;">
+                    <h4 style="color: #8b4513; margin-bottom: 15px;">Order Items:</h4>
+                    <div style="background: white; border-radius: 10px; overflow: hidden; border: 1px solid #eee;">
+                        ${(order.items || []).map(item => `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #eee; background: #f8f9fa;">
+                                <div style="flex: 1;">
+                                    <strong>${item.name}</strong>
+                                    <div style="font-size: 12px; color: #666;">Qty: ${item.quantity || 1}</div>
+                                </div>
+                                <div style="color: #FF6A00; font-weight: bold;">
+                                    ₱${((item.price || 0) * (item.quantity || 1)).toFixed(2)}
+                                </div>
+                            </div>
+                        `).join('')}
                     </div>
                 </div>
-                
-                <div class="setting-item">
-                    <label class="setting-toggle">
-                        <input type="checkbox" id="toggle-sales-chart" checked>
-                        <span class="toggle-slider"></span>
-                    </label>
-                    <div class="setting-info">
-                        <h4>Sales Chart Animation</h4>
-                        <p>Animate sales chart updates</p>
-                    </div>
-                </div>
-            </div>
+            `;
             
-            <div class="modal-actions">
-                <button id="save-superadmin-settings" class="action-btn primary">
-                    <i class="fas fa-save"></i> Save Settings
-                </button>
-                <button id="close-superadmin-settings" class="action-btn secondary">
-                    <i class="fas fa-times"></i> Close
-                </button>
-            </div>
-        </div>
-    `;
+            modal.style.display = 'flex';
+        }
+    }
     
-    document.body.appendChild(superAdminModal);
+    exportOrders() {
+        const ordersToExport = [...this.state.orders];
+        
+        // Convert to CSV
+        const headers = ['Order ID', 'Customer', 'Date', 'Status', 'Total', 'Items Count', 'Payment Method'];
+        const csvData = ordersToExport.map(order => [
+            (order._id || '').substring(6, 12) || 'N/A',
+            order.customerName || 'Customer',
+            this.formatDate(order.timestamp || order.orderTime, false, true),
+            order.status || 'pending',
+            `₱${(order.total || 0).toFixed(2)}`,
+            (order.items || []).length,
+            order.paymentMethod || 'Cash'
+        ]);
+        
+        // Create CSV string
+        let csv = headers.join(',') + '\n';
+        csvData.forEach(row => {
+            csv += row.map(cell => `"${cell}"`).join(',') + '\n';
+        });
+        
+        // Create download link
+        this.downloadCSV(csv, `orders-${new Date().toISOString().split('T')[0]}.csv`);
+        
+        this.showNotification('✅ Orders exported successfully!', 'success');
+    }
     
-    // Add event listeners for SuperAdmin
-    setTimeout(() => {
-        setupSuperAdminEventListeners();
-    }, 100);
-}
-
-function loadSuperAdminSection() {
-    loadSuperAdminSettings();
-}
-
-function setupSuperAdminEventListeners() {
-    // Configure Admin Button button
-    const configureBtn = document.getElementById('configure-admin-button');
-    if (configureBtn) {
-        configureBtn.addEventListener('click', function() {
-            showSuperAdminSettingsModal();
+    exportProducts() {
+        const products = this.getAllProducts();
+        
+        const headers = ['Name', 'Category', 'Price', 'Description', 'Available', 'Image URL'];
+        const csvData = products.map(product => [
+            product.name,
+            product.category,
+            `₱${product.price.toFixed(2)}`,
+            product.description || '',
+            product.isAvailable ? 'Yes' : 'No',
+            product.imageUrl || product.image || ''
+        ]);
+        
+        let csv = headers.join(',') + '\n';
+        csvData.forEach(row => {
+            csv += row.map(cell => `"${cell}"`).join(',') + '\n';
+        });
+        
+        this.downloadCSV(csv, `products-${new Date().toISOString().split('T')[0]}.csv`);
+        this.showNotification('✅ Products exported successfully!', 'success');
+    }
+    
+    downloadCSV(csv, filename) {
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+    
+    // Real-time Updates
+    startRealTimeUpdates() {
+        // Clear existing intervals
+        Object.values(this.state.updateIntervals).forEach(clearInterval);
+        
+        // Start new intervals
+        this.state.updateIntervals.orders = setInterval(() => {
+            if (this.state.currentSection === 'dashboard' || this.state.currentSection === 'orders') {
+                this.loadOrders(true);
+            }
+        }, this.config.POLLING_INTERVAL);
+        
+        this.state.updateIntervals.stats = setInterval(() => {
+            if (this.state.currentSection === 'dashboard') {
+                this.loadDashboardStats();
+            }
+        }, this.config.POLLING_INTERVAL * 2);
+    }
+    
+    // Utility Methods
+    formatDate(dateString, short = false, csvFormat = false) {
+        const date = new Date(dateString);
+        
+        if (csvFormat) {
+            return date.toISOString().split('T')[0];
+        }
+        
+        if (short) {
+            return date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
         });
     }
     
-    // Save settings button
-    const saveSettingsBtn = document.getElementById('save-superadmin-settings');
-    if (saveSettingsBtn) {
-        saveSettingsBtn.addEventListener('click', saveSuperAdminSettings);
+    getPlaceholderImage(category) {
+        return category === 'nachos' ? 
+            'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjOGI0NTEzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSJ3aGl0ZSI+TjwvdGV4dD48L3N2Zz4=' :
+            'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTk1MTAwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSJ3aGl0ZSI+RDwvdGV4dD48L3N2Zz4=';
     }
     
-    // Close settings modal button
-    const closeSettingsBtn = document.getElementById('close-superadmin-settings');
-    if (closeSettingsBtn) {
-        closeSettingsBtn.addEventListener('click', function() {
-            hideModal('superadmin-settings-modal');
-        });
+    getAllProducts() {
+        return [...this.state.menuItems.nachos, ...this.state.menuItems.desserts];
     }
     
-    // Data backup button
-    const backupBtn = document.getElementById('backup-data');
-    if (backupBtn) {
-        backupBtn.addEventListener('click', backupData);
+    findProductById(productId) {
+        return this.getAllProducts().find(p => (p._id || p.id) === productId);
     }
     
-    // Reset demo data button
-    const resetBtn = document.getElementById('reset-demo-data');
-    if (resetBtn) {
-        resetBtn.addEventListener('click', resetDemoData);
+    findProductByName(productName) {
+        return this.getAllProducts().find(p => p.name === productName);
     }
     
-    // User management button
-    const usersBtn = document.getElementById('manage-users');
-    if (usersBtn) {
-        usersBtn.addEventListener('click', manageUsers);
-    }
-}
-
-function loadSuperAdminSettings() {
-    // Get current settings from localStorage
-    const settings = JSON.parse(localStorage.getItem('superAdminSettings') || '{}');
-    
-    // Set default values if not present
-    const defaultSettings = {
-        showAdminButton: true,
-        liveOrders: true,
-        chartAnimation: true,
-        lastUpdated: new Date().toISOString()
-    };
-    
-    const currentSettings = { ...defaultSettings, ...settings };
-    
-    // Update UI display
-    updateSettingsDisplay(currentSettings);
-    
-    // Update modal checkboxes
-    updateSettingsModal(currentSettings);
-    
-    console.log('Loaded SuperAdmin settings:', currentSettings);
-}
-
-function updateSettingsDisplay(settings) {
-    const adminButtonStatus = document.getElementById('admin-button-status');
-    const liveOrdersStatus = document.getElementById('live-orders-status');
-    const chartAnimationStatus = document.getElementById('chart-animation-status');
-    
-    if (adminButtonStatus) {
-        adminButtonStatus.textContent = settings.showAdminButton ? 'Enabled' : 'Disabled';
-        adminButtonStatus.className = `setting-value ${settings.showAdminButton ? 'enabled' : 'disabled'}`;
+    updateItemAvailability(itemName, isAvailable) {
+        for (let category in this.state.menuItems) {
+            const item = this.state.menuItems[category].find(p => p.name === itemName);
+            if (item) {
+                item.isAvailable = isAvailable;
+                break;
+            }
+        }
     }
     
-    if (liveOrdersStatus) {
-        liveOrdersStatus.textContent = settings.liveOrders ? 'Enabled' : 'Disabled';
-        liveOrdersStatus.className = `setting-value ${settings.liveOrders ? 'enabled' : 'disabled'}`;
+    organizeByCategory(items) {
+        return {
+            nachos: items.filter(item => item.category === 'nachos'),
+            desserts: items.filter(item => item.category === 'desserts')
+        };
     }
     
-    if (chartAnimationStatus) {
-        chartAnimationStatus.textContent = settings.chartAnimation ? 'Enabled' : 'Disabled';
-        chartAnimationStatus.className = `setting-value ${settings.chartAnimation ? 'enabled' : 'disabled'}`;
+    loadFromLocalStorage() {
+        try {
+            const stored = localStorage.getItem('menuItems');
+            if (stored) {
+                this.state.menuItems = JSON.parse(stored);
+            }
+        } catch (error) {
+            console.error('Failed to load from localStorage:', error);
+        }
     }
-}
-
-function updateSettingsModal(settings) {
-    const toggleAdminButton = document.getElementById('toggle-admin-button');
-    const toggleLiveOrders = document.getElementById('toggle-live-orders');
-    const toggleChartAnimation = document.getElementById('toggle-sales-chart');
     
-    if (toggleAdminButton) toggleAdminButton.checked = settings.showAdminButton;
-    if (toggleLiveOrders) toggleLiveOrders.checked = settings.liveOrders;
-    if (toggleChartAnimation) toggleChartAnimation.checked = settings.chartAnimation;
-}
-
-function showSuperAdminSettingsModal() {
-    const modal = document.getElementById('superadmin-settings-modal');
-    if (modal) {
-        modal.style.display = 'flex';
-    }
-}
-
-function hideModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.style.display = 'none';
-    }
-}
-
-function saveSuperAdminSettings() {
-    // Get values from checkboxes
-    const showAdminButton = document.getElementById('toggle-admin-button').checked;
-    const liveOrders = document.getElementById('toggle-live-orders').checked;
-    const chartAnimation = document.getElementById('toggle-sales-chart').checked;
-    
-    // Create settings object
-    const settings = {
-        showAdminButton: showAdminButton,
-        liveOrders: liveOrders,
-        chartAnimation: chartAnimation,
-        lastUpdated: new Date().toISOString(),
-        updatedBy: adminRole
-    };
-    
-    // Save to localStorage
-    localStorage.setItem('superAdminSettings', JSON.stringify(settings));
-    
-    // Update display
-    updateSettingsDisplay(settings);
-    
-    // Show success message
-    showAlert('Settings saved successfully!', 'success');
-    
-    // Close modal
-    hideModal('superadmin-settings-modal');
-    
-    console.log('Saved SuperAdmin settings:', settings);
-}
-
-function backupData() {
-    // Gather all data from localStorage and server
-    const backupData = {
-        superAdminSettings: JSON.parse(localStorage.getItem('superAdminSettings') || '{}'),
-        adminRole: adminRole,
-        backupDate: new Date().toISOString(),
-        backupVersion: '1.0'
-    };
-    
-    // Create download link
-    const dataStr = JSON.stringify(backupData, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    
-    const exportFileDefaultName = `ai-nachos-backup-${new Date().toISOString().split('T')[0]}.json`;
-    
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
-    
-    showAlert('Data backup completed successfully!', 'success');
-}
-
-function resetDemoData() {
-    if (confirm('Are you sure you want to reset all demo data? This will clear all local data but keep server data.')) {
-        // Clear localStorage
-        localStorage.removeItem('cart');
-        localStorage.removeItem('customerData');
-        localStorage.removeItem('orders');
+    // UI Helper Methods
+    showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.innerHTML = `
+            <i class="fas fa-${this.getNotificationIcon(type)}"></i>
+            <span>${message}</span>
+            <button class="notification-close"><i class="fas fa-times"></i></button>
+        `;
         
-        // Keep admin login and settings
-        const adminToken = localStorage.getItem('adminToken');
-        const adminRole = localStorage.getItem('adminRole');
-        const superAdminSettings = localStorage.getItem('superAdminSettings');
+        document.body.appendChild(notification);
         
-        localStorage.clear();
-        
-        // Restore admin data
-        if (adminToken) localStorage.setItem('adminToken', adminToken);
-        if (adminRole) localStorage.setItem('adminRole', adminRole);
-        if (superAdminSettings) localStorage.setItem('superAdminSettings', superAdminSettings);
-        
-        showAlert('Demo data reset successfully! The page will refresh.', 'success');
-        
-        // Refresh after 2 seconds
+        // Auto-remove after 5 seconds
         setTimeout(() => {
-            window.location.reload();
-        }, 2000);
-    }
-}
-
-function manageUsers() {
-    showAlert('User management feature coming soon!', 'info');
-}
-
-// ================================
-// REAL-TIME UPDATES
-// ================================
-
-function setupOrderListener() {
-    // Poll for new orders every 30 seconds
-    if (orderUpdateInterval) clearInterval(orderUpdateInterval);
-    orderUpdateInterval = setInterval(async () => {
-        if (currentSection === 'dashboard' || currentSection === 'orders') {
-            await loadOrdersFromServer();
-            if (currentSection === 'dashboard') {
-                loadRecentOrders();
-                updateDashboardStats();
+            if (notification.parentNode) {
+                notification.remove();
             }
-        }
-    }, 30000);
-}
-
-// ================================
-// UTILITY FUNCTIONS
-// ================================
-
-function showAlert(message, type = 'info') {
-    const alertModal = document.getElementById('custom-alert');
-    const alertMessage = document.getElementById('custom-alert-message');
-    const alertOk = document.getElementById('custom-alert-ok');
+        }, 5000);
+        
+        // Close button
+        notification.querySelector('.notification-close').addEventListener('click', () => {
+            notification.remove();
+        });
+    }
     
-    if (alertModal && alertMessage && alertOk) {
-        alertMessage.innerHTML = message;
-        alertMessage.style.color = type === 'error' ? '#dc3545' : 
-                                   type === 'success' ? '#28a745' : '#2c3e50';
+    getNotificationIcon(type) {
+        const icons = {
+            success: 'check-circle',
+            error: 'exclamation-circle',
+            warning: 'exclamation-triangle',
+            info: 'info-circle'
+        };
+        return icons[type] || 'info-circle';
+    }
+    
+    showGlobalLoader() {
+        const loader = document.getElementById('global-loader');
+        if (loader) {
+            loader.style.display = 'flex';
+        }
+    }
+    
+    hideGlobalLoader() {
+        const loader = document.getElementById('global-loader');
+        if (loader) {
+            loader.style.display = 'none';
+        }
+    }
+    
+    showLoginModal() {
+        // You can implement a login modal here
+        window.location.href = 'login.html';
+    }
+    
+    logout() {
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminRole');
+        window.location.href = 'index.html';
+    }
+    
+    closeAllModals() {
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            modal.style.display = 'none';
+        });
+    }
+    
+    toggleKeyboardShortcuts() {
+        const shortcuts = document.getElementById('keyboard-shortcuts');
+        if (shortcuts) {
+            shortcuts.classList.toggle('show');
+        }
+    }
+    
+    refreshAllData() {
+        this.showNotification('Refreshing all data...', 'info');
+        this.loadInitialData();
+    }
+    
+    refreshCurrentSection() {
+        switch(this.state.currentSection) {
+            case 'dashboard':
+                this.loadDashboardStats();
+                break;
+            case 'orders':
+                this.loadOrders(true);
+                break;
+            case 'products':
+                this.loadMenuItems(true);
+                break;
+            case 'availability':
+                this.updateAvailabilityDisplay();
+                break;
+        }
+    }
+    
+    // SuperAdmin Methods
+    addSuperAdminFeatures() {
+        // Add SuperAdmin nav button
+        const adminNav = document.querySelector('.admin-nav');
+        if (adminNav && !document.querySelector('.admin-nav-btn[data-section="superadmin"]')) {
+            const superAdminBtn = document.createElement('button');
+            superAdminBtn.className = 'admin-nav-btn';
+            superAdminBtn.setAttribute('data-section', 'superadmin');
+            superAdminBtn.innerHTML = '<i class="fas fa-user-crown"></i> SuperAdmin';
+            superAdminBtn.addEventListener('click', () => this.showSection('superadmin'));
+            adminNav.appendChild(superAdminBtn);
+        }
         
-        alertModal.style.display = 'flex';
-        
-        alertOk.onclick = function() {
-            alertModal.style.display = 'none';
+        // Add SuperAdmin section
+        const adminSections = document.querySelector('.admin-sections');
+        if (adminSections && !document.getElementById('superadmin-section')) {
+            const superAdminSection = document.createElement('div');
+            superAdminSection.id = 'superadmin-section';
+            superAdminSection.className = 'admin-section';
+            superAdminSection.innerHTML = `
+                <div class="admin-section-header">
+                    <h2><i class="fas fa-user-crown"></i> SuperAdmin Controls</h2>
+                    <p>Advanced system settings and configurations</p>
+                </div>
+                
+                <div class="superadmin-controls">
+                    <div class="control-card">
+                        <div class="control-icon">
+                            <i class="fas fa-eye-slash"></i>
+                        </div>
+                        <div class="control-content">
+                            <h3>Admin Button Visibility</h3>
+                            <p>Control whether the Admin Panel button appears on the homepage</p>
+                            <button class="action-btn secondary" onclick="adminPanel.showSuperAdminSettings()">
+                                <i class="fas fa-cog"></i> Configure
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="control-card">
+                        <div class="control-icon">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <div class="control-content">
+                            <h3>Data Management</h3>
+                            <p>Backup or reset application data</p>
+                            <div class="button-group">
+                                <button class="action-btn secondary" onclick="adminPanel.backupData()">
+                                    <i class="fas fa-download"></i> Backup
+                                </button>
+                                <button class="action-btn danger" onclick="adminPanel.resetDemoData()">
+                                    <i class="fas fa-redo"></i> Reset Demo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="control-card">
+                        <div class="control-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="control-content">
+                            <h3>User Management</h3>
+                            <p>Manage admin users and permissions</p>
+                            <button class="action-btn secondary" onclick="adminPanel.manageUsers()">
+                                <i class="fas fa-user-edit"></i> Manage Users
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="superadmin-info">
+                    <h3><i class="fas fa-info-circle"></i> Current Settings</h3>
+                    <div class="settings-display">
+                        <div class="setting-display-item">
+                            <span class="setting-label">Admin Button:</span>
+                            <span id="admin-button-status" class="setting-value enabled">Enabled</span>
+                        </div>
+                        <div class="setting-display-item">
+                            <span class="setting-label">Live Orders:</span>
+                            <span id="live-orders-status" class="setting-value enabled">Enabled</span>
+                        </div>
+                        <div class="setting-display-item">
+                            <span class="setting-label">Chart Animation:</span>
+                            <span id="chart-animation-status" class="setting-value enabled">Enabled</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            adminSections.appendChild(superAdminSection);
+        }
+    }
+    
+    showSuperAdminSettings() {
+        this.showNotification('SuperAdmin settings feature coming soon!', 'info');
+    }
+    
+    backupData() {
+        const backupData = {
+            menuItems: this.state.menuItems,
+            orders: this.state.orders,
+            settings: JSON.parse(localStorage.getItem('superAdminSettings') || '{}'),
+            backupDate: new Date().toISOString(),
+            backupVersion: '2.0'
         };
         
-        alertModal.addEventListener('click', function(e) {
-            if (e.target === this) {
-                alertModal.style.display = 'none';
-            }
-        });
+        const dataStr = JSON.stringify(backupData, null, 2);
+        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
         
-        // Auto-hide non-error alerts after 5 seconds
-        if (type !== 'error') {
-            setTimeout(() => {
-                if (alertModal.style.display === 'flex') {
-                    alertModal.style.display = 'none';
-                }
-            }, 5000);
-        }
-    } else {
-        alert(message);
-    }
-}
-
-// ================================
-// LOGIN MODAL
-// ================================
-
-function showLoginModal() {
-    const modalHTML = `
-        <div id="admin-login-modal" class="modal-overlay" style="display: flex; z-index: 9999;">
-            <div class="modal-content" style="max-width: 400px;">
-                <h2 class="admin-panel-title">
-                    <i class="fas fa-user-shield"></i> Admin Login Required
-                </h2>
-                <p style="text-align: center; margin-bottom: 20px; color: #666;">Please login to access the admin panel</p>
-                
-                <input type="text" id="admin-username-modal" placeholder="Username" value="admin" style="margin-bottom: 15px;">
-                <input type="password" id="admin-password-modal" placeholder="Password" value="admin123" style="margin-bottom: 20px;">
-                
-                <div style="display: flex; flex-direction: column; gap: 10px;">
-                    <button id="modal-login-btn" class="action-btn primary">
-                        <i class="fas fa-sign-in-alt"></i> Login as Admin
-                    </button>
-                    <button id="modal-superadmin-btn" class="action-btn" style="background: #FF6A00;">
-                        <i class="fas fa-crown"></i> Login as SuperAdmin
-                    </button>
-                    <button id="back-to-home-btn" class="action-btn secondary">
-                        <i class="fas fa-home"></i> Back to Homepage
-                    </button>
-                </div>
-                
-                <div style="margin-top: 25px; padding: 15px; background: #f8f9fa; border-radius: 8px; font-size: 13px; color: #666;">
-                    <p style="margin-bottom: 5px;"><strong>Demo Credentials:</strong></p>
-                    <p style="margin: 3px 0;"><i class="fas fa-user"></i> Admin: admin / admin123</p>
-                    <p style="margin: 3px 0;"><i class="fas fa-crown"></i> SuperAdmin: superadmin / superadmin123</p>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-    
-    // Add event listeners
-    document.getElementById('modal-login-btn').addEventListener('click', function() {
-        handleAdminModalLogin('admin');
-    });
-    
-    document.getElementById('modal-superadmin-btn').addEventListener('click', function() {
-        handleAdminModalLogin('superadmin');
-    });
-    
-    document.getElementById('back-to-home-btn').addEventListener('click', function() {
-        window.location.href = 'index.html';
-    });
-    
-    // Close modal when clicking outside
-    const modal = document.getElementById('admin-login-modal');
-    modal.addEventListener('click', function(e) {
-        if (e.target === this) {
-            modal.remove();
-        }
-    });
-}
-
-async function handleAdminModalLogin(role) {
-    let username, password;
-    
-    if (role === 'admin') {
-        username = 'admin';
-        password = 'admin123';
-    } else {
-        username = 'superadmin';
-        password = 'superadmin123';
+        const a = document.createElement('a');
+        a.href = dataUri;
+        a.download = `ai-nachos-backup-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        
+        this.showNotification('✅ Data backup completed successfully!', 'success');
     }
     
-    const inputUsername = document.getElementById('admin-username-modal').value;
-    const inputPassword = document.getElementById('admin-password-modal').value;
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/admin/login`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                username: inputUsername,
-                password: inputPassword
-            })
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
+    resetDemoData() {
+        if (confirm('⚠️ Are you sure you want to reset all demo data? This will clear all local data but keep server data.')) {
+            // Clear localStorage except admin credentials
+            const adminToken = localStorage.getItem('adminToken');
+            const adminRole = localStorage.getItem('adminRole');
+            const superAdminSettings = localStorage.getItem('superAdminSettings');
             
-            // Store token and role
-            localStorage.setItem('adminToken', data.token);
-            localStorage.setItem('adminRole', data.user.role);
+            localStorage.clear();
             
-            adminToken = data.token;
-            adminRole = data.user.role;
+            // Restore admin data
+            if (adminToken) localStorage.setItem('adminToken', adminToken);
+            if (adminRole) localStorage.setItem('adminRole', adminRole);
+            if (superAdminSettings) localStorage.setItem('superAdminSettings', superAdminSettings);
             
-            // Remove modal
-            const modal = document.getElementById('admin-login-modal');
-            if (modal) modal.remove();
+            this.showNotification('✅ Demo data reset successfully! Refreshing...', 'success');
             
-            showAlert(`✅ Welcome, ${data.user.role === 'superadmin' ? 'SuperAdmin' : 'Admin'}!`, 'success');
-            
-            // Reload page
             setTimeout(() => {
                 window.location.reload();
-            }, 1000);
-            
-        } else {
-            const error = await response.json();
-            showAlert(`❌ Login failed: ${error.message}`, 'error');
+            }, 2000);
         }
-    } catch (error) {
-        console.error('Login error:', error);
-        showAlert('❌ Login failed. Please try again.', 'error');
+    }
+    
+    manageUsers() {
+        this.showNotification('User management feature coming soon!', 'info');
+    }
+    
+    initCharts() {
+        // Initialize charts if needed
     }
 }
 
-// ================================
-// GLOBAL EXPORTS
-// ================================
+// Initialize the admin panel when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    window.adminPanel = new EnhancedAdminPanel();
+});
 
-// Make functions available globally for inline event handlers
-window.showOrderDetails = showOrderDetails;
-window.editProduct = editProduct;
-window.deleteProduct = deleteProduct;
-window.toggleItemAvailability = toggleItemAvailability;
-window.showSuperAdminSettingsModal = showSuperAdminSettingsModal;
-window.saveSuperAdminSettings = saveSuperAdminSettings;
-window.hideModal = hideModal;
-window.backupData = backupData;
-window.resetDemoData = resetDemoData;
-window.manageUsers = manageUsers;
+// Make methods available globally for inline event handlers
+window.showOrderDetails = (orderId) => window.adminPanel?.showOrderDetails(orderId);
+window.editProduct = (productId) => window.adminPanel?.editProduct(productId);
+window.deleteProduct = (productId) => window.adminPanel?.deleteProduct(productId);
+window.toggleItemAvailability = (itemName, isAvailable) => window.adminPanel?.toggleItemAvailability(itemName, isAvailable);
