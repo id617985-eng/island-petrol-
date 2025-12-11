@@ -8,210 +8,325 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Shrikhand&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Web App Manifest -->
+    <!-- Web App Manifest for Mobile -->
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#8b4513">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-status-bar-style" content="default">
     <meta name="mobile-web-app-title" content="Ai-Maize-ing Nachos">
-    <link rel="icon" href="/icon-192x192.png">
+    <link rel="touch-icon" href="/icon-192x192.png">
 </head>
 <body>
-    <!-- Small Corner Logo -->
-    <div class="corner-logo">
-        <img src="image/LOGO.jpg" alt="Ai-Maize-ing Nachos Logo" onerror="this.style.display='none'">
-    </div>
 
-    <div class="container">
-        <!-- Header Buttons -->
-        <div class="header-buttons">
-            <div id="admin-panel">
-                <button id="admin-toggle">
-                    <i class="fas fa-user-shield"></i> <span id="admin-btn-text">Admin</span>
-                </button>
-                <button id="admin-logout-btn" style="display: none; background: #dc3545; margin-left: 5px;">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </button>
-            </div>
-            <div id="customer-panel">
-                <button id="customer-toggle">
-                    <i class="fas fa-user-circle"></i> <span id="customer-btn-text">My Profile</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- Page Header -->
+<div class="container">
+    <header>
         <div class="page-header">
-            <button class="back-btn" onclick="goBack(index.html)">
+            <button class="back-btn" onclick="goBack()">
                 <i class="fas fa-arrow-left"></i> Back
             </button>
             <h1>Desserts</h1>
             <p>Select your favorite desserts below, then click <strong>View Cart</strong> to complete your order.</p>
         </div>
+    </header>
 
-        <!-- Promotional Banner -->
-        <div class="promo-banner">
-            <p>
-                <span class="promo-icon">🍃</span>
-                Lahat ng pagkain ay sariwa naming inihahanda! Mangyaring mag-order 1 bago ipickup
-                <span class="promo-icon">⏰</span>
-            </p>
+    <!-- Header Buttons -->
+    <div class="header-buttons">
+        <div id="admin-panel">
+            <button id="admin-toggle"><i class="fas fa-user-shield"></i> Admin</button>
         </div>
-
-        <section id="ai-foodies">
-            <div class="menu-grid">
-                <!-- Mango Graham -->
-                <div class="menu-item" data-name="Mango Graham" data-price="40">
-                    <div class="flip-card">
-                        <div class="flip-card-inner">
-                            <div class="flip-card-front">
-                                <img src="image/mango.gif" alt="Mango Graham" onerror="this.src='https://via.placeholder.com/300x200/FFD700/000000?text=Mango+Graham'">
-                            </div>
-                            <div class="flip-card-back">
-                                <p>Ingredients: Mango slices, graham crackers, cream, condensed milk.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <h3>Mango Graham</h3>
-                    <p class="price">₱40</p>
-                    <button class="add-to-cart-btn">Add to Cart</button>
-                </div>
-
-                <!-- Mango Tiramisu -->
-                <div class="menu-item" data-name="Mango tiramisu on tube" data-price="100">
-                    <div class="flip-card">
-                        <div class="flip-card-inner">
-                            <div class="flip-card-front">
-                                <img src="image/mango tiramisu on tub-price 100.jpeg" alt="Mango tiramisu on tube" onerror="this.src='https://via.placeholder.com/300x200/FFC107/000000?text=Mango+Tiramisu'">
-                            </div>
-                            <div class="flip-card-back">
-                                <p>Ingredients: Mango puree, mascarpone, ladyfingers, cream, cocoa dust.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <h3>Mango tiramisu on tube</h3>
-                    <p class="price">₱100</p>
-                    <button class="add-to-cart-btn">Add to Cart</button>
-                </div>
-
-                <!-- Biscoff -->
-                <div class="menu-item" data-name="Biscoff" data-price="159">
-                    <div class="flip-card">
-                        <div class="flip-card-inner">
-                            <div class="flip-card-front">
-                                <img src="image/biscoff.jpeg" alt="Biscoff" onerror="this.src='https://via.placeholder.com/300x200/8B4513/ffffff?text=Biscoff'">
-                            </div>
-                            <div class="flip-card-back">
-                                <p>Ingredients: Biscoff spread, crushed cookies, cream, condensed milk.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <h3>Biscoff</h3>
-                    <p class="price">₱159</p>
-                    <button class="add-to-cart-btn">Add to Cart</button>
-                </div>
-
-                <!-- Oreo -->
-                <div class="menu-item" data-name="Oreo" data-price="149">
-                    <div class="flip-card">
-                        <div class="flip-card-inner">
-                            <div class="flip-card-front">
-                                <img src="image/oreo and bisscoff.png" alt="Oreo" onerror="this.src='https://via.placeholder.com/300x200/000000/ffffff?text=Oreo'">
-                            </div>
-                            <div class="flip-card-back">
-                                <p>Ingredients: Oreo cookies, whipped cream, chocolate syrup, condensed milk.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <h3>Oreo</h3>
-                    <p class="price">₱149</p>
-                    <button class="add-to-cart-btn">Add to Cart</button>
-                </div>
+        <div id="customer-panel">
+            <button id="customer-toggle">
+                <i class="fas fa-user-plus"></i> Create Account
+            </button>
+        </div>
+    </div>
+<!-- Updated Admin Dashboard -->
+<div id="admin-dashboard" style="display: none;">
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h2>Admin Dashboard</h2>
+            <button class="dashboard-close"><i class="fas fa-times"></i></button>
+        </div>
         
-                <!-- Mango Graham Float -->
-                <div class="menu-item" data-name="Mango Graham Float" data-price="40">
-                    <div class="flip-card">
-                        <div class="flip-card-inner">
-                            <div class="flip-card-front">
-                                <img src="image/Mango Graham Floa.jpg" alt="Mango Graham Float" onerror="this.src='https://via.placeholder.com/300x200/FFA500/ffffff?text=Mango+Float'">
-                            </div>
-                            <div class="flip-card-back">
-                                <p>Ingredients: Mango, graham crackers, cream, condensed milk, and other delicious ingredients.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <h3>Mango Graham Float</h3>
-                    <p class="price">₱40</p>
-                    <button class="add-to-cart-btn">Add to Cart</button>
+        <div class="dashboard-stats">
+            <div class="stat-card">
+                <h3>Total Orders</h3>
+                <div class="stat-value" id="total-orders">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total Sales</h3>
+                <div class="stat-value" id="total-sales">₱0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Today's Orders</h3>
+                <div class="stat-value" id="today-orders">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Today's Sales</h3>
+                <div class="stat-value" id="today-sales">₱0</div>
+            </div>
+        </div>
+        
+        <!-- Availability Controls Section -->
+        <div class="availability-section">
+            <h3>📦 Item Availability Management</h3>
+            <div class="section-content">
+                <p>Toggle item availability for customers:</p>
+                <div id="availability-controls" class="availability-controls-grid">
+                    <p>Loading availability controls...</p>
                 </div>
             </div>
-        </section>
-
-        <!-- Navigation Footer -->
-        <div class="page-navigation">
-            <button class="nav-btn" onclick="navigateTo('index.html')">
-                <i class="fas fa-home"></i> Home
-            </button>
-            <button class="nav-btn" onclick="navigateTo('nachos.html')">
-                <i class="fas fa-utensils"></i> Nachos
-            </button>
         </div>
-    </div>
-
-    <!-- Cart Trigger Button -->
-    <button id="cart-trigger">View Cart (<span id="cart-count">0</span>)</button>
-
-    <!-- Cart Popup -->
-    <div id="cart-popup">
-        <div class="cart-header">
-            <h3>Your Order</h3>
-            <button class="close-btn">X</button>
-        </div>
-        <ul id="cart-items"></ul>
-        <p>Total: <span id="cart-total">₱0</span></p>
-
-        <div class="order-details">
-            <input type="text" id="customer-name" placeholder="Your Name for Pickup">
-            <input type="tel" id="customer-phone" placeholder="Phone Number (Optional)">
-            <input type="text" id="pickup-time" placeholder="Pick-up Time (e.g., 6:30 PM)">
-        </div>
-
-        <div class="payment-options">
-            <select id="payment-method">
-                <option value="Cash on Pick-up">Cash on Pick-up</option>
-                <option value="Gcash">Gcash / PayMaya</option>
-                <option value="Bank Transfer">Bank Transfer</option>
-            </select>
-        </div>
-
-        <button id="checkout-btn">Send Order</button>
-    </div>
-
-    <!-- Modals -->
-    <div id="custom-alert" class="modal-overlay" style="display: none;">
-        <div class="modal-content">
-            <p id="custom-alert-message"></p>
-            <button id="custom-alert-ok">OK</button>
-        </div>
-    </div>
-
-    <script src="script.js"></script>
-    <script>
-        // AI Foodies page specific initialization
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🍰 AI Foodies page initialized');
+        
+        <div class="dashboard-content">
+            <div class="orders-section">
+                <h3>Recent Orders</h3>
+                <div id="orders-list">
+                    <p>Loading orders...</p>
+                </div>
+            </div>
             
-            // Check admin status
-            checkAdminStatus();
-        });
+            <div class="sales-section">
+                <h3>Sales Overview</h3>
+                <div id="sales-chart-container">
+                    <canvas id="sales-chart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="dashboard-actions">
+            <button onclick="resetAllAvailability()" style="background: #17a2b8;">
+                <i class="fas fa-sync"></i> Mark All Items Available
+            </button>
+            <button onclick="clearCart()" style="background: #6c757d;">
+                <i class="fas fa-trash"></i> Clear All Carts
+            </button>
+        </div>
+    </div>
+</div>
+<!-- Promotional Banner -->
+<div class="promo-banner">
+  <p>
+    <span class="promo-icon">🍃</span>
+   "Lahat ng pagkain ay sariwa naming inihahanda! Mangyaring mag-order 1  bago ipickup
+    <span class="promo-icon">⏰</span>
+  </p>
+</div>
 
-        function checkAdminStatus() {
-            const adminToken = localStorage.getItem('adminToken');
-            if (adminToken) {
-                isAdminLoggedIn = true;
-                document.getElementById('admin-btn-text').textContent = 'Admin Panel';
-            }
+    <section id="ai-foodies">
+        <div class="menu-grid">
+
+            <div class="menu-item" data-name="Mango Graham" data-price="40">
+                <div class="flip-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <img src="image/mango.gif" alt="Mango Graham" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZmZjYzAwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSJ3aGl0ZSI+TWFuZ28gR3JhaGFtPC90ZXh0Pjwvc3ZnPg=='">
+                        </div>
+                        <div class="flip-card-back">
+                            <p>Ingredients: Mango slices, graham crackers, cream, condensed milk.</p>
+                        </div>
+                    </div>
+                </div>
+                <h3>Mango Graham</h3>
+                <p class="price">₱40</p>
+                <button class="add-to-cart-btn">Add to Cart</button>
+            </div>
+
+            <div class="menu-item" data-name="Mango tiramisu on tube" data-price="100">
+                <div class="flip-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <img src="image/mango tiramisu on tub-price 100.jpeg" alt="Mango tiramisu on tube" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZmZjYzAwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSJ3aGl0ZSI+TWFuZ28gVGlyYW1pc3U8L3RleHQ+PC9zdmc+'">
+                        </div>
+                        <div class="flip-card-back">
+                            <p>Ingredients: Mango puree, mascarpone, ladyfingers, cream, cocoa dust.</p>
+                        </div>
+                    </div>
+                </div>
+                <h3>Mango tiramisu on tube</h3>
+                <p class="price">₱100</p>
+                <button class="add-to-cart-btn">Add to Cart</button>
+            </div>
+
+            <div class="menu-item" data-name="Biscoff" data-price="159">
+                <div class="flip-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <img src="image/biscoff.jpeg" alt="Biscoff" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjOGI0NTEzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSJ3aGl0ZSI+QmlzY29mZjwvdGV4dD48L3N2Zz4='">
+                        </div>
+                        <div class="flip-card-back">
+                            <p>Ingredients: Biscoff spread, crushed cookies, cream, condensed milk.</p>
+                        </div>
+                    </div>
+                </div>
+                <h3>Biscoff</h3>
+                <p class="price">₱159</p>
+                <button class="add-to-cart-btn">Add to Cart</button>
+            </div>
+
+            <div class="menu-item" data-name="Oreo" data-price="149">
+                <div class="flip-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <img src="image/oreo and bisscoff.png" alt="Oreo" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSJ3aGl0ZSI+T3JlbzwvdGV4dD48L3N2Zz4='">
+                        </div>
+                        <div class="flip-card-back">
+                            <p>Ingredients: Oreo cookies, whipped cream, chocolate syrup, condensed milk.</p>
+                        </div>
+                    </div>
+                </div>
+                <h3>Oreo</h3>
+                <p class="price">₱149</p>
+                <button class="add-to-cart-btn">Add to Cart</button>
+            </div>
+    
+          <div class="menu-item" data-name="Mango Graham Float" data-price="40">
+                <div class="flip-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <img src="image/Mango Graham Floa.jpg" alt="Mango Graham Float" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSJ3aGl0ZSI+TWFuZ28gR3JhaGFtIEZsb2F0PC90ZXh0Pjwvc3ZnPg=='">
+                        </div>
+                        <div class="flip-card-back">
+                            <p>Ingredients: Mango, graham crackers, cream, condensed milk, and other delicious ingredients.</p>
+                        </div>
+                    </div>
+                </div>
+                <h3>Mango Graham Float</h3>
+                <p class="price">₱40</p>
+                <button class="add-to-cart-btn">Add to Cart</button>
+            </div>
+    
+    </section>
+
+    <!-- Navigation Footer -->
+    <div class="page-navigation">
+        <button class="nav-btn" onclick="navigateTo('index.html')">
+            <i class="fas fa-home"></i> Home
+        </button>
+        <button class="nav-btn" onclick="navigateTo('nachos.html')">
+            <i class="fas fa-utensils"></i> Nachos
+        </button>
+    </div>
+</div>
+
+<!-- Cart Trigger Button -->
+<button id="cart-trigger">View Cart (<span id="cart-count">0</span>)</button>
+
+<!-- Cart Popup -->
+<div id="cart-popup">
+    <div class="cart-header">
+        <h3>Your Order</h3>
+        <button class="close-btn">X</button>
+    </div>
+    <ul id="cart-items"></ul>
+    <p>Total: <span id="cart-total">₱0</span></p>
+
+    <div class="order-details">
+        <input type="text" id="customer-name" placeholder="Your Name for Pickup">
+        <input type="tel" id="customer-phone" placeholder="Phone Number (Optional)">
+        <input type="text" id="pickup-time" placeholder="Pick-up Time (e.g., 6:30 PM)">
+    </div>
+
+    <div class="payment-options">
+        <select id="payment-method">
+            <option value="Cash on Pick-up">Cash on Pick-up</option>
+            <option value="Gcash">Gcash / PayMaya</option>
+            <option value="Bank Transfer">Bank Transfer</option>
+        </select>
+    </div>
+
+    <button id="checkout-btn">Send Order</button>
+</div>
+
+<!-- Modals -->
+<div id="custom-alert" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <p id="custom-alert-message"></p>
+        <button id="custom-alert-ok">OK</button>
+    </div>
+</div>
+
+<div id="login-modal" class="modal-overlay" style="display: none;">
+    <div class="login-container">
+        <h2>Admin Login</h2>
+        <input type="text" id="admin-username" placeholder="Username">
+        <input type="password" id="admin-password" placeholder="Password">
+        <button id="login-btn">Login</button>
+    </div>
+</div>
+
+<div id="admin-dashboard" style="display: none;">
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h2>Admin Dashboard</h2>
+            <button class="dashboard-close"><i class="fas fa-times"></i></button>
+        </div>
+        
+        <div class="dashboard-stats">
+            <div class="stat-card">
+                <h3>Total Orders</h3>
+                <div class="stat-value" id="total-orders">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total Sales</h3>
+                <div class="stat-value" id="total-sales">₱0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Today's Orders</h3>
+                <div class="stat-value" id="today-orders">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Today's Sales</h3>
+                <div class="stat-value" id="today-sales">₱0</div>
+            </div>
+        </div>
+        
+        <div class="dashboard-content">
+            <div class="orders-section">
+                <h3>Recent Orders</h3>
+                <div id="orders-list">
+                    <p>Loading orders...</p>
+                </div>
+            </div>
+            
+            <div class="sales-section">
+                <h3>Sales Overview</h3>
+                <div id="sales-chart-container">
+                    <canvas id="sales-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="script.js"></script>
+<script>
+    // Navigation functions
+    function navigateTo(page) {
+        // Save cart to localStorage before navigating
+        localStorage.setItem('globalCart', JSON.stringify(cart));
+        window.location.href = page;
+    }
+    
+    function goBack() {
+        navigateTo('index.html');
+    }
+    
+    // Initialize page-specific functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🍰 AI Foodies page initialized');
+        
+        // Load cart from localStorage
+        const savedCart = localStorage.getItem('globalCart');
+        if (savedCart) {
+            cart = JSON.parse(savedCart);
+            updateCartDisplay();
         }
-    </script>
+    });
+</script>
+
 </body>
 </html>
+
+

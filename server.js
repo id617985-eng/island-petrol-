@@ -1,2279 +1,1070 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ai-Maize-ing Nachos</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh;
-            color: #333;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        /* Header Styles */
-        header {
-            background: linear-gradient(135deg, #FF6B6B 0%, #FFE66D 100%);
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.2);
-            margin-bottom: 30px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 100%;
-            height: 200%;
-            background: rgba(255, 255, 255, 0.1);
-            transform: rotate(30deg);
-        }
-
-        .logo {
-            text-align: center;
-            margin-bottom: 25px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .logo h1 {
-            font-size: 3.5em;
-            color: #2d3436;
-            text-shadow: 3px 3px 0px rgba(255, 230, 109, 0.5);
-            margin-bottom: 10px;
-            font-family: 'Comic Sans MS', cursive, sans-serif;
-        }
-
-        .logo .tagline {
-            font-size: 1.3em;
-            color: #636e72;
-            font-style: italic;
-            font-weight: 500;
-        }
-
-        .nav-bar {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 25px;
-            flex-wrap: wrap;
-            position: relative;
-            z-index: 1;
-        }
-
-        .nav-btn {
-            padding: 14px 32px;
-            background: rgba(255, 255, 255, 0.9);
-            border: 2px solid transparent;
-            border-radius: 50px;
-            font-size: 1.1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .nav-btn:hover {
-            transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-            background: #FFE66D;
-            border-color: #FF6B6B;
-        }
-
-        .nav-btn.active {
-            background: #FF6B6B;
-            color: white;
-            border-color: #FF6B6B;
-            transform: translateY(-3px);
-        }
-
-        .nav-btn i {
-            font-size: 1.2em;
-        }
-
-        /* Main Content */
-        .main-content {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-            min-height: 600px;
-            margin-bottom: 40px;
-            position: relative;
-        }
-
-        .section {
-            display: none;
-            animation: fadeIn 0.5s ease;
-        }
-
-        .section.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Slideshow Styles */
-        .slideshow-container {
-            position: relative;
-            width: 100%;
-            height: 500px;
-            overflow: hidden;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-
-        .slide {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            transition: opacity 0.8s ease;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .slide.active {
-            opacity: 1;
-        }
-
-        .slide-content {
-            display: flex;
-            height: 100%;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 60px;
-            color: white;
-            position: relative;
-        }
-
-        .slide-text {
-            flex: 1;
-            max-width: 50%;
-            animation: slideText 0.8s ease 0.3s both;
-        }
-
-        @keyframes slideText {
-            from { opacity: 0; transform: translateX(-30px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        .slide-title {
-            font-size: 3.5em;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
-            line-height: 1.2;
-        }
-
-        .slide-description {
-            font-size: 1.5em;
-            margin-bottom: 30px;
-            opacity: 0.9;
-            line-height: 1.5;
-        }
-
-        .slide-price {
-            font-size: 2.2em;
-            font-weight: bold;
-            color: #FFE66D;
-            text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.3);
-            display: inline-block;
-            padding: 10px 25px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 10px;
-        }
-
-        .slide-image-container {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            animation: slideImage 0.8s ease 0.5s both;
-        }
-
-        @keyframes slideImage {
-            from { opacity: 0; transform: translateX(30px) scale(0.9); }
-            to { opacity: 1; transform: translateX(0) scale(1); }
-        }
-
-        .slide-image {
-            max-width: 350px;
-            max-height: 350px;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-            object-fit: cover;
-            border: 5px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .slide-nav {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(0, 0, 0, 0.3);
-            color: white;
-            border: none;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 1.8em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            z-index: 10;
-            backdrop-filter: blur(5px);
-        }
-
-        .slide-nav:hover {
-            background: rgba(0, 0, 0, 0.6);
-            transform: translateY(-50%) scale(1.1);
-        }
-
-        .slide-nav.prev {
-            left: 25px;
-        }
-
-        .slide-nav.next {
-            right: 25px;
-        }
-
-        .slide-indicators {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            margin-top: 25px;
-        }
-
-        .indicator {
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: rgba(0, 0, 0, 0.2);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-        }
-
-        .indicator.active {
-            background: #FF6B6B;
-            transform: scale(1.3);
-            border-color: rgba(255, 255, 255, 0.3);
-        }
-
-        .slideshow-controls {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-top: 30px;
-        }
-
-        .control-btn {
-            padding: 12px 28px;
-            background: #FF6B6B;
-            color: white;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 1em;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
-        }
-
-        .control-btn:hover {
-            background: #FF5252;
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
-        }
-
-        /* Menu Styles */
-        .menu-categories {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 40px;
-            flex-wrap: wrap;
-        }
-
-        .category-btn {
-            padding: 12px 28px;
-            background: #f8f9fa;
-            border: 2px solid #e9ecef;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 1em;
-            font-weight: 600;
-            color: #495057;
-        }
-
-        .category-btn:hover {
-            background: #e9ecef;
-            transform: translateY(-3px);
-        }
-
-        .category-btn.active {
-            background: #4CAF50;
-            color: white;
-            border-color: #4CAF50;
-            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
-        }
-
-        .menu-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 30px;
-            padding: 20px 0;
-        }
-
-        .menu-item {
-            background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid #f1f3f4;
-        }
-
-        .menu-item:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
-        }
-
-        .menu-item-image {
-            width: 100%;
-            height: 220px;
-            object-fit: cover;
-            transition: transform 0.5s ease;
-        }
-
-        .menu-item:hover .menu-item-image {
-            transform: scale(1.05);
-        }
-
-        .menu-item-content {
-            padding: 25px;
-        }
-
-        .menu-item-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 15px;
-        }
-
-        .menu-item-title {
-            font-size: 1.4em;
-            margin-bottom: 10px;
-            color: #2d3436;
-            font-weight: 700;
-            flex: 1;
-        }
-
-        .menu-item-price {
-            font-size: 1.6em;
-            font-weight: bold;
-            color: #FF6B6B;
-            background: rgba(255, 107, 107, 0.1);
-            padding: 6px 15px;
-            border-radius: 20px;
-            white-space: nowrap;
-        }
-
-        .menu-item-description {
-            color: #636e72;
-            margin-bottom: 20px;
-            line-height: 1.6;
-            font-size: 0.95em;
-        }
-
-        .menu-item-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .availability {
-            font-size: 0.9em;
-            font-weight: 600;
-            padding: 6px 15px;
-            border-radius: 20px;
-        }
-
-        .available {
-            background: rgba(76, 175, 80, 0.1);
-            color: #4CAF50;
-        }
-
-        .unavailable {
-            background: rgba(255, 107, 107, 0.1);
-            color: #FF6B6B;
-        }
-
-        .add-to-cart {
-            padding: 10px 22px;
-            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
-        }
-
-        .add-to-cart:hover:not(:disabled) {
-            background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
-        }
-
-        .add-to-cart:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        /* Cart Styles */
-        .cart-container {
-            background: #f8f9fa;
-            padding: 30px;
-            border-radius: 15px;
-            border: 1px solid #e9ecef;
-        }
-
-        .cart-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px;
-            border-bottom: 2px solid #e9ecef;
-            background: white;
-            margin-bottom: 15px;
-            border-radius: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .cart-item:hover {
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            transform: translateX(5px);
-        }
-
-        .cart-item-info {
-            flex: 1;
-        }
-
-        .cart-item-name {
-            font-size: 1.3em;
-            font-weight: 600;
-            color: #2d3436;
-            margin-bottom: 5px;
-        }
-
-        .cart-item-price {
-            color: #FF6B6B;
-            font-weight: 600;
-            font-size: 1.1em;
-        }
-
-        .cart-item-controls {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .quantity-controls {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: #f1f3f4;
-            padding: 8px 15px;
-            border-radius: 50px;
-        }
-
-        .quantity-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            border: none;
-            background: white;
-            color: #333;
-            cursor: pointer;
-            font-size: 1.2em;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        .quantity-btn:hover:not(:disabled) {
-            background: #FF6B6B;
-            color: white;
-            transform: scale(1.1);
-        }
-
-        .quantity-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .quantity-display {
-            font-size: 1.2em;
-            font-weight: 600;
-            min-width: 30px;
-            text-align: center;
-        }
-
-        .remove-btn {
-            padding: 10px 20px;
-            background: #FF6B6B;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .remove-btn:hover {
-            background: #ff5252;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
-        }
-
-        .cart-total {
-            text-align: right;
-            font-size: 1.8em;
-            font-weight: bold;
-            margin-top: 30px;
-            padding-top: 30px;
-            border-top: 3px solid #e9ecef;
-            color: #2d3436;
-        }
-
-        .cart-actions {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 30px;
-            gap: 20px;
-        }
-
-        .clear-cart-btn {
-            padding: 12px 28px;
-            background: #6c757d;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .clear-cart-btn:hover {
-            background: #5a6268;
-            transform: translateY(-3px);
-        }
-
-        .checkout-btn {
-            padding: 14px 35px;
-            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1.1em;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 20px rgba(76, 175, 80, 0.3);
-        }
-
-        .checkout-btn:hover {
-            background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
-            transform: translateY(-3px);
-            box-shadow: 0 6px 25px rgba(76, 175, 80, 0.4);
-        }
-
-        /* Order Form Styles */
-        .order-form {
-            max-width: 800px;
-            margin: 0 auto;
-            display: grid;
-            gap: 25px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-label {
-            margin-bottom: 10px;
-            font-weight: 600;
-            color: #2d3436;
-            font-size: 1.1em;
-        }
-
-        .form-input {
-            padding: 15px 20px;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            font-size: 1em;
-            transition: all 0.3s ease;
-            background: #f8f9fa;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: #4CAF50;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
-        }
-
-        .payment-methods {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-top: 10px;
-        }
-
-        .payment-method {
-            position: relative;
-        }
-
-        .payment-method input {
-            position: absolute;
-            opacity: 0;
-        }
-
-        .payment-label {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            background: #f8f9fa;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-        }
-
-        .payment-label:hover {
-            border-color: #4CAF50;
-            background: white;
-        }
-
-        .payment-label.active {
-            border-color: #4CAF50;
-            background: rgba(76, 175, 80, 0.1);
-            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.1);
-        }
-
-        .payment-label i {
-            font-size: 2em;
-            margin-bottom: 10px;
-            color: #4CAF50;
-        }
-
-        .order-summary {
-            background: #f8f9fa;
-            padding: 25px;
-            border-radius: 10px;
-            border: 2px solid #e9ecef;
-        }
-
-        .order-summary h3 {
-            margin-bottom: 20px;
-            color: #2d3436;
-            border-bottom: 2px solid #e9ecef;
-            padding-bottom: 10px;
-        }
-
-        .order-items {
-            margin-bottom: 20px;
-        }
-
-        .order-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            padding-bottom: 10px;
-            border-bottom: 1px dashed #dee2e6;
-        }
-
-        .submit-btn {
-            padding: 16px 40px;
-            background: linear-gradient(135deg, #FF6B6B 0%, #FF5252 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1.2em;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 6px 25px rgba(255, 107, 107, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .submit-btn:hover:not(:disabled) {
-            background: linear-gradient(135deg, #FF5252 0%, #ff3d3d 100%);
-            transform: translateY(-3px);
-            box-shadow: 0 8px 30px rgba(255, 107, 107, 0.4);
-        }
-
-        .submit-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        /* Admin Styles */
-        .admin-login-form {
-            max-width: 400px;
-            margin: 50px auto;
-            padding: 40px;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-
-        .admin-login-form h2 {
-            margin-bottom: 30px;
-            color: #2d3436;
-        }
-
-        .admin-dashboard {
-            animation: fadeIn 0.5s ease;
-        }
-
-        .admin-welcome {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            text-align: center;
-        }
-
-        .admin-welcome h2 {
-            margin-bottom: 10px;
-        }
-
-        .admin-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-            text-align: center;
-            transition: transform 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .stat-value {
-            font-size: 2.5em;
-            font-weight: bold;
-            color: #FF6B6B;
-            margin-bottom: 10px;
-        }
-
-        .stat-label {
-            color: #636e72;
-            font-weight: 600;
-        }
-
-        .admin-actions {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-        }
-
-        .admin-action-btn {
-            padding: 20px;
-            background: white;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .admin-action-btn:hover {
-            border-color: #4CAF50;
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        }
-
-        .admin-action-btn i {
-            font-size: 2.5em;
-            color: #4CAF50;
-        }
-
-        .admin-action-btn span {
-            font-weight: 600;
-            color: #2d3436;
-            font-size: 1.1em;
-        }
-
-        .logout-btn {
-            position: absolute;
-            top: 40px;
-            right: 40px;
-            padding: 10px 20px;
-            background: #FF6B6B;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .logout-btn:hover {
-            background: #ff5252;
-            transform: translateY(-2px);
-        }
-
-        /* Footer */
-        footer {
-            text-align: center;
-            padding: 30px;
-            color: #636e72;
-            font-size: 0.95em;
-            border-top: 1px solid #e9ecef;
-            margin-top: 40px;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.05);
-        }
-
-        footer p {
-            margin: 10px 0;
-        }
-
-        .social-icons {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .social-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #f8f9fa;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #636e72;
-            font-size: 1.2em;
-            transition: all 0.3s ease;
-            text-decoration: none;
-        }
-
-        .social-icon:hover {
-            background: #FF6B6B;
-            color: white;
-            transform: translateY(-3px);
-        }
-
-        /* Responsive Design */
-        @media (max-width: 992px) {
-            .logo h1 {
-                font-size: 2.8em;
-            }
-            
-            .slide-content {
-                flex-direction: column;
-                text-align: center;
-                padding: 40px 20px;
-            }
-            
-            .slide-text {
-                max-width: 100%;
-                margin-bottom: 30px;
-            }
-            
-            .slide-title {
-                font-size: 2.5em;
-            }
-            
-            .menu-grid {
-                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            }
-        }
-
-        @media (max-width: 768px) {
-            .nav-bar {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .nav-btn {
-                width: 100%;
-                max-width: 300px;
-                justify-content: center;
-            }
-            
-            .slideshow-container {
-                height: 400px;
-            }
-            
-            .slide-title {
-                font-size: 2em;
-            }
-            
-            .slide-description {
-                font-size: 1.2em;
-            }
-            
-            .cart-item {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
-            }
-            
-            .cart-item-controls {
-                width: 100%;
-                justify-content: space-between;
-            }
-        }
-
-        @media (max-width: 576px) {
-            .container {
-                padding: 15px;
-            }
-            
-            .main-content {
-                padding: 25px;
-            }
-            
-            .logo h1 {
-                font-size: 2.2em;
-            }
-            
-            .slideshow-container {
-                height: 350px;
-            }
-            
-            .menu-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .payment-methods {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Notification */
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            background: #4CAF50;
-            color: white;
-            border-radius: 10px;
-            box-shadow: 0 5px 20px rgba(76, 175, 80, 0.3);
-            z-index: 1000;
-            animation: slideInRight 0.3s ease, fadeOut 0.3s ease 2.7s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            max-width: 300px;
-        }
-
-        @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        @keyframes fadeOut {
-            to { opacity: 0; }
-        }
-
-        /* Loading Spinner */
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <header>
-            <div class="logo">
-                <h1><i class="fas fa-utensils"></i> Ai-Maize-ing Nachos</h1>
-                <div class="tagline">Delicious Nachos & Desserts Made with Love</div>
-            </div>
-            
-            <div class="nav-bar">
-                <button class="nav-btn active" onclick="showSection('home')">
-                    <i class="fas fa-home"></i> Home
-                </button>
-                <button class="nav-btn" onclick="showSection('menu')">
-                    <i class="fas fa-utensils"></i> Menu
-                </button>
-                <button class="nav-btn" onclick="showSection('cart')">
-                    <i class="fas fa-shopping-cart"></i> Cart (<span id="cart-count">0</span>)
-                </button>
-                <button class="nav-btn" onclick="showSection('order')">
-                    <i class="fas fa-shopping-bag"></i> Order Now
-                </button>
-                <button class="nav-btn admin-btn" style="display: none;" onclick="showSection('admin')">
-                    <i class="fas fa-user-shield"></i> Admin
-                </button>
-            </div>
-        </header>
-
-        <main class="main-content">
-            <!-- Home Section -->
-            <div id="home-section" class="section active">
-                <h2 style="text-align: center; margin-bottom: 30px; color: #2d3436;">
-                    <i class="fas fa-star"></i> Welcome to Ai-Maize-ing Nachos!
-                </h2>
-                
-                <div class="slideshow-container" id="slideshow-container">
-                    <!-- Slides will be loaded here -->
-                    <div class="slideshow-loading" style="text-align: center; padding: 100px;">
-                        <div class="loading" style="margin: 0 auto 20px;"></div>
-                        <p>Loading delicious treats...</p>
-                    </div>
-                </div>
-                
-                <div class="slideshow-controls">
-                    <button class="control-btn" onclick="prevSlide()">
-                        <i class="fas fa-chevron-left"></i> Previous
-                    </button>
-                    <button class="control-btn" onclick="toggleAutoPlay()" id="autoplay-btn">
-                        <i class="fas fa-pause"></i> Pause Auto-play
-                    </button>
-                    <button class="control-btn" onclick="nextSlide()">
-                        Next <i class="fas fa-chevron-right"></i>
-                    </button>
-                </div>
-                
-                <div class="slide-indicators" id="slide-indicators">
-                    <!-- Indicators will be added here -->
-                </div>
-                
-                <div style="text-align: center; margin-top: 40px;">
-                    <button class="checkout-btn" onclick="showSection('menu')">
-                        <i class="fas fa-utensils"></i> View Full Menu
-                    </button>
-                </div>
-            </div>
-
-            <!-- Menu Section -->
-            <div id="menu-section" class="section">
-                <h2 style="text-align: center; margin-bottom: 30px; color: #2d3436;">
-                    <i class="fas fa-book-open"></i> Our Delicious Menu
-                </h2>
-                
-                <div class="menu-categories" id="menu-categories">
-                    <button class="category-btn active" onclick="filterMenu('all')">All Items</button>
-                    <button class="category-btn" onclick="filterMenu('nachos')">Nachos</button>
-                    <button class="category-btn" onclick="filterMenu('desserts')">Desserts</button>
-                    <button class="category-btn" onclick="filterMenu('drinks')">Drinks</button>
-                </div>
-                
-                <div class="menu-grid" id="menu-grid">
-                    <!-- Menu items will be loaded here -->
-                    <div style="grid-column: 1/-1; text-align: center; padding: 50px;">
-                        <div class="loading" style="margin: 0 auto 20px;"></div>
-                        <p>Loading menu items...</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Cart Section -->
-            <div id="cart-section" class="section">
-                <h2 style="text-align: center; margin-bottom: 30px; color: #2d3436;">
-                    <i class="fas fa-shopping-cart"></i> Your Shopping Cart
-                </h2>
-                
-                <div class="cart-container" id="cart-container">
-                    <div style="text-align: center; padding: 50px;">
-                        <i class="fas fa-shopping-cart" style="font-size: 3em; color: #e9ecef; margin-bottom: 20px;"></i>
-                        <p style="color: #636e72; font-size: 1.1em;">Your cart is empty</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Order Section -->
-            <div id="order-section" class="section">
-                <h2 style="text-align: center; margin-bottom: 30px; color: #2d3436;">
-                    <i class="fas fa-shopping-bag"></i> Place Your Order
-                </h2>
-                
-                <div class="order-form" id="order-form">
-                    <!-- Order form will be loaded here -->
-                </div>
-            </div>
-
-            <!-- Admin Section -->
-            <div id="admin-section" class="section">
-                <div id="admin-content">
-                    <!-- Admin content will be loaded here -->
-                </div>
-            </div>
-        </main>
-
-        <footer>
-            <div style="margin-bottom: 20px;">
-                <h3 style="color: #2d3436; margin-bottom: 15px;">Ai-Maize-ing Nachos</h3>
-                <p>Delicious food made with love and care</p>
-            </div>
-            
-            <div style="margin-bottom: 20px;">
-                <p><i class="fas fa-map-marker-alt"></i> 123 Food Street, City, Country</p>
-                <p><i class="fas fa-phone"></i> +63 123 456 7890</p>
-                <p><i class="fas fa-envelope"></i> info@aimaizeingnachos.com</p>
-            </div>
-            
-            <div style="margin-bottom: 20px;">
-                <p><strong>Opening Hours:</strong></p>
-                <p>Monday - Sunday: 10:00 AM - 10:00 PM</p>
-            </div>
-            
-            <div class="social-icons">
-                <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
-                <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
-                <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
-                <a href="#" class="social-icon"><i class="fab fa-tiktok"></i></a>
-            </div>
-            
-            <p style="margin-top: 20px;">&copy; 2024 Ai-Maize-ing Nachos. All rights reserved.</p>
-        </footer>
-    </div>
-
-    <script>
-        // =========== GLOBAL VARIABLES ===========
-        const API_BASE_URL = window.location.origin;
-        let currentSlides = [];
-        let currentSlideIndex = 0;
-        let autoPlayInterval;
-        let isAutoPlay = true;
-        let cart = JSON.parse(localStorage.getItem('cart')) || [];
-        let currentAdmin = null;
-        let adminToken = null;
-
-        // =========== SLIDESHOW FUNCTIONS ===========
-        async function initSlideshow() {
-            console.log('Initializing slideshow...');
-            const container = document.getElementById('slideshow-container');
-            
-            try {
-                container.innerHTML = `
-                    <div style="text-align: center; padding: 100px;">
-                        <div class="loading" style="margin: 0 auto 20px;"></div>
-                        <p>Loading slideshow...</p>
-                    </div>
-                `;
-                
-                const response = await fetch(`${API_BASE_URL}/api/slideshow`);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                console.log('Slideshow data received:', data);
-                
-                if (data && data.success && Array.isArray(data.data)) {
-                    currentSlides = data.data;
-                    if (currentSlides.length > 0) {
-                        renderSlideshow();
-                        startAutoPlay();
-                    } else {
-                        createFallbackSlides();
-                    }
-                } else {
-                    console.warn('Unexpected data format:', data);
-                    createFallbackSlides();
-                }
-                
-            } catch (error) {
-                console.error('Error loading slideshow:', error);
-                createFallbackSlides();
-            }
-        }
-
-        function createFallbackSlides() {
-            console.log('Creating fallback slides...');
-            currentSlides = [
-                {
-                    _id: '1',
-                    title: 'Welcome to Ai-Maize-ing Nachos!',
-                    description: 'Delicious food made with love and care. Try our amazing selection of nachos and desserts.',
-                    imageUrl: '/image/LOGO.jpg',
-                    order: 1,
-                    active: true
-                },
-                {
-                    _id: '2',
-                    title: 'Overload Cheesy Nachos',
-                    description: 'Loaded with premium cheese and delicious toppings. Our most popular item!',
-                    imageUrl: '/image/overload chees nachos.jpg',
-                    order: 2,
-                    active: true,
-                    price: 95
-                },
-                {
-                    _id: '3',
-                    title: 'Mango Graham Special',
-                    description: 'Sweet and refreshing mango dessert. Perfect for any occasion.',
-                    imageUrl: '/image/mango.gif',
-                    order: 3,
-                    active: true,
-                    price: 40
-                },
-                {
-                    _id: '4',
-                    title: 'Supreme Nachos',
-                    description: 'Premium nachos experience with triple cheese and guacamole.',
-                    imageUrl: '/image/Supreme Nachos.png',
-                    order: 4,
-                    active: true,
-                    price: 180
-                }
-            ];
-            
-            renderSlideshow();
-            startAutoPlay();
-        }
-
-        function renderSlideshow() {
-            const container = document.getElementById('slideshow-container');
-            const indicatorsContainer = document.getElementById('slide-indicators');
-            
-            if (currentSlides.length === 0) {
-                container.innerHTML = '<div class="slideshow-error">No slides available</div>';
-                indicatorsContainer.innerHTML = '';
-                return;
-            }
-            
-            // Create slides HTML
-            let slidesHTML = '';
-            currentSlides.forEach((slide, index) => {
-                const imagePath = slide.imageUrl || '/image/default-food.jpg';
-                slidesHTML += `
-                    <div class="slide ${index === 0 ? 'active' : ''}" data-index="${index}">
-                        <div class="slide-content">
-                            <div class="slide-text">
-                                <h3 class="slide-title">${slide.title}</h3>
-                                <p class="slide-description">${slide.description || 'Delicious treat'}</p>
-                                ${slide.price ? `<div class="slide-price">₱${slide.price}</div>` : ''}
-                            </div>
-                            <div class="slide-image-container">
-                                <img src="${imagePath}" alt="${slide.title}" class="slide-image"
-                                     onerror="this.src='/image/default-food.jpg'">
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            // Add navigation arrows
-            slidesHTML += `
-                <button class="slide-nav prev" onclick="prevSlide()">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <button class="slide-nav next" onclick="nextSlide()">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-            `;
-            
-            container.innerHTML = slidesHTML;
-            
-            // Create indicators
-            let indicatorsHTML = '';
-            currentSlides.forEach((_, index) => {
-                indicatorsHTML += `
-                    <div class="indicator ${index === 0 ? 'active' : ''}" 
-                         onclick="goToSlide(${index})"
-                         data-index="${index}"></div>
-                `;
-            });
-            
-            indicatorsContainer.innerHTML = indicatorsHTML;
-            
-            console.log(`Slideshow rendered with ${currentSlides.length} slides`);
-        }
-
-        function goToSlide(index) {
-            if (index < 0 || index >= currentSlides.length) return;
-            
-            const slides = document.querySelectorAll('.slide');
-            const indicators = document.querySelectorAll('.indicator');
-            
-            // Hide all slides and remove active from indicators
-            slides.forEach(slide => slide.classList.remove('active'));
-            indicators.forEach(indicator => indicator.classList.remove('active'));
-            
-            // Show selected slide
-            slides[index].classList.add('active');
-            if (indicators[index]) {
-                indicators[index].classList.add('active');
-            }
-            
-            currentSlideIndex = index;
-            resetAutoPlay();
-        }
-
-        function nextSlide() {
-            const nextIndex = (currentSlideIndex + 1) % currentSlides.length;
-            goToSlide(nextIndex);
-        }
-
-        function prevSlide() {
-            const prevIndex = (currentSlideIndex - 1 + currentSlides.length) % currentSlides.length;
-            goToSlide(prevIndex);
-        }
-
-        function startAutoPlay() {
-            if (currentSlides.length <= 1) return;
-            
-            clearInterval(autoPlayInterval);
-            isAutoPlay = true;
-            
-            autoPlayInterval = setInterval(() => {
-                if (isAutoPlay) {
-                    nextSlide();
-                }
-            }, 5000);
-            
-            updateAutoPlayButton();
-        }
-
-        function toggleAutoPlay() {
-            isAutoPlay = !isAutoPlay;
-            updateAutoPlayButton();
-            
-            if (isAutoPlay) {
-                startAutoPlay();
-            } else {
-                clearInterval(autoPlayInterval);
-            }
-        }
-
-        function updateAutoPlayButton() {
-            const btn = document.getElementById('autoplay-btn');
-            if (btn) {
-                btn.innerHTML = isAutoPlay ? 
-                    '<i class="fas fa-pause"></i> Pause Auto-play' : 
-                    '<i class="fas fa-play"></i> Start Auto-play';
-            }
-        }
-
-        function resetAutoPlay() {
-            if (isAutoPlay) {
-                clearInterval(autoPlayInterval);
-                startAutoPlay();
-            }
-        }
-
-        // =========== MENU FUNCTIONS ===========
-        async function loadMenuItems() {
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/menu-items`);
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success && data.data && data.data.items) {
-                        renderMenuItems(data.data.items);
-                    } else {
-                        renderMenuItems(getFallbackMenuItems());
-                    }
-                } else {
-                    renderMenuItems(getFallbackMenuItems());
-                }
-            } catch (error) {
-                console.error('Error loading menu:', error);
-                renderMenuItems(getFallbackMenuItems());
-            }
-        }
-
-        function getFallbackMenuItems() {
-            return [
-                {
-                    _id: '1',
-                    name: 'Regular Nachos',
-                    price: 35,
-                    category: 'nachos',
-                    description: 'Classic nachos with delicious toppings',
-                    isAvailable: true,
-                    imageUrl: '/image/classic nachos.jpg'
-                },
-                {
-                    _id: '2',
-                    name: 'Veggie Nachos',
-                    price: 65,
-                    category: 'nachos',
-                    description: 'Vegetarian delight with fresh vegetables',
-                    isAvailable: true,
-                    imageUrl: '/image/veggie nachos.jpg'
-                },
-                {
-                    _id: '3',
-                    name: 'Overload Cheesy Nachos',
-                    price: 95,
-                    category: 'nachos',
-                    description: 'Extra cheesy goodness with premium toppings',
-                    isAvailable: true,
-                    imageUrl: '/image/overload chees nachos.jpg'
-                },
-                {
-                    _id: '4',
-                    name: 'Mango Graham',
-                    price: 40,
-                    category: 'desserts',
-                    description: 'Sweet mango graham dessert with cream',
-                    isAvailable: true,
-                    imageUrl: '/image/mango.gif'
-                },
-                {
-                    _id: '5',
-                    name: 'Biscoff',
-                    price: 159,
-                    category: 'desserts',
-                    description: 'Delicious Biscoff cookie dessert',
-                    isAvailable: true,
-                    imageUrl: '/image/biscoff.jpeg'
-                },
-                {
-                    _id: '6',
-                    name: 'Nacho Combo',
-                    price: 75,
-                    category: 'nachos',
-                    description: 'Nachos with your choice of drink',
-                    isAvailable: true,
-                    imageUrl: '/image/combo.png'
-                }
-            ];
-        }
-
-        function renderMenuItems(items) {
-            const container = document.getElementById('menu-grid');
-            if (!container) return;
-            
-            if (!items || items.length === 0) {
-                container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 50px;">No menu items available</div>';
-                return;
-            }
-            
-            let html = '';
-            items.forEach(item => {
-                const imagePath = item.imageUrl || '/image/default-food.jpg';
-                
-                html += `
-                    <div class="menu-item" data-category="${item.category}">
-                        <img src="${imagePath}" alt="${item.name}" class="menu-item-image"
-                             onerror="this.src='/image/default-food.jpg'">
-                        <div class="menu-item-content">
-                            <div class="menu-item-header">
-                                <h3 class="menu-item-title">${item.name}</h3>
-                                <div class="menu-item-price">₱${item.price}</div>
-                            </div>
-                            <p class="menu-item-description">${item.description || 'Delicious treat'}</p>
-                            <div class="menu-item-actions">
-                                <span class="availability ${item.isAvailable ? 'available' : 'unavailable'}">
-                                    ${item.isAvailable ? 'Available' : 'Out of Stock'}
-                                </span>
-                                ${item.isAvailable ? 
-                                    `<button class="add-to-cart" onclick="addToCart('${item._id}', '${item.name}', ${item.price})">
-                                        <i class="fas fa-cart-plus"></i> Add to Cart
-                                    </button>` : 
-                                    `<button class="add-to-cart" disabled>
-                                        <i class="fas fa-times"></i> Out of Stock
-                                    </button>`
-                                }
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            container.innerHTML = html;
-        }
-
-        function filterMenu(category) {
-            const categoryBtns = document.querySelectorAll('.category-btn');
-            categoryBtns.forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            const items = document.querySelectorAll('.menu-item');
-            items.forEach(item => {
-                if (category === 'all' || item.dataset.category === category) {
-                    item.style.display = 'block';
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-        }
-
-        // =========== CART FUNCTIONS ===========
-        function addToCart(id, name, price) {
-            const existingItem = cart.find(item => item.id === id);
-            
-            if (existingItem) {
-                existingItem.quantity += 1;
-            } else {
-                cart.push({
-                    id,
-                    name,
-                    price,
-                    quantity: 1
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const path = require('path');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const webpush = require('web-push');
+require('dotenv').config();
+
+const app = express();
+const PORT = process.env.PORT || 8080;
+
+app.use(cors());
+app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Import models
+const Order = require('./models/Order');
+const Admin = require('./models/Admin');
+const Customer = require('./models/Customer');
+const Availability = require('./models/Availability');
+
+// Store recent notifications
+let recentNotifications = [];
+const MAX_NOTIFICATIONS = 50;
+const currencySymbol = '₱';
+
+// VAPID Keys for Push Notifications - FIXED SYNTAX
+const vapidKeys = {
+  publicKey: process.env.VAPID_PUBLIC_KEY,
+  privateKey: process.env.VAPID_PRIVATE_KEY
+};
+
+// Validate that VAPID keys are provided
+if (!vapidKeys.publicKey || !vapidKeys.privateKey) {
+  console.log('⚠️  VAPID keys not found in environment variables');
+  console.log('ℹ️  Push notifications will be disabled');
+  console.log('ℹ️  Generate keys with: node generate-valid-keys.js');
+} else {
+  try {
+    // Configure web-push with VAPID keys
+    webpush.setVapidDetails(
+      'mailto:admin@aifoodies.com',
+      vapidKeys.publicKey,
+      vapidKeys.privateKey
+    );
+    console.log('✅ VAPID keys configured successfully');
+  } catch (error) {
+    console.log('❌ VAPID key configuration failed:', error.message);
+    console.log('ℹ️  Push notifications will be disabled');
+    // Disable push functionality
+    vapidKeys.publicKey = null;
+    vapidKeys.privateKey = null;
+  }
+}
+
+// Store push subscriptions
+let pushSubscriptions = [];
+
+// JWT Middleware
+const authenticateToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) return res.status(401).json({ message: 'Access token required' });
+
+    jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret-key', (err, user) => {
+        if (err) return res.status(403).json({ message: 'Invalid token' });
+        req.user = user;
+        next();
+    });
+};
+
+// Customer authentication middleware
+const authenticateCustomer = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) return res.status(401).json({ message: 'Access token required' });
+
+    jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret-key', (err, decoded) => {
+        if (err) return res.status(403).json({ message: 'Invalid token' });
+        if (decoded.type !== 'customer') return res.status(403).json({ message: 'Invalid token type' });
+        
+        req.customer = decoded;
+        next();
+    });
+};
+
+// MongoDB Connect
+const MONGO_URI = process.env.MONGODB_URI || 'mongodb+srv://aifoodies:mahalkitaivy@aifoodies.ylsnhql.mongodb.net/nachos?retryWrites=true&w=majority';
+
+mongoose.connect(MONGO_URI)
+.then(() => console.log('✅ MongoDB Connected'))
+.catch(err => console.log('❌ MongoDB Error:', err.message));
+
+// Create Default Admin
+const initializeAdmin = async () => {
+    const adminExists = await Admin.findOne({ username: 'admin' });
+    if (!adminExists) {
+        const hashed = await bcrypt.hash('admin123', 10);
+        await Admin.create({
+            username: 'admin',
+            password: hashed,
+            email: 'admin@aifoodies.com'
+        });
+        console.log('✅ Default Admin Created');
+    }
+};
+
+// Initialize Default Availability
+async function initializeDefaultAvailability() {
+    try {
+        const defaultItems = [
+            'Classic Nachos', 'Supreme Nachos', 'Spicy Chicken Nachos',
+            'BBQ Pulled Pork Nachos', 'Veggie Delight Nachos', 'Loaded Beef Nachos',
+            'Buffalo Chicken Nachos', 'Seafood Nachos', 'Breakfast Nachos',
+            'Dessert Nachos', 'Taco Nachos', 'Pizza Nachos',
+            'Guacamole', 'Sour Cream', 'Jalapeños', 'Extra Cheese'
+        ];
+
+        for (const itemName of defaultItems) {
+            const existing = await Availability.findOne({ name: itemName });
+            if (!existing) {
+                await Availability.create({
+                    name: itemName,
+                    available: true,
+                    category: itemName.toLowerCase().includes('nachos') ? 'nachos' : 'toppings'
                 });
             }
-            
-            updateCartStorage();
-            updateCartDisplay();
-            showNotification(`${name} added to cart!`);
         }
+        console.log('✅ Default availability initialized');
+    } catch (error) {
+        console.log('❌ Default availability initialization failed:', error.message);
+    }
+}
 
-        function updateCartStorage() {
-            localStorage.setItem('cart', JSON.stringify(cart));
+// Add notification to recent notifications
+function addNotification(notification) {
+    recentNotifications.unshift(notification);
+    if (recentNotifications.length > MAX_NOTIFICATIONS) {
+        recentNotifications = recentNotifications.slice(0, MAX_NOTIFICATIONS);
+    }
+    console.log('📢 Notification added:', notification.message);
+    
+    // Send push notifications to all subscribers if keys are valid
+    if (vapidKeys.publicKey && vapidKeys.privateKey) {
+        sendPushNotification(notification);
+    }
+}
+
+// Function to send push notifications
+async function sendPushNotification(notification) {
+    if (!vapidKeys.publicKey || !vapidKeys.privateKey) {
+        console.log('📱 Push notifications disabled - no valid VAPID keys');
+        return;
+    }
+
+    const payload = JSON.stringify({
+        title: '🍿 New Order! - Ai-Maize-ing Nachos',
+        body: notification.message,
+        icon: '/icon-192x192.png',
+        badge: '/badge-72x72.png',
+        tag: 'new-order',
+        timestamp: notification.timestamp,
+        data: {
+            url: '/admin',
+            orderId: notification.order?.id
         }
+    });
 
-        function updateCartDisplay() {
-            const count = cart.reduce((total, item) => total + item.quantity, 0);
-            document.getElementById('cart-count').textContent = count;
-            
-            if (document.getElementById('cart-section').style.display === 'block') {
-                renderCart();
+    const promises = pushSubscriptions.map(async (subscription) => {
+        try {
+            await webpush.sendNotification(subscription, payload);
+            console.log('📱 Push notification sent successfully');
+        } catch (error) {
+            console.log('❌ Push notification failed:', error);
+            // Remove invalid subscriptions
+            if (error.statusCode === 410) {
+                pushSubscriptions = pushSubscriptions.filter(
+                    sub => sub.endpoint !== subscription.endpoint
+                );
             }
         }
+    });
 
-        function renderCart() {
-            const container = document.getElementById('cart-container');
-            if (!container) return;
-            
-            if (cart.length === 0) {
-                container.innerHTML = `
-                    <div style="text-align: center; padding: 50px;">
-                        <i class="fas fa-shopping-cart" style="font-size: 3em; color: #e9ecef; margin-bottom: 20px;"></i>
-                        <p style="color: #636e72; font-size: 1.1em;">Your cart is empty</p>
-                        <button class="checkout-btn" onclick="showSection('menu')" style="margin-top: 20px;">
-                            <i class="fas fa-utensils"></i> Browse Menu
-                        </button>
-                    </div>
-                `;
-                return;
+    await Promise.allSettled(promises);
+}
+
+// ✅ HEALTH CHECK
+app.get('/api/health', (req, res) => {
+    res.json({
+        status: 'OK',
+        database: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected',
+        pushNotifications: vapidKeys.publicKey && vapidKeys.privateKey ? 'Enabled' : 'Disabled',
+        availability: 'Enabled'
+    });
+});
+
+// ✅ ITEM AVAILABILITY ENDPOINTS
+
+// ✅ GET ALL ITEM AVAILABILITY
+app.get('/api/availability', async (req, res) => {
+    try {
+        const availability = await Availability.find();
+        
+        // Convert to object format for easier client-side use
+        const availabilityObj = {};
+        availability.forEach(item => {
+            availabilityObj[item.name] = item.available;
+        });
+        
+        res.json(availabilityObj);
+    } catch (error) {
+        console.error('❌ Availability fetch error:', error);
+        res.status(500).json({ 
+            message: 'Error fetching availability',
+            error: error.message 
+        });
+    }
+});
+
+// ✅ UPDATE ITEM AVAILABILITY (Protected)
+app.put('/api/availability/:itemName', authenticateToken, async (req, res) => {
+    try {
+        const itemName = decodeURIComponent(req.params.itemName);
+        const { available } = req.body;
+
+        if (typeof available !== 'boolean') {
+            return res.status(400).json({ message: 'Available field must be boolean' });
+        }
+
+        // Find and update or create availability record
+        const availability = await Availability.findOneAndUpdate(
+            { name: itemName },
+            { 
+                name: itemName,
+                available: available,
+                category: 'nachos' // Default category, you can customize this
+            },
+            { 
+                upsert: true, // Create if doesn't exist
+                new: true 
             }
-            
-            let html = '';
-            let total = 0;
-            
-            cart.forEach((item, index) => {
-                const itemTotal = item.price * item.quantity;
-                total += itemTotal;
-                
-                html += `
-                    <div class="cart-item">
-                        <div class="cart-item-info">
-                            <div class="cart-item-name">${item.name}</div>
-                            <div class="cart-item-price">₱${item.price} × ${item.quantity}</div>
-                        </div>
-                        <div class="cart-item-controls">
-                            <div class="quantity-controls">
-                                <button class="quantity-btn" onclick="updateQuantity(${index}, ${item.quantity - 1})" ${item.quantity <= 1 ? 'disabled' : ''}>-</button>
-                                <span class="quantity-display">${item.quantity}</span>
-                                <button class="quantity-btn" onclick="updateQuantity(${index}, ${item.quantity + 1})">+</button>
-                            </div>
-                            <div style="font-weight: bold; font-size: 1.2em;">₱${itemTotal.toFixed(2)}</div>
-                            <button class="remove-btn" onclick="removeFromCart(${index})">
-                                <i class="fas fa-trash"></i> Remove
-                            </button>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            html += `
-                <div class="cart-actions">
-                    <button class="clear-cart-btn" onclick="clearCart()">
-                        <i class="fas fa-trash-alt"></i> Clear Cart
-                    </button>
-                    <div style="text-align: right;">
-                        <div class="cart-total">Total: ₱${total.toFixed(2)}</div>
-                        <button class="checkout-btn" onclick="showSection('order')" style="margin-top: 10px;">
-                            <i class="fas fa-shopping-bag"></i> Proceed to Checkout
-                        </button>
-                    </div>
-                </div>
-            `;
-            
-            container.innerHTML = html;
-        }
+        );
 
-        function updateQuantity(index, newQuantity) {
-            if (newQuantity < 1) {
-                removeFromCart(index);
-                return;
+        console.log(`📦 Availability updated: ${itemName} = ${available}`);
+
+        res.json({
+            message: 'Availability updated successfully',
+            item: {
+                name: availability.name,
+                available: availability.available,
+                category: availability.category
             }
-            
-            cart[index].quantity = newQuantity;
-            updateCartStorage();
-            updateCartDisplay();
-            showNotification('Cart updated');
+        });
+    } catch (error) {
+        console.error('❌ Availability update error:', error);
+        res.status(500).json({ 
+            message: 'Error updating availability',
+            error: error.message 
+        });
+    }
+});
+
+// ✅ BULK UPDATE AVAILABILITY (Protected)
+app.put('/api/availability', authenticateToken, async (req, res) => {
+    try {
+        const { updates } = req.body;
+
+        if (!updates || typeof updates !== 'object') {
+            return res.status(400).json({ message: 'Updates object required' });
         }
 
-        function removeFromCart(index) {
-            const itemName = cart[index].name;
-            cart.splice(index, 1);
-            updateCartStorage();
-            updateCartDisplay();
-            showNotification(`${itemName} removed from cart`);
-        }
-
-        function clearCart() {
-            if (cart.length === 0) return;
-            
-            if (confirm('Are you sure you want to clear your cart?')) {
-                cart = [];
-                updateCartStorage();
-                updateCartDisplay();
-                showNotification('Cart cleared');
-            }
-        }
-
-        // =========== ORDER FUNCTIONS ===========
-        function renderOrderForm() {
-            const container = document.getElementById('order-form');
-            if (!container) return;
-            
-            if (cart.length === 0) {
-                container.innerHTML = `
-                    <div style="text-align: center; padding: 50px;">
-                        <i class="fas fa-shopping-cart" style="font-size: 3em; color: #e9ecef; margin-bottom: 20px;"></i>
-                        <p style="color: #636e72; font-size: 1.1em; margin-bottom: 20px;">Your cart is empty</p>
-                        <button class="checkout-btn" onclick="showSection('menu')">
-                            <i class="fas fa-utensils"></i> Browse Menu
-                        </button>
-                    </div>
-                `;
-                return;
-            }
-            
-            // Calculate totals
-            let subtotal = 0;
-            cart.forEach(item => {
-                subtotal += item.price * item.quantity;
-            });
-            const tax = subtotal * 0.12; // 12% tax
-            const total = subtotal + tax;
-            
-            // Get items HTML
-            let itemsHTML = '';
-            cart.forEach(item => {
-                const itemTotal = item.price * item.quantity;
-                itemsHTML += `
-                    <div class="order-item">
-                        <span>${item.name} × ${item.quantity}</span>
-                        <span>₱${itemTotal.toFixed(2)}</span>
-                    </div>
-                `;
-            });
-            
-            container.innerHTML = `
-                <div class="order-summary">
-                    <h3>Order Summary</h3>
-                    <div class="order-items">
-                        ${itemsHTML}
-                    </div>
-                    <div class="order-item">
-                        <span>Subtotal</span>
-                        <span>₱${subtotal.toFixed(2)}</span>
-                    </div>
-                    <div class="order-item">
-                        <span>Tax (12%)</span>
-                        <span>₱${tax.toFixed(2)}</span>
-                    </div>
-                    <div class="order-item" style="font-weight: bold; border-top: 2px solid #dee2e6; padding-top: 10px;">
-                        <span>Total</span>
-                        <span>₱${total.toFixed(2)}</span>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="order-name" class="form-label">Full Name *</label>
-                    <input type="text" id="order-name" class="form-input" placeholder="Enter your full name" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="order-phone" class="form-label">Phone Number *</label>
-                    <input type="tel" id="order-phone" class="form-input" placeholder="Enter your phone number" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="order-email" class="form-label">Email Address (optional)</label>
-                    <input type="email" id="order-email" class="form-input" placeholder="Enter your email address">
-                </div>
-                
-                <div class="form-group">
-                    <label for="order-pickup" class="form-label">Pickup Time *</label>
-                    <input type="datetime-local" id="order-pickup" class="form-input" required>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Payment Method *</label>
-                    <div class="payment-methods">
-                        <div class="payment-method">
-                            <input type="radio" id="cash" name="payment" value="cash" checked>
-                            <label for="cash" class="payment-label active">
-                                <i class="fas fa-money-bill-wave"></i>
-                                <span>Cash</span>
-                            </label>
-                        </div>
-                        <div class="payment-method">
-                            <input type="radio" id="gcash" name="payment" value="gcash">
-                            <label for="gcash" class="payment-label">
-                                <i class="fas fa-mobile-alt"></i>
-                                <span>GCash</span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="order-notes" class="form-label">Special Instructions (optional)</label>
-                    <textarea id="order-notes" class="form-input" rows="4" placeholder="Any special requests or dietary restrictions..."></textarea>
-                </div>
-                
-                <button onclick="submitOrder()" class="submit-btn" id="submit-order-btn">
-                    <i class="fas fa-paper-plane"></i> Place Order
-                </button>
-            `;
-            
-            // Set minimum pickup time (30 minutes from now)
-            const now = new Date();
-            now.setMinutes(now.getMinutes() + 30);
-            const minDate = now.toISOString().slice(0, 16);
-            document.getElementById('order-pickup').min = minDate;
-            
-            // Set default pickup time (1 hour from now)
-            now.setMinutes(now.getMinutes() + 30);
-            const defaultDate = now.toISOString().slice(0, 16);
-            document.getElementById('order-pickup').value = defaultDate;
-            
-            // Handle payment method selection
-            document.querySelectorAll('.payment-label').forEach(label => {
-                label.addEventListener('click', function() {
-                    document.querySelectorAll('.payment-label').forEach(l => l.classList.remove('active'));
-                    this.classList.add('active');
-                    const input = this.previousElementSibling;
-                    input.checked = true;
-                });
-            });
-        }
-
-        async function submitOrder() {
-            const btn = document.getElementById('submit-order-btn');
-            const originalText = btn.innerHTML;
-            
-            try {
-                // Disable button and show loading
-                btn.disabled = true;
-                btn.innerHTML = '<div class="loading"></div> Processing...';
-                
-                // Get form values
-                const name = document.getElementById('order-name').value.trim();
-                const phone = document.getElementById('order-phone').value.trim();
-                const email = document.getElementById('order-email').value.trim();
-                const pickupTime = document.getElementById('order-pickup').value;
-                const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
-                const notes = document.getElementById('order-notes').value.trim();
-                
-                // Validation
-                if (!name || !phone || !pickupTime) {
-                    throw new Error('Please fill in all required fields');
-                }
-                
-                // Calculate totals
-                let subtotal = 0;
-                const items = cart.map(item => {
-                    const itemTotal = item.price * item.quantity;
-                    subtotal += itemTotal;
-                    return {
-                        name: item.name,
-                        quantity: item.quantity,
-                        price: item.price,
-                        total: itemTotal
-                    };
-                });
-                
-                const tax = subtotal * 0.12;
-                const total = subtotal + tax;
-                
-                // Prepare order data
-                const orderData = {
-                    customerName: name,
-                    customerPhone: phone,
-                    customerEmail: email || undefined,
-                    items,
-                    subtotal: parseFloat(subtotal.toFixed(2)),
-                    tax: parseFloat(tax.toFixed(2)),
-                    total: parseFloat(total.toFixed(2)),
-                    pickupTime: new Date(pickupTime).toISOString(),
-                    paymentMethod,
-                    notes: notes || undefined
-                };
-                
-                // Submit order
-                const response = await fetch(`${API_BASE_URL}/api/orders`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
+        const results = [];
+        
+        for (const [itemName, available] of Object.entries(updates)) {
+            if (typeof available === 'boolean') {
+                const availability = await Availability.findOneAndUpdate(
+                    { name: itemName },
+                    { 
+                        name: itemName,
+                        available: available,
+                        category: 'nachos'
                     },
-                    body: JSON.stringify(orderData)
+                    { 
+                        upsert: true,
+                        new: true 
+                    }
+                );
+                results.push({
+                    name: availability.name,
+                    available: availability.available
                 });
-                
-                const data = await response.json();
-                
-                if (response.ok && data.success) {
-                    // Clear cart
-                    cart = [];
-                    updateCartStorage();
-                    updateCartDisplay();
-                    
-                    // Show success message
-                    showNotification(`Order placed successfully! Order #: ${data.data.orderNumber}`, 'success');
-                    
-                    // Return to home after delay
-                    setTimeout(() => {
-                        showSection('home');
-                    }, 3000);
-                    
-                } else {
-                    throw new Error(data.message || 'Failed to place order');
-                }
-                
-            } catch (error) {
-                console.error('Order submission error:', error);
-                showNotification(error.message || 'Failed to place order. Please try again.', 'error');
-                btn.innerHTML = originalText;
-                btn.disabled = false;
             }
         }
 
-        // =========== ADMIN FUNCTIONS ===========
-        function checkAdminAuth() {
-            const token = localStorage.getItem('adminToken');
-            const adminData = localStorage.getItem('adminData');
-            
-            if (token && adminData) {
+        console.log(`📦 Bulk availability update: ${results.length} items updated`);
+
+        res.json({
+            message: 'Bulk availability update successful',
+            updatedItems: results
+        });
+    } catch (error) {
+        console.error('❌ Bulk availability update error:', error);
+        res.status(500).json({ 
+            message: 'Error updating availability in bulk',
+            error: error.message 
+        });
+    }
+});
+
+// ✅ PUSH NOTIFICATION ENDPOINTS
+
+// Get VAPID public key
+app.get('/api/push/vapid-public-key', (req, res) => {
+    if (!vapidKeys.publicKey) {
+        return res.status(503).json({ error: 'Push notifications not configured' });
+    }
+    res.json({ publicKey: vapidKeys.publicKey });
+});
+
+// Subscribe to push notifications
+app.post('/api/push/subscribe', authenticateToken, (req, res) => {
+    if (!vapidKeys.publicKey) {
+        return res.status(503).json({ error: 'Push notifications not configured' });
+    }
+
+    const subscription = req.body;
+    
+    // Check if subscription already exists
+    const exists = pushSubscriptions.some(sub => 
+        sub.endpoint === subscription.endpoint
+    );
+    
+    if (!exists) {
+        pushSubscriptions.push(subscription);
+        console.log('📱 New push subscription registered');
+    }
+    
+    res.status(201).json({ message: 'Subscription registered' });
+});
+
+// Unsubscribe from push notifications
+app.post('/api/push/unsubscribe', authenticateToken, (req, res) => {
+    const subscription = req.body;
+    pushSubscriptions = pushSubscriptions.filter(sub => 
+        sub.endpoint !== subscription.endpoint
+    );
+    console.log('📱 Push subscription removed');
+    res.json({ message: 'Unsubscribed successfully' });
+});
+
+// ✅ CUSTOMER ACCOUNT ENDPOINTS
+
+// ✅ CUSTOMER REGISTRATION
+app.post('/api/customers/register', async (req, res) => {
+    try {
+        const { name, phone, email, password } = req.body;
+
+        if (!name || !phone || !password) {
+            return res.status(400).json({ message: 'Name, phone, and password are required' });
+        }
+
+        // Check if customer already exists
+        const existingCustomer = await Customer.findOne({ phone });
+        if (existingCustomer) {
+            return res.status(400).json({ message: 'Customer with this phone number already exists' });
+        }
+
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Create new customer
+        const customer = await Customer.create({
+            name,
+            phone,
+            email: email || '',
+            password: hashedPassword,
+            loyaltyPoints: 0,
+            totalOrders: 0,
+            totalSpent: 0,
+            favoriteItems: [],
+            orderHistory: []
+        });
+
+        console.log(`✅ New customer registered: ${name} (${phone})`);
+
+        res.status(201).json({
+            message: 'Customer registered successfully',
+            customer: {
+                id: customer._id,
+                name: customer.name,
+                phone: customer.phone,
+                email: customer.email
+            }
+        });
+    } catch (error) {
+        console.error('Customer registration error:', error);
+        res.status(400).json({ message: error.message });
+    }
+});
+
+// ✅ GET CUSTOMER BY PHONE
+app.get('/api/customers/phone/:phone', async (req, res) => {
+    try {
+        const customer = await Customer.findOne({ phone: req.params.phone });
+        if (!customer) {
+            return res.status(404).json({ message: 'Customer not found' });
+        }
+        res.json({
+            id: customer._id,
+            name: customer.name,
+            phone: customer.phone,
+            email: customer.email,
+            loyaltyPoints: customer.loyaltyPoints
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// ✅ CUSTOMER LOGIN
+app.post('/api/customers/login', async (req, res) => {
+    try {
+        const { phone, password } = req.body;
+
+        if (!phone || !password) {
+            return res.status(400).json({ message: 'Phone and password required' });
+        }
+
+        const customer = await Customer.findOne({ phone });
+        if (!customer) {
+            return res.status(401).json({ message: 'Invalid phone number or password' });
+        }
+
+        // Check if customer has password (new customers might not have one)
+        if (!customer.password) {
+            return res.status(401).json({ message: 'Account not set up with password. Please register first.' });
+        }
+
+        // Use bcrypt.compare for secure password verification
+        const validPassword = await bcrypt.compare(password, customer.password);
+        if (!validPassword) {
+            return res.status(401).json({ message: 'Invalid phone number or password' });
+        }
+
+        // Create JWT token for customer
+        const token = jwt.sign(
+            { 
+                id: customer._id, 
+                phone: customer.phone,
+                type: 'customer'
+            },
+            process.env.JWT_SECRET || 'fallback-secret-key',
+            { expiresIn: '7d' }
+        );
+
+        res.json({
+            token,
+            customer: {
+                id: customer._id,
+                name: customer.name,
+                phone: customer.phone,
+                email: customer.email,
+                loyaltyPoints: customer.loyaltyPoints,
+                totalOrders: customer.totalOrders,
+                totalSpent: customer.totalSpent
+            },
+            message: 'Login successful'
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// ✅ GET CUSTOMER PROFILE & ORDER HISTORY
+app.get('/api/customers/profile', authenticateCustomer, async (req, res) => {
+    try {
+        const customer = await Customer.findById(req.customer.id)
+            .populate('orderHistory.orderId');
+        
+        if (!customer) {
+            return res.status(404).json({ message: 'Customer not found' });
+        }
+
+        res.json({
+            customer: {
+                id: customer._id,
+                name: customer.name,
+                phone: customer.phone,
+                email: customer.email,
+                loyaltyPoints: customer.loyaltyPoints,
+                totalOrders: customer.totalOrders,
+                totalSpent: customer.totalSpent,
+                favoriteItems: customer.favoriteItems,
+                orderHistory: customer.orderHistory,
+                createdAt: customer.createdAt
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Update customer profile
+app.put('/api/customers/profile', authenticateCustomer, async (req, res) => {
+    try {
+        const { name, email } = req.body;
+        
+        const updatedCustomer = await Customer.findByIdAndUpdate(
+            req.customer.id,
+            { name, email },
+            { new: true }
+        ).select('-password');
+
+        if (!updatedCustomer) {
+            return res.status(404).json({ message: 'Customer not found' });
+        }
+
+        res.json({
+            customer: updatedCustomer,
+            message: 'Profile updated successfully'
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Update customer loyalty points (internal use)
+app.patch('/api/customers/:id/loyalty', authenticateToken, async (req, res) => {
+    try {
+        const { points, orderAmount } = req.body;
+        const customerId = req.params.id;
+
+        const customer = await Customer.findById(customerId);
+        if (!customer) {
+            return res.status(404).json({ message: 'Customer not found' });
+        }
+
+        // Update loyalty points (1 point per 100 pesos spent)
+        const pointsEarned = orderAmount ? Math.floor(orderAmount / 100) : points;
+        
+        customer.loyaltyPoints += pointsEarned;
+        customer.totalOrders += 1;
+        customer.totalSpent += orderAmount || 0;
+
+        await customer.save();
+
+        console.log(`⭐ Loyalty points updated for ${customer.name}: +${pointsEarned} points`);
+
+        res.json({
+            message: 'Loyalty points updated',
+            loyaltyPoints: customer.loyaltyPoints,
+            pointsEarned: pointsEarned
+        });
+
+    } catch (error) {
+        console.error('❌ Loyalty points update error:', error);
+        res.status(500).json({ 
+            message: 'Error updating loyalty points',
+            error: error.message 
+        });
+    }
+});
+
+// Get customer order history
+app.get('/api/customers/:id/orders', authenticateToken, async (req, res) => {
+    try {
+        const customerId = req.params.id;
+        
+        const orders = await Order.find({ customerId })
+            .sort({ timestamp: -1 })
+            .select('items total status timestamp pickupTime customerName');
+
+        res.json(orders);
+
+    } catch (error) {
+        console.error('❌ Customer orders error:', error);
+        res.status(500).json({ 
+            message: 'Error fetching customer orders',
+            error: error.message 
+        });
+    }
+});
+
+// Get customer's own orders
+app.get('/api/customers/orders/my-orders', authenticateCustomer, async (req, res) => {
+    try {
+        const orders = await Order.find({ customerId: req.customer.id })
+            .sort({ timestamp: -1 })
+            .select('items total status timestamp pickupTime customerName');
+
+        res.json(orders);
+
+    } catch (error) {
+        console.error('❌ Customer orders error:', error);
+        res.status(500).json({ 
+            message: 'Error fetching your orders',
+            error: error.message 
+        });
+    }
+});
+
+// ✅ CUSTOMER PUSH NOTIFICATION SUBSCRIPTION
+app.post('/api/customers/push/subscribe', authenticateCustomer, async (req, res) => {
+    try {
+        const subscription = req.body;
+        await Customer.findByIdAndUpdate(req.customer.id, {
+            pushSubscription: subscription
+        });
+        
+        console.log(`📱 Customer ${req.customer.id} push subscription registered`);
+        res.status(201).json({ message: 'Subscription registered' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// ✅ SEND ORDER READY NOTIFICATION TO CUSTOMER
+app.post('/api/customers/notify-order-ready/:orderId', authenticateToken, async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.orderId);
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        // Find customer and send notification
+        if (order.customerId) {
+            const customer = await Customer.findById(order.customerId);
+            if (customer && customer.pushSubscription) {
+                const payload = JSON.stringify({
+                    title: '🍿 Order Ready! - Ai-Maize-ing Nachos',
+                    body: `Your order is ready for pickup, ${customer.name}!`,
+                    icon: '/icon-192x192.png',
+                    badge: '/badge-72x72.png',
+                    tag: 'order-ready',
+                    data: {
+                        url: '/customer-profile.html',
+                        orderId: order._id
+                    }
+                });
+
                 try {
-                    adminToken = token;
-                    currentAdmin = JSON.parse(adminData);
-                    showAdminButton(true);
-                    
-                    // Verify token is still valid
-                    verifyAdminToken();
-                } catch (e) {
-                    clearAdminAuth();
+                    await webpush.sendNotification(customer.pushSubscription, payload);
+                    console.log(`📱 Order ready notification sent to ${customer.name}`);
+                } catch (error) {
+                    console.log('❌ Customer push notification failed:', error);
                 }
-            } else {
-                showAdminButton(false);
             }
         }
 
-        function showAdminButton(show) {
-            const adminBtn = document.querySelector('.admin-btn');
-            if (adminBtn) {
-                adminBtn.style.display = show ? 'flex' : 'none';
-            }
+        res.json({ message: 'Notification sent' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// ✅ GET NOTIFICATIONS (Protected)
+app.get('/api/admin/notifications', authenticateToken, (req, res) => {
+    const since = req.query.since ? new Date(req.query.since) : new Date(0);
+    
+    const newNotifications = recentNotifications.filter(notification => 
+        new Date(notification.timestamp) > since
+    );
+    
+    res.json({
+        notifications: newNotifications,
+        timestamp: new Date().toISOString()
+    });
+});
+
+// ✅ CLEAR NOTIFICATIONS (Protected)
+app.delete('/api/admin/notifications', authenticateToken, (req, res) => {
+    recentNotifications = [];
+    res.json({ message: 'Notifications cleared' });
+});
+
+// ✅ LOGIN
+app.post('/api/admin/login', async (req, res) => {
+    const { username, password } = req.body;
+    const admin = await Admin.findOne({ username });
+
+    if (!admin) return res.status(401).json({ message: 'Invalid credentials' });
+
+    const valid = await bcrypt.compare(password, admin.password);
+    if (!valid) return res.status(401).json({ message: 'Invalid credentials' });
+
+    const token = jwt.sign(
+        { id: admin._id, username: admin.username },
+        process.env.JWT_SECRET || 'fallback-secret-key',
+        { expiresIn: '24h' }
+    );
+
+    res.json({ token, message: 'Login successful' });
+});
+
+// ✅ VERIFY TOKEN
+app.get('/api/admin/verify', authenticateToken, (req, res) => {
+    res.json({ valid: true, admin: req.user });
+});
+
+// ✅ VERIFY CUSTOMER TOKEN
+app.get('/api/customers/verify', authenticateCustomer, (req, res) => {
+    res.json({ valid: true, customer: req.customer });
+});
+
+// ✅ GET ORDERS (Protected)
+app.get('/api/orders', authenticateToken, async (req, res) => {
+    try {
+        const orders = await Order.find().sort({ timestamp: -1 });
+        res.json(orders);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// ✅ CREATE ORDER (Public) - WITH ENHANCED CUSTOMER HISTORY TRACKING
+app.post('/api/orders', async (req, res) => {
+    try {
+        const { customerId, customerPhone, customerName, items, total, pickupTime, paymentMethod, specialInstructions } = req.body;
+
+        // Validate required fields
+        if (!items || !total || !pickupTime) {
+            return res.status(400).json({ 
+                message: 'Items, total, and pickup time are required' 
+            });
         }
 
-        function clearAdminAuth() {
-            localStorage.removeItem('adminToken');
-            localStorage.removeItem('adminData');
-            adminToken = null;
-            currentAdmin = null;
-            showAdminButton(false);
-        }
-
-        async function verifyAdminToken() {
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/admin/verify-role`, {
-                    headers: {
-                        'Authorization': `Bearer ${adminToken}`
-                    }
+        // Check item availability before creating order
+        for (const item of items) {
+            const availability = await Availability.findOne({ name: item.name });
+            if (availability && !availability.available) {
+                return res.status(400).json({ 
+                    message: `Sorry, ${item.name} is currently out of stock!` 
                 });
-                
-                if (!response.ok) {
-                    clearAdminAuth();
-                    return false;
-                }
-                
-                const data = await response.json();
-                if (data.valid) {
-                    currentAdmin = data.admin;
-                    localStorage.setItem('adminData', JSON.stringify(data.admin));
-                    showAdminButton(true);
-                    return true;
-                } else {
-                    clearAdminAuth();
-                    return false;
-                }
-            } catch (error) {
-                console.error('Token verification failed:', error);
-                clearAdminAuth();
-                return false;
             }
         }
 
-        async function adminLogin(username, password) {
+        let customer = null;
+        let finalCustomerId = customerId;
+
+        // If customerPhone is provided but no customerId, try to find customer by phone
+        if (!customerId && customerPhone) {
+            customer = await Customer.findOne({ phone: customerPhone });
+            if (customer) {
+                finalCustomerId = customer._id;
+                console.log(`📞 Found customer by phone: ${customer.name} (${customer.phone})`);
+            }
+        }
+
+        // If customerId is provided, get customer details
+        if (finalCustomerId && !customer) {
+            customer = await Customer.findById(finalCustomerId);
+        }
+
+        // Create order with customer information
+        const orderData = {
+            items,
+            total: parseFloat(total),
+            pickupTime,
+            paymentMethod: paymentMethod || 'cash',
+            specialInstructions: specialInstructions || '',
+            status: 'pending',
+            timestamp: new Date()
+        };
+
+        // Add customer information if available
+        if (finalCustomerId) {
+            orderData.customerId = finalCustomerId;
+            orderData.customerName = customer ? customer.name : customerName;
+        } else if (customerName) {
+            orderData.customerName = customerName;
+        }
+
+        const order = await Order.create(orderData);
+        
+        // If customer exists, update customer history and loyalty points
+        if (customer) {
             try {
-                const response = await fetch(`${API_BASE_URL}/api/admin/login`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
+                // Calculate loyalty points (1 point per 100 pesos spent)
+                const pointsEarned = Math.floor(order.total / 100);
+                
+                // Update customer order history
+                await Customer.findByIdAndUpdate(customer._id, {
+                    $push: {
+                        orderHistory: {
+                            orderId: order._id,
+                            items: order.items,
+                            total: order.total,
+                            status: order.status,
+                            pickupTime: order.pickupTime,
+                            timestamp: order.timestamp
+                        }
                     },
-                    body: JSON.stringify({ username, password })
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok && data.success) {
-                    adminToken = data.token;
-                    currentAdmin = data.user;
-                    
-                    localStorage.setItem('adminToken', data.token);
-                    localStorage.setItem('adminData', JSON.stringify(data.user));
-                    
-                    showAdminButton(true);
-                    showAdminDashboard();
-                    
-                    return { success: true, user: data.user };
-                } else {
-                    return { success: false, message: data.message || 'Login failed' };
-                }
-            } catch (error) {
-                console.error('Login error:', error);
-                return { success: false, message: 'Network error' };
-            }
-        }
-
-        function adminLogout() {
-            clearAdminAuth();
-            
-            if (document.getElementById('admin-section').style.display === 'block') {
-                showSection('home');
-            }
-            
-            showNotification('Logged out successfully');
-        }
-
-        function showAdminLoginForm() {
-            const container = document.getElementById('admin-content');
-            if (!container) return;
-            
-            container.innerHTML = `
-                <div class="admin-login-form">
-                    <h2><i class="fas fa-user-shield"></i> Admin Login</h2>
-                    <div class="form-group">
-                        <label for="admin-username">Username:</label>
-                        <input type="text" id="admin-username" class="form-input" placeholder="Enter username">
-                    </div>
-                    <div class="form-group">
-                        <label for="admin-password">Password:</label>
-                        <input type="password" id="admin-password" class="form-input" placeholder="Enter password">
-                    </div>
-                    <button onclick="handleAdminLogin()" class="submit-btn" style="width: 100%;">
-                        <i class="fas fa-sign-in-alt"></i> Login
-                    </button>
-                    <div id="admin-login-error" style="color: #FF6B6B; margin-top: 15px; font-weight: 600;"></div>
-                </div>
-            `;
-        }
-
-        async function handleAdminLogin() {
-            const username = document.getElementById('admin-username').value;
-            const password = document.getElementById('admin-password').value;
-            const errorDiv = document.getElementById('admin-login-error');
-            
-            if (!username || !password) {
-                errorDiv.textContent = 'Please enter both username and password';
-                return;
-            }
-            
-            errorDiv.textContent = '';
-            
-            const result = await adminLogin(username, password);
-            
-            if (result.success) {
-                showAdminDashboard();
-            } else {
-                errorDiv.textContent = result.message || 'Login failed';
-            }
-        }
-
-        function showAdminDashboard() {
-            const container = document.getElementById('admin-content');
-            if (!container) return;
-            
-            container.innerHTML = `
-                <div class="admin-dashboard">
-                    <div class="admin-welcome">
-                        <h2><i class="fas fa-user-shield"></i> Welcome, ${currentAdmin.fullName}!</h2>
-                        <p>Role: ${currentAdmin.role} | Username: ${currentAdmin.username}</p>
-                    </div>
-                    
-                    <button class="logout-btn" onclick="adminLogout()">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </button>
-                    
-                    <div class="admin-stats" id="admin-stats">
-                        <div style="grid-column: 1/-1; text-align: center; padding: 30px;">
-                            <div class="loading" style="margin: 0 auto;"></div>
-                            <p>Loading dashboard...</p>
-                        </div>
-                    </div>
-                    
-                    <div class="admin-actions">
-                        <div class="admin-action-btn" onclick="manageOrders()">
-                            <i class="fas fa-clipboard-list"></i>
-                            <span>Manage Orders</span>
-                        </div>
-                        <div class="admin-action-btn" onclick="manageMenu()">
-                            <i class="fas fa-utensils"></i>
-                            <span>Manage Menu</span>
-                        </div>
-                        <div class="admin-action-btn" onclick="viewReports()">
-                            <i class="fas fa-chart-bar"></i>
-                            <span>View Reports</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            loadAdminStats();
-        }
-
-        async function loadAdminStats() {
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/admin/dashboard-stats`, {
-                    headers: {
-                        'Authorization': `Bearer ${adminToken}`
+                    $inc: {
+                        totalOrders: 1,
+                        totalSpent: order.total,
+                        loyaltyPoints: pointsEarned
+                    },
+                    $set: {
+                        lastOrder: order.timestamp
                     }
                 });
+
+                // Update favorite items
+                const updatedCustomer = await Customer.findById(customer._id);
+                order.items.forEach(item => {
+                    const existingFavorite = updatedCustomer.favoriteItems.find(fav => 
+                        fav.name === item.name
+                    );
+                    if (existingFavorite) {
+                        existingFavorite.count += item.quantity;
+                        existingFavorite.lastOrdered = new Date();
+                    } else {
+                        updatedCustomer.favoriteItems.push({
+                            name: item.name,
+                            count: item.quantity,
+                            lastOrdered: new Date()
+                        });
+                    }
+                });
+
+                // Sort favorite items by count (descending)
+                updatedCustomer.favoriteItems.sort((a, b) => b.count - a.count);
                 
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success) {
-                        const stats = data.data;
-                        const statsContainer = document.getElementById('admin-stats');
-                        
-                        statsContainer.innerHTML = `
-                            <div class="stat-card">
-                                <div class="stat-value">${stats.totalOrders}</div>
-                                <div class="stat-label">Total Orders</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-value">₱${stats.totalSales.toFixed(2)}</div>
-                                <div class="stat-label">Total Sales</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-value">${stats.todayOrders}</div>
-                                <div class="stat-label">Today's Orders</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-value">₱${stats.todaySales.toFixed(2)}</div>
-                                <div class="stat-label">Today's Sales</div>
-                            </div>
-                        `;
-                    }
+                // Keep only top 10 favorite items
+                if (updatedCustomer.favoriteItems.length > 10) {
+                    updatedCustomer.favoriteItems = updatedCustomer.favoriteItems.slice(0, 10);
                 }
-            } catch (error) {
-                console.error('Error loading admin stats:', error);
+
+                await updatedCustomer.save();
+
+                console.log(`📊 Customer history updated for ${customer.name}: +${pointsEarned} loyalty points, ${order.items.length} items`);
+
+            } catch (customerError) {
+                console.error('❌ Error updating customer history:', customerError);
+                // Don't fail the order if customer update fails
             }
         }
 
-        function manageOrders() {
-            alert('Orders management feature coming soon!');
-        }
+        // Create notification
+        const notification = {
+            id: Date.now().toString(),
+            type: 'new_order',
+            message: `New order from ${order.customerName || 'Guest'} - ${currencySymbol}${order.total}`,
+            order: {
+                id: order._id,
+                customerName: order.customerName,
+                total: order.total,
+                items: order.items.length,
+                pickupTime: order.pickupTime,
+                customerId: order.customerId
+            },
+            timestamp: new Date().toISOString(),
+            read: false
+        };
 
-        function manageMenu() {
-            alert('Menu management feature coming soon!');
-        }
-
-        function viewReports() {
-            alert('Reports feature coming soon!');
-        }
-
-        // =========== UTILITY FUNCTIONS ===========
-        function showNotification(message, type = 'success') {
-            // Remove existing notifications
-            const existingNotifications = document.querySelectorAll('.notification');
-            existingNotifications.forEach(n => n.remove());
-            
-            // Create new notification
-            const notification = document.createElement('div');
-            notification.className = 'notification';
-            notification.style.background = type === 'error' ? '#FF6B6B' : '#4CAF50';
-            
-            notification.innerHTML = `
-                <i class="fas fa-${type === 'error' ? 'exclamation-circle' : 'check-circle'}"></i>
-                <span>${message}</span>
-            `;
-            
-            document.body.appendChild(notification);
-            
-            // Remove after 3 seconds
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.remove();
-                }
-            }, 3000);
-        }
-
-        function showSection(sectionId) {
-            // Hide all sections
-            const sections = document.querySelectorAll('.section');
-            sections.forEach(section => {
-                section.classList.remove('active');
-            });
-            
-            // Remove active class from all nav buttons
-            const navBtns = document.querySelectorAll('.nav-btn');
-            navBtns.forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            // Show selected section and activate its button
-            const section = document.getElementById(`${sectionId}-section`);
-            const btn = document.querySelector(`.nav-btn[onclick*="${sectionId}"]`);
-            
-            if (section) {
-                section.classList.add('active');
-            }
-            
-            if (btn) {
-                btn.classList.add('active');
-            }
-            
-            // Special handling for each section
-            switch(sectionId) {
-                case 'home':
-                    if (currentSlides.length === 0) {
-                        initSlideshow();
-                    } else {
-                        resetAutoPlay();
-                    }
-                    break;
-                case 'menu':
-                    loadMenuItems();
-                    break;
-                case 'cart':
-                    renderCart();
-                    break;
-                case 'order':
-                    renderOrderForm();
-                    break;
-                case 'admin':
-                    if (!currentAdmin) {
-                        showAdminLoginForm();
-                    } else {
-                        showAdminDashboard();
-                    }
-                    break;
-            }
-            
-            updateCartDisplay();
-        }
-
-        // =========== INITIALIZATION ===========
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Page loaded, initializing...');
-            
-            // Initialize slideshow
-            initSlideshow();
-            
-            // Load initial data
-            loadMenuItems();
-            
-            // Update cart display
-            updateCartDisplay();
-            
-            // Check admin auth
-            checkAdminAuth();
-            
-            console.log('Initialization complete');
+        addNotification(notification);
+        
+        console.log(`✅ Order created: ${order._id} for ${order.customerName || 'Guest'}`);
+        
+        res.status(201).json({
+            ...order.toObject(),
+            pointsEarned: customer ? Math.floor(order.total / 100) : 0,
+            customerUpdated: !!customer
         });
 
-        // Handle page visibility change
-        document.addEventListener('visibilitychange', function() {
-            if (!document.hidden && document.getElementById('home-section').classList.contains('active')) {
-                resetAutoPlay();
+    } catch (error) {
+        console.error('❌ Order creation error:', error);
+        res.status(400).json({ 
+            message: 'Error creating order',
+            error: error.message 
+        });
+    }
+});
+
+// ✅ UPDATE ORDER (Protected) - WITH NOTIFICATION
+app.put('/api/orders/:id', authenticateToken, async (req, res) => {
+    try {
+        const updated = await Order.findByIdAndUpdate(
+            req.params.id,
+            { status: req.body.status || 'completed' },
+            { new: true }
+        );
+
+        if (updated) {
+            const notification = {
+                id: Date.now().toString(),
+                type: 'order_updated',
+                message: `Order from ${updated.customerName} marked as ${updated.status}`,
+                orderId: updated._id,
+                status: updated.status,
+                timestamp: new Date().toISOString(),
+                read: false
+            };
+
+            addNotification(notification);
+
+            // If order is completed and has customer, send ready notification
+            if (updated.status === 'completed' && updated.customerId) {
+                try {
+                    const customer = await Customer.findById(updated.customerId);
+                    if (customer && customer.pushSubscription) {
+                        const payload = JSON.stringify({
+                            title: '🍿 Order Ready! - Ai-Maize-ing Nachos',
+                            body: `Your order is ready for pickup, ${customer.name}!`,
+                            icon: '/icon-192x192.png',
+                            badge: '/badge-72x72.png',
+                            tag: 'order-ready',
+                            data: {
+                                url: '/customer-profile.html',
+                                orderId: updated._id
+                            }
+                        });
+
+                        await webpush.sendNotification(customer.pushSubscription, payload);
+                        console.log(`📱 Order ready notification sent to ${customer.name}`);
+                    }
+                } catch (pushError) {
+                    console.log('❌ Order ready push notification failed:', pushError);
+                }
+            }
+        }
+
+        res.json(updated);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+});
+
+// ✅ DELETE ORDER (Protected)
+app.delete('/api/orders/:id', authenticateToken, async (req, res) => {
+    try {
+        await Order.findByIdAndDelete(req.params.id);
+        res.json({ message: 'Order deleted' });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+});
+
+// ✅ DASHBOARD STATS (Protected)
+app.get('/api/admin/stats', authenticateToken, async (req, res) => {
+    try {
+        const totalOrders = await Order.countDocuments();
+        
+        const totalSalesResult = await Order.aggregate([
+            { $group: { _id: null, total: { $sum: '$total' } } }
+        ]);
+        const totalSales = totalSalesResult[0]?.total || 0;
+        
+        const pendingOrders = await Order.countDocuments({ status: 'pending' });
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        const todayOrders = await Order.countDocuments({
+            timestamp: { $gte: today, $lt: tomorrow }
+        });
+        
+        const todaySalesResult = await Order.aggregate([
+            { $match: { timestamp: { $gte: today, $lt: tomorrow } } },
+            { $group: { _id: null, total: { $sum: '$total' } } }
+        ]);
+        const todaySales = todaySalesResult[0]?.total || 0;
+
+        // Customer stats
+        const totalCustomers = await Customer.countDocuments();
+        const loyalCustomers = await Customer.countDocuments({ loyaltyPoints: { $gte: 10 } });
+
+        // Popular items
+        const popularItemsResult = await Order.aggregate([
+            { $unwind: '$items' },
+            { $group: { 
+                _id: '$items.name',
+                totalQuantity: { $sum: '$items.quantity' },
+                totalOrders: { $sum: 1 }
+            }},
+            { $sort: { totalQuantity: -1 } },
+            { $limit: 5 }
+        ]);
+
+        // Availability stats
+        const totalItems = await Availability.countDocuments();
+        const availableItems = await Availability.countDocuments({ available: true });
+        const unavailableItems = await Availability.countDocuments({ available: false });
+
+        res.json({
+            totalOrders,
+            totalSales,
+            pendingOrders,
+            todayOrders,
+            todaySales,
+            totalCustomers,
+            loyalCustomers,
+            popularItems: popularItemsResult,
+            availabilityStats: {
+                totalItems,
+                availableItems,
+                unavailableItems,
+                availabilityRate: totalItems > 0 ? (availableItems / totalItems * 100).toFixed(1) : 0
             }
         });
-    </script>
-</body>
-</html>
+    } catch (error) {
+        console.error('❌ Stats error:', error);
+        res.status(500).json({ 
+            message: 'Error fetching dashboard statistics',
+            error: error.message 
+        });
+    }
+});
+// ✅ VAPID KEY ENDPOINTS
+app.get('/api/admin/push/vapid-public-key', (req, res) => {
+    if (!vapidKeys.publicKey) {
+        return res.status(503).json({ error: 'Push notifications not configured' });
+    }
+    res.json({ publicKey: vapidKeys.publicKey });
+});
+
+app.post('/api/admin/push/subscribe', authenticateToken, (req, res) => {
+    if (!vapidKeys.publicKey) {
+        return res.status(503).json({ error: 'Push notifications not configured' });
+    }
+
+    const subscription = req.body;
+    
+    const exists = pushSubscriptions.some(sub => 
+        sub.endpoint === subscription.endpoint
+    );
+    
+    if (!exists) {
+        pushSubscriptions.push(subscription);
+        console.log('📱 New push subscription registered');
+    }
+    
+    res.status(201).json({ message: 'Subscription registered' });
+});
+
+app.post('/api/admin/push/unsubscribe', authenticateToken, (req, res) => {
+    const subscription = req.body;
+    pushSubscriptions = pushSubscriptions.filter(sub => 
+        sub.endpoint !== subscription.endpoint
+    );
+    console.log('📱 Push subscription removed');
+    res.json({ message: 'Unsubscribed successfully' });
+});
+// ✅ SERVE FRONTEND
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Initialize everything and start server
+Promise.all([initializeAdmin(), initializeDefaultAvailability()]).then(() => {
+    app.listen(PORT, '0.0.0.0', () => {
+        console.log(`🚀 Server running on port ${PORT}`);
+        console.log(`📢 Notification system ready`);
+        console.log(`👥 Customer account system ready`);
+        console.log(`📊 Enhanced customer history tracking enabled`);
+        console.log(`📦 Item availability management enabled`);
+        if (vapidKeys.publicKey && vapidKeys.privateKey) {
+            console.log(`📱 Push notifications enabled`);
+        } else {
+            console.log(`⚠️  Push notifications disabled - no valid VAPID keys`);
+        }
+        console.log(`🌐 Health: http://localhost:${PORT}/api/health`);
+    });
+});

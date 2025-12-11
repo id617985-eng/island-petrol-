@@ -1,0 +1,2279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slideshow Manager - Ai-Maize-ing Nachos</title>
+    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Slideshow Admin Styles */
+        :root {
+            --primary-color: #8b4513;
+            --primary-dark: #6b3410;
+            --primary-light: #d2691e;
+            --secondary-color: #4CAF50;
+            --danger-color: #f44336;
+            --warning-color: #ff9800;
+            --info-color: #2196F3;
+            --light-bg: #f8f9fa;
+            --dark-bg: #343a40;
+            --text-color: #333;
+            --text-light: #666;
+            --border-color: #ddd;
+            --shadow: 0 4px 15px rgba(0,0,0,0.1);
+            --shadow-hover: 0 8px 25px rgba(0,0,0,0.15);
+            --transition: all 0.3s ease;
+            --radius: 10px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .slideshow-admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            padding: 30px;
+        }
+        
+        .slideshow-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 15px;
+            margin-bottom: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .slideshow-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: float 20s linear infinite;
+        }
+        
+        @keyframes float {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(-50px, -50px) rotate(360deg); }
+        }
+        
+        .slideshow-header-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .slideshow-header h1 {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+        
+        .slideshow-header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .admin-actions {
+            display: flex;
+            gap: 20px;
+            margin-top: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            padding: 14px 28px;
+            border-radius: 50px;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .action-btn.primary {
+            background: white;
+            color: var(--primary-color);
+        }
+        
+        .action-btn.primary:hover {
+            background: #ffe0b2;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        .action-btn.secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        
+        .action-btn.secondary:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-3px);
+        }
+        
+        .slideshow-admin-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        
+        @media (max-width: 1200px) {
+            .slideshow-admin-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .section-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 35px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+        
+        .section-card:hover {
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-5px);
+        }
+        
+        .section-card h2 {
+            color: var(--primary-color);
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--primary-light);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 1.8rem;
+        }
+        
+        .slideshow-preview-container {
+            position: relative;
+            height: 400px;
+            border-radius: 15px;
+            overflow: hidden;
+            background: linear-gradient(45deg, #f5f5f5, #e0e0e0);
+            margin-bottom: 25px;
+            border: 3px solid var(--primary-color);
+        }
+        
+        .preview-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            display: flex;
+            align-items: flex-end;
+            padding: 40px;
+        }
+        
+        .preview-slide.active {
+            opacity: 1;
+        }
+        
+        .preview-slide-content {
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 70%;
+            backdrop-filter: blur(15px);
+            transform: translateY(30px);
+            animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        @keyframes slideUp {
+            to {
+                transform: translateY(0);
+            }
+        }
+        
+        .preview-slide-content h3 {
+            color: #ff9800;
+            margin: 0 0 15px 0;
+            font-size: 2.2rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        
+        .preview-slide-content p {
+            margin: 0 0 15px 0;
+            opacity: 0.9;
+            font-size: 1.1rem;
+            line-height: 1.5;
+        }
+        
+        .preview-slide-content .price {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+            display: inline-block;
+            padding: 8px 20px;
+            background: rgba(76, 175, 80, 0.2);
+            border-radius: 30px;
+            border: 2px solid var(--secondary-color);
+        }
+        
+        .preview-controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .preview-controls button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(139, 69, 19, 0.3);
+        }
+        
+        .preview-controls button:hover {
+            background: var(--primary-light);
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(139, 69, 19, 0.4);
+        }
+        
+        .preview-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        .preview-indicator {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #ccc;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .preview-indicator::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--primary-color);
+            transition: left 0.3s ease;
+        }
+        
+        .preview-indicator.active {
+            transform: scale(1.3);
+            box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.2);
+        }
+        
+        .preview-indicator.active::before {
+            left: 0;
+        }
+        
+        .preview-info {
+            background: var(--light-bg);
+            padding: 20px;
+            border-radius: var(--radius);
+            margin-top: 25px;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .preview-info h4 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .preview-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-top: 5px;
+        }
+        
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 12px;
+            color: var(--text-color);
+            font-weight: 600;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-group label i {
+            color: var(--primary-color);
+            width: 24px;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius);
+            font-size: 1rem;
+            transition: var(--transition);
+            background: white;
+            color: var(--text-color);
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            border-color: var(--primary-color);
+            background: #fff8e1;
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(139, 69, 19, 0.1);
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 25px;
+        }
+        
+        .image-upload-container {
+            margin-top: 20px;
+        }
+        
+        .image-preview-container {
+            width: 100%;
+            height: 250px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 3px dashed var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--light-bg);
+            position: relative;
+            transition: var(--transition);
+        }
+        
+        .image-preview-container:hover {
+            border-color: var(--primary-color);
+            background: #fff8e1;
+        }
+        
+        .image-preview-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            transition: var(--transition);
+        }
+        
+        .image-preview-placeholder {
+            text-align: center;
+            color: var(--text-light);
+            padding: 30px;
+        }
+        
+        .image-preview-placeholder i {
+            font-size: 60px;
+            margin-bottom: 20px;
+            display: block;
+            color: #ccc;
+            transition: var(--transition);
+        }
+        
+        .image-preview-container:hover .image-preview-placeholder i {
+            color: var(--primary-color);
+        }
+        
+        .upload-button {
+            background: var(--secondary-color);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+        
+        .upload-button:hover {
+            background: #388E3C;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+        
+        .form-buttons {
+            display: flex;
+            gap: 20px;
+            margin-top: 40px;
+        }
+        
+        .form-buttons button {
+            flex: 1;
+            padding: 18px;
+            border-radius: var(--radius);
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .save-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: white;
+        }
+        
+        .save-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(139, 69, 19, 0.4);
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+        }
+        
+        .clear-btn {
+            background: var(--light-bg);
+            color: var(--text-color);
+            border: 2px solid var(--border-color);
+        }
+        
+        .clear-btn:hover {
+            background: white;
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-hover);
+            border-color: var(--primary-color);
+        }
+        
+        /* Slides List Styles */
+        .slides-list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .slides-list-header h3 {
+            color: var(--primary-color);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 1.8rem;
+        }
+        
+        .slides-count {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 15px rgba(139, 69, 19, 0.3);
+        }
+        
+        .slides-grid {
+            display: grid;
+            gap: 25px;
+        }
+        
+        .slide-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            border: 2px solid transparent;
+            transition: var(--transition);
+            display: flex;
+            box-shadow: var(--shadow);
+            position: relative;
+        }
+        
+        .slide-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-hover);
+        }
+        
+        .slide-card.active {
+            border-color: var(--secondary-color);
+            background: linear-gradient(to right, #f1f8e9, white);
+        }
+        
+        .slide-card.inactive {
+            opacity: 0.7;
+            background: linear-gradient(to right, #f5f5f5, white);
+        }
+        
+        .slide-card.inactive::after {
+            content: 'INACTIVE';
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--warning-color);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            z-index: 2;
+        }
+        
+        .slide-image {
+            width: 250px;
+            height: 180px;
+            flex-shrink: 0;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .slide-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        
+        .slide-card:hover .slide-image img {
+            transform: scale(1.1);
+        }
+        
+        .slide-image::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to right, rgba(0,0,0,0.2), transparent);
+        }
+        
+        .slide-content {
+            flex: 1;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .slide-header h4 {
+            margin: 0 0 10px 0;
+            color: var(--text-color);
+            font-size: 1.4rem;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+        
+        .slide-header p {
+            margin: 0 0 15px 0;
+            color: var(--text-light);
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+        
+        .slide-meta {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .slide-category {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .slide-price {
+            color: var(--secondary-color);
+            font-weight: 700;
+            font-size: 1.1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .slide-order {
+            background: #f3e5f5;
+            color: #7b1fa2;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .slide-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .slide-action-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: var(--transition);
+            min-width: 120px;
+            justify-content: center;
+        }
+        
+        .edit-btn {
+            background: linear-gradient(135deg, #2196F3, #1976d2);
+            color: white;
+        }
+        
+        .delete-btn {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            color: white;
+        }
+        
+        .toggle-btn {
+            background: linear-gradient(135deg, var(--secondary-color), #388E3C);
+            color: white;
+        }
+        
+        .toggle-btn.inactive {
+            background: linear-gradient(135deg, var(--warning-color), #f57c00);
+        }
+        
+        .slide-action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 80px 40px;
+            color: var(--text-light);
+        }
+        
+        .empty-state i {
+            font-size: 80px;
+            margin-bottom: 30px;
+            color: #e0e0e0;
+            display: block;
+        }
+        
+        .empty-state h3 {
+            margin: 0 0 15px 0;
+            color: var(--text-color);
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        .empty-state p {
+            font-size: 1.2rem;
+            max-width: 500px;
+            margin: 0 auto 30px;
+        }
+        
+        /* Success Notification */
+        .success-notification {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, var(--secondary-color), #388E3C);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3);
+            animation: slideInRight 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            max-width: 400px;
+        }
+        
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .success-notification.show {
+            display: flex;
+        }
+        
+        .notification-icon {
+            font-size: 28px;
+            background: rgba(255,255,255,0.2);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .notification-content {
+            flex: 1;
+        }
+        
+        .notification-content h4 {
+            margin: 0 0 5px 0;
+            font-size: 1.2rem;
+        }
+        
+        .notification-content p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+        
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            flex-direction: column;
+            gap: 30px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .loading-spinner {
+            width: 80px;
+            height: 80px;
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            font-size: 1.3rem;
+            color: var(--primary-color);
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .slideshow-admin-container {
+                padding: 20px;
+            }
+            
+            .slideshow-header {
+                padding: 30px 20px;
+            }
+            
+            .slideshow-header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .slideshow-preview-container {
+                height: 350px;
+            }
+            
+            .preview-slide-content {
+                max-width: 80%;
+                padding: 25px;
+            }
+            
+            .preview-slide-content h3 {
+                font-size: 1.8rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .slideshow-admin-container {
+                padding: 15px;
+                border-radius: 15px;
+            }
+            
+            .slideshow-header {
+                padding: 25px 15px;
+                margin-bottom: 30px;
+            }
+            
+            .slideshow-header h1 {
+                font-size: 2rem;
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .admin-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .slideshow-preview-container {
+                height: 250px;
+            }
+            
+            .preview-slide {
+                padding: 20px;
+            }
+            
+            .preview-slide-content {
+                max-width: 90%;
+                padding: 20px;
+            }
+            
+            .preview-slide-content h3 {
+                font-size: 1.4rem;
+            }
+            
+            .preview-slide-content p {
+                font-size: 1rem;
+            }
+            
+            .slide-card {
+                flex-direction: column;
+            }
+            
+            .slide-image {
+                width: 100%;
+                height: 200px;
+            }
+            
+            .slide-actions {
+                flex-direction: column;
+            }
+            
+            .slide-action-btn {
+                width: 100%;
+            }
+            
+            .form-buttons {
+                flex-direction: column;
+            }
+            
+            .image-preview-container {
+                height: 200px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .slideshow-header h1 {
+                font-size: 1.6rem;
+            }
+            
+            .slideshow-header p {
+                font-size: 1rem;
+            }
+            
+            .section-card {
+                padding: 20px;
+            }
+            
+            .section-card h2 {
+                font-size: 1.5rem;
+            }
+            
+            .slideshow-preview-container {
+                height: 200px;
+            }
+            
+            .preview-slide-content {
+                max-width: 95%;
+                padding: 15px;
+            }
+            
+            .preview-slide-content h3 {
+                font-size: 1.2rem;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .slides-list-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .success-notification {
+                top: 20px;
+                right: 20px;
+                left: 20px;
+                max-width: none;
+            }
+        }
+        
+        /* Form Validation Styles */
+        .error-message {
+            color: var(--danger-color);
+            font-size: 0.9rem;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+        
+        .error-message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .form-group.error input,
+        .form-group.error textarea,
+        .form-group.error select {
+            border-color: var(--danger-color);
+            background: #fff5f5;
+        }
+        
+        /* Tooltips */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background: var(--dark-bg);
+            color: white;
+            text-align: center;
+            padding: 10px;
+            border-radius: 6px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.9rem;
+            font-weight: normal;
+        }
+        
+        .tooltip .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: var(--dark-bg) transparent transparent transparent;
+        }
+        
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 5px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 5px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-dark);
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading Slideshow Manager...</div>
+    </div>
+
+    <!-- Success Notification -->
+    <div id="success-notification" class="success-notification">
+        <div class="notification-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="notification-content">
+            <h4 id="notification-title">Success!</h4>
+            <p id="notification-message">Slide saved successfully!</p>
+        </div>
+        <button onclick="hideNotification()" style="background: none; border: none; color: white; cursor: pointer; font-size: 1.2rem;">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <div class="slideshow-admin-container">
+        <!-- Header -->
+        <div class="slideshow-header">
+            <div class="slideshow-header-content">
+                <h1><i class="fas fa-images"></i> Slideshow Manager</h1>
+                <p>Create and manage stunning slides for your homepage. Drag & drop to reorder, preview live, and control everything from here.</p>
+                
+                <div class="admin-actions">
+                    <button class="action-btn primary" onclick="window.location.href='admin.html#slideshow'">
+                        <i class="fas fa-arrow-left"></i> Back to Admin Panel
+                    </button>
+                    <button class="action-btn secondary" onclick="showHelp()">
+                        <i class="fas fa-question-circle"></i> Need Help?
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content Grid -->
+        <div class="slideshow-admin-grid">
+            <!-- Preview Section -->
+            <div class="section-card">
+                <h2><i class="fas fa-eye"></i> Live Preview</h2>
+                <div class="slideshow-preview-container" id="preview-container">
+                    <div class="preview-slide active" style="background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('image/overload chees nachos.jpg');">
+                        <div class="preview-slide-content">
+                            <h3>Welcome to Ai-Maize-ing Nachos!</h3>
+                            <p>Try our delicious nachos and desserts</p>
+                            <div class="price">Starting at ₱35</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="preview-controls">
+                    <button id="preview-prev" title="Previous Slide"><i class="fas fa-chevron-left"></i></button>
+                    <button id="preview-play" title="Play/Pause"><i class="fas fa-play"></i></button>
+                    <button id="preview-next" title="Next Slide"><i class="fas fa-chevron-right"></i></button>
+                </div>
+                
+                <div class="preview-indicators" id="preview-indicators">
+                    <div class="preview-indicator active"></div>
+                </div>
+                
+                <div class="preview-info">
+                    <h4><i class="fas fa-chart-line"></i> Slideshow Stats</h4>
+                    <div class="preview-stats">
+                        <div class="stat-item">
+                            <span class="stat-value" id="total-slides-count">0</span>
+                            <span class="stat-label">Total Slides</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="active-slides-count">0</span>
+                            <span class="stat-label">Active Slides</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="slideshow-status">Ready</span>
+                            <span class="stat-label">Status</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Form Section -->
+            <div class="section-card">
+                <h2><i class="fas fa-edit"></i> Add/Edit Slide</h2>
+                <form id="slide-form">
+                    <input type="hidden" id="slide-id">
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="slide-title"><i class="fas fa-heading"></i> Slide Title *</label>
+                            <input type="text" id="slide-title" required placeholder="e.g., Special Nachos Offer" maxlength="60">
+                            <div class="error-message" id="title-error">
+                                <i class="fas fa-exclamation-circle"></i> Please enter a slide title
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="slide-price"><i class="fas fa-tag"></i> Price/Offer Text</label>
+                            <input type="text" id="slide-price" placeholder="e.g., Only ₱99 | Buy 1 Get 1" maxlength="40">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="slide-description"><i class="fas fa-align-left"></i> Description</label>
+                        <textarea id="slide-description" rows="3" placeholder="Describe your offer or promotion... (Max 150 characters)" maxlength="150"></textarea>
+                        <div class="char-count" id="desc-char-count" style="text-align: right; font-size: 0.9rem; color: #666; margin-top: 5px;">0/150</div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="slide-category"><i class="fas fa-filter"></i> Category</label>
+                            <select id="slide-category">
+                                <option value="all">All Categories</option>
+                                <option value="nachos">Nachos</option>
+                                <option value="desserts">Desserts</option>
+                                <option value="promo">Promotion</option>
+                                <option value="event">Event</option>
+                                <option value="new">New Arrival</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="slide-order"><i class="fas fa-sort-numeric-down"></i> Display Order</label>
+                            <input type="number" id="slide-order" min="1" max="20" placeholder="1-20" value="1">
+                            <div class="error-message" id="order-error">
+                                <i class="fas fa-exclamation-circle"></i> Please enter a valid order number
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="slide-image"><i class="fas fa-image"></i> Image URL *</label>
+                        <input type="text" id="slide-image" required placeholder="https://example.com/image.jpg or data:image/...">
+                        <div class="error-message" id="image-error">
+                            <i class="fas fa-exclamation-circle"></i> Please enter a valid image URL
+                        </div>
+                        
+                        <div class="image-upload-container">
+                            <div class="image-preview-container" id="image-preview">
+                                <div class="image-preview-placeholder">
+                                    <i class="fas fa-image"></i>
+                                    <p>No image selected</p>
+                                    <small>Click "Upload Image" or paste URL</small>
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; gap: 15px; margin-top: 20px; flex-wrap: wrap;">
+                                <button type="button" class="upload-button" onclick="document.getElementById('image-file').click()">
+                                    <i class="fas fa-upload"></i> Upload Image
+                                </button>
+                                <button type="button" class="upload-button" style="background: #2196F3;" onclick="showImageTips()">
+                                    <i class="fas fa-lightbulb"></i> Image Tips
+                                </button>
+                                <input type="file" id="image-file" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+                            </div>
+                            
+                            <div class="preview-info" style="margin-top: 20px; display: none;" id="image-tips">
+                                <h4><i class="fas fa-info-circle"></i> Image Recommendations</h4>
+                                <ul style="padding-left: 20px; margin-top: 10px;">
+                                    <li>Recommended size: 1200×400 pixels</li>
+                                    <li>Use high-quality, bright images</li>
+                                    <li>Keep text readable over image</li>
+                                    <li>Optimal format: JPG or PNG</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="slide-action"><i class="fas fa-link"></i> Action Link (Optional)</label>
+                        <input type="text" id="slide-action" placeholder="e.g., nachos.html#cheese-nachos or https://...">
+                        <small style="display: block; margin-top: 8px; color: #666;">Where to navigate when slide is clicked</small>
+                    </div>
+                    
+                    <div class="form-group" style="display: flex; align-items: center; gap: 15px; padding: 15px; background: #f8f9fa; border-radius: var(--radius);">
+                        <div style="flex: 1;">
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin: 0;">
+                                <input type="checkbox" id="slide-active" checked style="width: 20px; height: 20px;">
+                                <span style="font-weight: 600; font-size: 1.1rem;">Active Slide</span>
+                            </label>
+                            <small style="display: block; margin-top: 5px; color: #666;">Uncheck to hide this slide from homepage</small>
+                        </div>
+                        <div id="form-status" style="padding: 8px 16px; background: #4CAF50; color: white; border-radius: 20px; font-size: 0.9rem; font-weight: 600;">
+                            <i class="fas fa-check"></i> Ready
+                        </div>
+                    </div>
+                    
+                    <div class="form-buttons">
+                        <button type="submit" class="save-btn" id="save-btn">
+                            <i class="fas fa-save"></i> Save Slide
+                        </button>
+                        <button type="button" class="clear-btn" onclick="resetForm()">
+                            <i class="fas fa-times"></i> Clear Form
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Slides List Section -->
+        <div class="section-card" style="grid-column: 1 / -1;">
+            <div class="slides-list-header">
+                <div>
+                    <h3><i class="fas fa-list"></i> All Slides</h3>
+                    <p style="color: #666; margin-top: 5px;">Drag slides to reorder (order saved automatically)</p>
+                </div>
+                <div class="slides-count">Total: <span id="slides-count">0</span></div>
+            </div>
+            
+            <div id="sortable-slides" class="slides-grid">
+                <!-- Slides will be loaded here -->
+                <div class="empty-state" id="empty-state">
+                    <i class="fas fa-images"></i>
+                    <h3>No Slides Added Yet</h3>
+                    <p>Add your first slide using the form above to get started</p>
+                    <button class="action-btn primary" onclick="scrollToForm()" style="margin-top: 20px;">
+                        <i class="fas fa-plus"></i> Create Your First Slide
+                    </button>
+                </div>
+            </div>
+            
+            <div class="preview-info" style="margin-top: 30px;">
+                <h4><i class="fas fa-lightbulb"></i> Pro Tips</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 15px;">
+                    <div>
+                        <h5 style="color: var(--primary-color); margin-bottom: 8px; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-bullhorn"></i> Engaging Content
+                        </h5>
+                        <p style="font-size: 0.95rem; color: #666;">Use clear calls-to-action and eye-catching images</p>
+                    </div>
+                    <div>
+                        <h5 style="color: var(--primary-color); margin-bottom: 8px; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-mobile-alt"></i> Mobile Optimization
+                        </h5>
+                        <p style="font-size: 0.95rem; color: #666;">Test your slides on mobile devices</p>
+                    </div>
+                    <div>
+                        <h5 style="color: var(--primary-color); margin-bottom: 8px; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-sync-alt"></i> Regular Updates
+                        </h5>
+                        <p style="font-size: 0.95rem; color: #666;">Keep content fresh and seasonal</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ================================
+        // SLIDESHOW MANAGER - COMPLETE SCRIPT
+        // ================================
+        
+        // Default slides if none exist
+        const DEFAULT_SLIDES = [
+            {
+                id: 'slide1',
+                title: 'Special Cheese Nachos',
+                description: 'Loaded with three types of premium cheese and fresh toppings',
+                price: 'Only ₱129',
+                image: 'image/overload chees nachos.jpg',
+                category: 'nachos',
+                action: 'nachos.html',
+                active: true,
+                order: 1,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            },
+            {
+                id: 'slide2',
+                title: 'Mango Graham Delight',
+                description: 'Sweet and creamy mango treat with crushed graham crackers',
+                price: '₱89 | Limited Time Offer',
+                image: 'image/mango.gif',
+                category: 'desserts',
+                action: 'aifoodies.html',
+                active: true,
+                order: 2,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            },
+            {
+                id: 'slide3',
+                title: 'New Item Alert!',
+                description: 'Discover our latest culinary creations',
+                price: 'Starting at ₱49',
+                image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&auto=format&fit=crop',
+                category: 'new',
+                action: '',
+                active: true,
+                order: 3,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            }
+        ];
+        
+        // Global variables
+        let currentPreviewSlide = 0;
+        let previewInterval;
+        let isPlaying = true;
+        let isDragging = false;
+        let currentSlideId = null;
+        
+        // Initialize slides in localStorage
+        function initializeSlides() {
+            try {
+                if (!localStorage.getItem('slideshowItems')) {
+                    localStorage.setItem('slideshowItems', JSON.stringify(DEFAULT_SLIDES));
+                }
+            } catch (error) {
+                console.error('Error initializing slides:', error);
+                showNotification('Error initializing slides. Please check console.', 'error');
+            }
+        }
+        
+        // Get all slides from localStorage
+        function getSlides() {
+            try {
+                const slides = localStorage.getItem('slideshowItems');
+                return slides ? JSON.parse(slides) : [];
+            } catch (error) {
+                console.error('Error reading slides from localStorage:', error);
+                return [];
+            }
+        }
+        
+        // Get active slides sorted by order
+        function getActiveSlides() {
+            return getSlides()
+                .filter(slide => slide.active)
+                .sort((a, b) => (a.order || 99) - (b.order || 99));
+        }
+        
+        // Save slides to localStorage
+        function saveSlides(slides) {
+            try {
+                localStorage.setItem('slideshowItems', JSON.stringify(slides));
+                localStorage.setItem('slideshowUpdated', Date.now().toString());
+                
+                // Update stats
+                updateStats();
+                
+                // Render UI
+                renderSlidesList();
+                renderPreview();
+                
+                // Notify main page
+                notifyMainPage();
+                
+                return true;
+            } catch (error) {
+                console.error('Error saving slides:', error);
+                showNotification('Error saving slides. Storage may be full.', 'error');
+                return false;
+            }
+        }
+        
+        // Notify main page about slideshow update
+        function notifyMainPage() {
+            // Dispatch a storage event to notify other tabs/windows
+            window.dispatchEvent(new Event('storage'));
+        }
+        
+        // Generate unique ID for new slides
+        function generateId() {
+            return 'slide_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+        
+        // Show notification
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('success-notification');
+            const title = document.getElementById('notification-title');
+            const msg = document.getElementById('notification-message');
+            
+            // Set notification type
+            switch(type) {
+                case 'success':
+                    notification.style.background = 'linear-gradient(135deg, #4CAF50, #388E3C)';
+                    title.textContent = 'Success!';
+                    break;
+                case 'error':
+                    notification.style.background = 'linear-gradient(135deg, #f44336, #d32f2f)';
+                    title.textContent = 'Error!';
+                    break;
+                case 'warning':
+                    notification.style.background = 'linear-gradient(135deg, #ff9800, #f57c00)';
+                    title.textContent = 'Warning!';
+                    break;
+                case 'info':
+                    notification.style.background = 'linear-gradient(135deg, #2196F3, #1976d2)';
+                    title.textContent = 'Info';
+                    break;
+            }
+            
+            msg.textContent = message;
+            notification.classList.add('show');
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                hideNotification();
+            }, 5000);
+        }
+        
+        // Hide notification
+        function hideNotification() {
+            const notification = document.getElementById('success-notification');
+            notification.classList.remove('show');
+        }
+        
+        // Show loading overlay
+        function showLoading() {
+            document.getElementById('loading-overlay').style.display = 'flex';
+        }
+        
+        // Hide loading overlay
+        function hideLoading() {
+            document.getElementById('loading-overlay').style.display = 'none';
+        }
+        
+        // Update statistics display
+        function updateStats() {
+            const slides = getSlides();
+            const activeSlides = getActiveSlides();
+            
+            document.getElementById('total-slides-count').textContent = slides.length;
+            document.getElementById('active-slides-count').textContent = activeSlides.length;
+            document.getElementById('slides-count').textContent = slides.length;
+            
+            // Update status
+            const statusElement = document.getElementById('slideshow-status');
+            if (activeSlides.length === 0) {
+                statusElement.textContent = 'No Active Slides';
+                statusElement.style.color = '#f44336';
+            } else {
+                statusElement.textContent = 'Active';
+                statusElement.style.color = '#4CAF50';
+            }
+        }
+        
+        // Handle image upload
+        function handleImageUpload(event) {
+            const input = event.target;
+            const preview = document.getElementById('image-preview');
+            
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                
+                // Validate file size (max 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    showNotification('Image size should be less than 5MB', 'error');
+                    return;
+                }
+                
+                // Validate file type
+                if (!file.type.match('image.*')) {
+                    showNotification('Please select an image file', 'error');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                
+                reader.onloadstart = function() {
+                    preview.innerHTML = `
+                        <div class="image-preview-placeholder">
+                            <div class="loading-spinner" style="width: 40px; height: 40px; border-width: 4px;"></div>
+                            <p>Loading image...</p>
+                        </div>
+                    `;
+                };
+                
+                reader.onload = function(e) {
+                    preview.innerHTML = `<img src="${e.target.result}" alt="Uploaded preview">`;
+                    document.getElementById('slide-image').value = e.target.result;
+                    
+                    // Show success message
+                    showNotification('Image uploaded successfully!', 'success');
+                };
+                
+                reader.onerror = function() {
+                    preview.innerHTML = `
+                        <div class="image-preview-placeholder">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p>Failed to load image</p>
+                        </div>
+                    `;
+                    showNotification('Failed to upload image', 'error');
+                };
+                
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        // Preview image from URL
+        function previewImageFromUrl(url) {
+            const preview = document.getElementById('image-preview');
+            
+            if (url && url.trim()) {
+                // Create a test image to check if URL is valid
+                const testImage = new Image();
+                testImage.onload = function() {
+                    preview.innerHTML = `<img src="${url}" alt="Preview">`;
+                };
+                testImage.onerror = function() {
+                    preview.innerHTML = `
+                        <div class="image-preview-placeholder">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p>Invalid image URL</p>
+                            <small>Please check the URL and try again</small>
+                        </div>
+                    `;
+                };
+                testImage.src = url;
+            } else {
+                preview.innerHTML = `
+                    <div class="image-preview-placeholder">
+                        <i class="fas fa-image"></i>
+                        <p>No image selected</p>
+                        <small>Click "Upload Image" or paste URL</small>
+                    </div>
+                `;
+            }
+        }
+        
+        // Reset form
+        function resetForm() {
+            document.getElementById('slide-form').reset();
+            document.getElementById('slide-id').value = '';
+            document.getElementById('slide-order').value = '1';
+            document.getElementById('desc-char-count').textContent = '0/150';
+            
+            // Reset image preview
+            previewImageFromUrl('');
+            
+            // Reset button text
+            document.getElementById('save-btn').innerHTML = '<i class="fas fa-save"></i> Save Slide';
+            
+            // Clear errors
+            clearErrors();
+            
+            // Update form status
+            updateFormStatus('ready');
+            
+            showNotification('Form cleared', 'info');
+        }
+        
+        // Clear form errors
+        function clearErrors() {
+            document.querySelectorAll('.error-message').forEach(error => {
+                error.classList.remove('show');
+            });
+            document.querySelectorAll('.form-group').forEach(group => {
+                group.classList.remove('error');
+            });
+        }
+        
+        // Update form status
+        function updateFormStatus(status) {
+            const statusElement = document.getElementById('form-status');
+            switch(status) {
+                case 'ready':
+                    statusElement.innerHTML = '<i class="fas fa-check"></i> Ready';
+                    statusElement.style.background = '#4CAF50';
+                    break;
+                case 'editing':
+                    statusElement.innerHTML = '<i class="fas fa-edit"></i> Editing';
+                    statusElement.style.background = '#2196F3';
+                    break;
+                case 'error':
+                    statusElement.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error';
+                    statusElement.style.background = '#f44336';
+                    break;
+            }
+        }
+        
+        // Render slides preview
+        function renderPreview() {
+            const slides = getActiveSlides();
+            const container = document.getElementById('preview-container');
+            const indicatorsContainer = document.getElementById('preview-indicators');
+            
+            if (slides.length === 0) {
+                container.innerHTML = `
+                    <div class="preview-slide active" style="background: linear-gradient(135deg, #8b4513 0%, #d2691e 100%);">
+                        <div class="preview-slide-content" style="max-width: 80%; text-align: center;">
+                            <h3>No Active Slides</h3>
+                            <p>Add slides to see preview here</p>
+                            <button class="action-btn primary" onclick="scrollToForm()" style="margin-top: 20px;">
+                                <i class="fas fa-plus"></i> Add Your First Slide
+                            </button>
+                        </div>
+                    </div>
+                `;
+                indicatorsContainer.innerHTML = '<div class="preview-indicator active"></div>';
+                return;
+            }
+            
+            // Clear container
+            container.innerHTML = '';
+            indicatorsContainer.innerHTML = '';
+            
+            // Create slides and indicators
+            slides.forEach((slide, index) => {
+                const slideElement = document.createElement('div');
+                slideElement.className = `preview-slide ${index === 0 ? 'active' : ''}`;
+                slideElement.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('${slide.image}')`;
+                
+                slideElement.innerHTML = `
+                    <div class="preview-slide-content">
+                        <h3>${slide.title}</h3>
+                        ${slide.description ? `<p>${slide.description}</p>` : ''}
+                        ${slide.price ? `<div class="price">${slide.price}</div>` : ''}
+                        <div style="margin-top: 15px; font-size: 0.9rem; opacity: 0.8;">
+                            <i class="fas fa-tag"></i> ${slide.category} | Order: ${slide.order}
+                        </div>
+                    </div>
+                `;
+                
+                // Add click event if action is specified
+                if (slide.action) {
+                    slideElement.style.cursor = 'pointer';
+                    slideElement.onclick = () => {
+                        window.open(slide.action, '_blank');
+                    };
+                }
+                
+                container.appendChild(slideElement);
+                
+                // Create indicator
+                const indicator = document.createElement('div');
+                indicator.className = `preview-indicator ${index === 0 ? 'active' : ''}`;
+                indicator.onclick = () => goToSlide(index);
+                indicatorsContainer.appendChild(indicator);
+            });
+            
+            // Reset current slide
+            currentPreviewSlide = 0;
+            
+            // Start auto-play if there are multiple slides
+            if (slides.length > 1) {
+                startAutoPlay();
+            }
+        }
+        
+        // Render slides list
+        function renderSlidesList() {
+            const slides = getSlides();
+            const container = document.getElementById('sortable-slides');
+            
+            if (slides.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" id="empty-state">
+                        <i class="fas fa-images"></i>
+                        <h3>No Slides Added Yet</h3>
+                        <p>Add your first slide using the form above to get started</p>
+                        <button class="action-btn primary" onclick="scrollToForm()" style="margin-top: 20px;">
+                            <i class="fas fa-plus"></i> Create Your First Slide
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Sort by order
+            slides.sort((a, b) => (a.order || 99) - (b.order || 99));
+            
+            let html = '';
+            slides.forEach((slide) => {
+                html += `
+                    <div class="slide-card ${slide.active ? 'active' : 'inactive'}" data-slide-id="${slide.id}" draggable="true">
+                        <div class="slide-image">
+                            <img src="${slide.image}" alt="${slide.title}" 
+                                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjUwIiBoZWlnaHQ9IjE4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzMzMzMzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSJ3aGl0ZSI+U2xpZGUgSW1hZ2U8L3RleHQ+PC9zdmc+';">
+                        </div>
+                        <div class="slide-content">
+                            <div class="slide-header">
+                                <h4>${slide.title}</h4>
+                                ${slide.description ? `<p>${slide.description}</p>` : ''}
+                                <div class="slide-meta">
+                                    <span class="slide-category"><i class="fas fa-tag"></i> ${slide.category}</span>
+                                    ${slide.price ? `<span class="slide-price"><i class="fas fa-tag"></i> ${slide.price}</span>` : ''}
+                                    <span class="slide-order"><i class="fas fa-sort-numeric-down"></i> Order: ${slide.order}</span>
+                                </div>
+                            </div>
+                            <div class="slide-actions">
+                                <button class="slide-action-btn edit-btn" onclick="editSlide('${slide.id}')">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <button class="slide-action-btn toggle-btn ${slide.active ? '' : 'inactive'}" 
+                                        onclick="toggleSlide('${slide.id}')">
+                                    <i class="fas fa-power-off"></i> ${slide.active ? 'Active' : 'Inactive'}
+                                </button>
+                                <button class="slide-action-btn delete-btn" onclick="deleteSlide('${slide.id}')">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+                        <div style="position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.7); color: white; padding: 5px 10px; border-radius: 4px; font-size: 0.8rem;">
+                            <i class="fas fa-grip-vertical"></i> Drag
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            
+            // Enable drag and drop
+            enableDragAndDrop();
+        }
+        
+        // Enable drag and drop for reordering
+        function enableDragAndDrop() {
+            const container = document.getElementById('sortable-slides');
+            const slides = container.querySelectorAll('.slide-card');
+            
+            slides.forEach(slide => {
+                slide.addEventListener('dragstart', (e) => {
+                    isDragging = true;
+                    e.dataTransfer.setData('text/plain', slide.dataset.slideId);
+                    slide.style.opacity = '0.5';
+                });
+                
+                slide.addEventListener('dragend', () => {
+                    isDragging = false;
+                    slide.style.opacity = '1';
+                });
+                
+                slide.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    const draggingSlide = document.querySelector('.slide-card[draggable="true"]:hover');
+                    if (draggingSlide && draggingSlide !== slide) {
+                        const rect = slide.getBoundingClientRect();
+                        const next = (e.clientY - rect.top) / rect.height > 0.5;
+                        
+                        if (next) {
+                            container.insertBefore(draggingSlide, slide.nextSibling);
+                        } else {
+                            container.insertBefore(draggingSlide, slide);
+                        }
+                    }
+                });
+            });
+            
+            container.addEventListener('dragend', () => {
+                saveNewOrder();
+            });
+        }
+        
+        // Save new order after drag and drop
+        function saveNewOrder() {
+            const container = document.getElementById('sortable-slides');
+            const slides = Array.from(container.querySelectorAll('.slide-card'));
+            const allSlides = getSlides();
+            
+            slides.forEach((slideElement, index) => {
+                const slideId = slideElement.dataset.slideId;
+                const slideIndex = allSlides.findIndex(s => s.id === slideId);
+                if (slideIndex !== -1) {
+                    allSlides[slideIndex].order = index + 1;
+                    allSlides[slideIndex].updatedAt = new Date().toISOString();
+                }
+            });
+            
+            saveSlides(allSlides);
+            showNotification('Slide order updated successfully!', 'success');
+        }
+        
+        // Edit slide
+        function editSlide(id) {
+            const slides = getSlides();
+            const slide = slides.find(s => s.id === id);
+            
+            if (!slide) {
+                showNotification('Slide not found', 'error');
+                return;
+            }
+            
+            currentSlideId = id;
+            
+            // Fill form
+            document.getElementById('slide-id').value = slide.id;
+            document.getElementById('slide-title').value = slide.title;
+            document.getElementById('slide-description').value = slide.description || '';
+            document.getElementById('slide-price').value = slide.price || '';
+            document.getElementById('slide-image').value = slide.image;
+            document.getElementById('slide-category').value = slide.category || 'all';
+            document.getElementById('slide-action').value = slide.action || '';
+            document.getElementById('slide-order').value = slide.order || '';
+            document.getElementById('slide-active').checked = slide.active !== false;
+            
+            // Update character count
+            updateCharCount();
+            
+            // Update image preview
+            previewImageFromUrl(slide.image);
+            
+            // Update button text
+            document.getElementById('save-btn').innerHTML = '<i class="fas fa-save"></i> Update Slide';
+            
+            // Update form status
+            updateFormStatus('editing');
+            
+            // Scroll to form
+            scrollToForm();
+            
+            showNotification(`Now editing: ${slide.title}`, 'info');
+        }
+        
+        // Toggle slide active status
+        function toggleSlide(id) {
+            const slides = getSlides();
+            const index = slides.findIndex(s => s.id === id);
+            
+            if (index !== -1) {
+                slides[index].active = !slides[index].active;
+                slides[index].updatedAt = new Date().toISOString();
+                
+                if (saveSlides(slides)) {
+                    showNotification(`Slide ${slides[index].active ? 'activated' : 'deactivated'} successfully!`, 'success');
+                }
+            }
+        }
+        
+        // Delete slide
+        function deleteSlide(id) {
+            if (!confirm('⚠️ Are you sure you want to delete this slide? This action cannot be undone.')) {
+                return;
+            }
+            
+            const slides = getSlides();
+            const slideIndex = slides.findIndex(s => s.id === id);
+            
+            if (slideIndex !== -1) {
+                const slideTitle = slides[slideIndex].title;
+                slides.splice(slideIndex, 1);
+                
+                if (saveSlides(slides)) {
+                    showNotification(`Slide "${slideTitle}" deleted successfully!`, 'success');
+                    
+                    // Reset form if we were editing this slide
+                    if (currentSlideId === id) {
+                        resetForm();
+                        currentSlideId = null;
+                    }
+                }
+            }
+        }
+        
+        // Preview navigation
+        function goToSlide(index) {
+            const slides = getActiveSlides();
+            const slideElements = document.querySelectorAll('.preview-slide');
+            const indicators = document.querySelectorAll('.preview-indicator');
+            
+            if (slides.length === 0 || slideElements.length === 0) return;
+            
+            // Remove active class from all slides and indicators
+            slideElements.forEach(slide => slide.classList.remove('active'));
+            indicators.forEach(indicator => indicator.classList.remove('active'));
+            
+            // Add active class to current slide and indicator
+            currentPreviewSlide = index;
+            slideElements[currentPreviewSlide].classList.add('active');
+            indicators[currentPreviewSlide].classList.add('active');
+            
+            // Reset auto-play
+            startAutoPlay();
+        }
+        
+        function nextSlide() {
+            const slides = getActiveSlides();
+            if (slides.length === 0) return;
+            
+            const nextIndex = (currentPreviewSlide + 1) % slides.length;
+            goToSlide(nextIndex);
+        }
+        
+        function prevSlide() {
+            const slides = getActiveSlides();
+            if (slides.length === 0) return;
+            
+            const prevIndex = (currentPreviewSlide - 1 + slides.length) % slides.length;
+            goToSlide(prevIndex);
+        }
+        
+        function startAutoPlay() {
+            if (!isPlaying) return;
+            
+            clearInterval(previewInterval);
+            previewInterval = setInterval(nextSlide, 5000);
+            
+            // Update play button
+            const playBtn = document.getElementById('preview-play');
+            if (playBtn) {
+                playBtn.innerHTML = '<i class="fas fa-pause"></i>';
+            }
+        }
+        
+        function stopAutoPlay() {
+            clearInterval(previewInterval);
+            
+            // Update play button
+            const playBtn = document.getElementById('preview-play');
+            if (playBtn) {
+                playBtn.innerHTML = '<i class="fas fa-play"></i>';
+            }
+        }
+        
+        function togglePlay() {
+            isPlaying = !isPlaying;
+            if (isPlaying) {
+                startAutoPlay();
+            } else {
+                stopAutoPlay();
+            }
+        }
+        
+        // Form validation
+        function validateForm() {
+            let isValid = true;
+            clearErrors();
+            
+            // Validate title
+            const title = document.getElementById('slide-title').value.trim();
+            if (!title) {
+                document.getElementById('title-error').classList.add('show');
+                document.getElementById('slide-title').parentElement.classList.add('error');
+                isValid = false;
+            }
+            
+            // Validate image
+            const image = document.getElementById('slide-image').value.trim();
+            if (!image) {
+                document.getElementById('image-error').classList.add('show');
+                document.getElementById('slide-image').parentElement.classList.add('error');
+                isValid = false;
+            }
+            
+            // Validate order
+            const order = parseInt(document.getElementById('slide-order').value);
+            if (isNaN(order) || order < 1 || order > 20) {
+                document.getElementById('order-error').classList.add('show');
+                document.getElementById('slide-order').parentElement.classList.add('error');
+                isValid = false;
+            }
+            
+            return isValid;
+        }
+        
+        // Update character count
+        function updateCharCount() {
+            const description = document.getElementById('slide-description').value;
+            const charCount = document.getElementById('desc-char-count');
+            charCount.textContent = `${description.length}/150`;
+            
+            // Change color if near limit
+            if (description.length > 140) {
+                charCount.style.color = '#f44336';
+            } else if (description.length > 120) {
+                charCount.style.color = '#ff9800';
+            } else {
+                charCount.style.color = '#666';
+            }
+        }
+        
+        // Scroll to form
+        function scrollToForm() {
+            document.getElementById('slide-form').scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start' 
+            });
+        }
+        
+        // Show image tips
+        function showImageTips() {
+            const tips = document.getElementById('image-tips');
+            tips.style.display = tips.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        // Show help
+        function showHelp() {
+            alert(`🎯 Slideshow Manager Help:
+
+1. **Add Slide**: Fill the form and click "Save Slide"
+2. **Edit Slide**: Click the "Edit" button on any slide
+3. **Reorder**: Drag and drop slides in the list
+4. **Toggle Active**: Use the power button to show/hide slides
+5. **Preview**: See how slides will look on the homepage
+6. **Auto-play**: Slides automatically rotate every 5 seconds
+
+💡 Tips:
+- Use high-quality images for best results
+- Keep slide text clear and concise
+- Test on mobile devices
+- Update slides regularly for fresh content`);
+        }
+        
+        // Handle form submission
+        document.getElementById('slide-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!validateForm()) {
+                showNotification('Please fix the errors in the form', 'error');
+                updateFormStatus('error');
+                return;
+            }
+            
+            const id = document.getElementById('slide-id').value || generateId();
+            const title = document.getElementById('slide-title').value.trim();
+            const description = document.getElementById('slide-description').value.trim();
+            const price = document.getElementById('slide-price').value.trim();
+            const image = document.getElementById('slide-image').value.trim();
+            const category = document.getElementById('slide-category').value;
+            const action = document.getElementById('slide-action').value.trim();
+            const order = parseInt(document.getElementById('slide-order').value) || 1;
+            const active = document.getElementById('slide-active').checked;
+            
+            const slides = getSlides();
+            const existingIndex = slides.findIndex(s => s.id === id);
+            
+            const slideData = {
+                id,
+                title,
+                description,
+                price,
+                image,
+                category,
+                action,
+                order,
+                active,
+                createdAt: existingIndex !== -1 ? slides[existingIndex].createdAt : new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            
+            if (existingIndex !== -1) {
+                // Update existing slide
+                slides[existingIndex] = slideData;
+            } else {
+                // Add new slide
+                slides.push(slideData);
+            }
+            
+            // Sort by order
+            slides.sort((a, b) => (a.order || 99) - (b.order || 99));
+            
+            if (saveSlides(slides)) {
+                const message = existingIndex !== -1 ? 
+                    `Slide "${title}" updated successfully!` : 
+                    `Slide "${title}" created successfully!`;
+                
+                showNotification(message, 'success');
+                
+                if (!existingIndex !== -1) {
+                    // Reset form after creating new slide
+                    setTimeout(() => {
+                        resetForm();
+                        currentSlideId = null;
+                    }, 1000);
+                }
+            }
+        });
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            showLoading();
+            
+            setTimeout(() => {
+                initializeSlides();
+                renderSlidesList();
+                renderPreview();
+                updateStats();
+                
+                // Setup event listeners
+                setupEventListeners();
+                
+                hideLoading();
+                
+                // Check URL for edit parameter
+                const urlParams = new URLSearchParams(window.location.search);
+                const editId = urlParams.get('edit');
+                if (editId) {
+                    editSlide(editId);
+                }
+                
+                // Show welcome message
+                setTimeout(() => {
+                    showNotification('Welcome to Slideshow Manager! Start by creating your first slide.', 'info');
+                }, 1000);
+                
+            }, 500);
+        });
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            // Preview controls
+            document.getElementById('preview-prev').addEventListener('click', function(e) {
+                e.stopPropagation();
+                stopAutoPlay();
+                prevSlide();
+                startAutoPlay();
+            });
+            
+            document.getElementById('preview-next').addEventListener('click', function(e) {
+                e.stopPropagation();
+                stopAutoPlay();
+                nextSlide();
+                startAutoPlay();
+            });
+            
+            document.getElementById('preview-play').addEventListener('click', function(e) {
+                e.stopPropagation();
+                togglePlay();
+            });
+            
+            // Pause auto-play on hover
+            document.getElementById('preview-container').addEventListener('mouseenter', stopAutoPlay);
+            document.getElementById('preview-container').addEventListener('mouseleave', function() {
+                if (isPlaying) startAutoPlay();
+            });
+            
+            // Image URL input
+            document.getElementById('slide-image').addEventListener('input', function() {
+                previewImageFromUrl(this.value);
+            });
+            
+            // Description character count
+            document.getElementById('slide-description').addEventListener('input', updateCharCount);
+            
+            // Listen for storage events (for cross-tab updates)
+            window.addEventListener('storage', function() {
+                renderSlidesList();
+                renderPreview();
+                updateStats();
+            });
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                // Don't trigger if typing in inputs
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                    return;
+                }
+                
+                switch(e.key) {
+                    case 'ArrowLeft':
+                        e.preventDefault();
+                        prevSlide();
+                        break;
+                    case 'ArrowRight':
+                        e.preventDefault();
+                        nextSlide();
+                        break;
+                    case ' ':
+                        e.preventDefault();
+                        togglePlay();
+                        break;
+                    case 'Escape':
+                        if (currentSlideId) {
+                            resetForm();
+                            showNotification('Editing cancelled', 'info');
+                        }
+                        break;
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -108,7 +109,7 @@
 <div class="promo-banner">
   <p>
     <span class="promo-icon">🍃</span>
-   "Lahat ng pagkain ay sariwa naming inihahanda! Mangyaring mag-order 1 bago ipickup
+   “Lahat ng pagkain ay sariwa naming inihahanda! Mangyaring mag-order 1 bago ipickup
     <span class="promo-icon">⏰</span>
   </p>
 </div>
@@ -357,116 +358,8 @@
     });
 </script>
 
-<script>
-    // Initialize cart from localStorage
-    let cart = [];
-    const savedCart = localStorage.getItem('globalCart');
-    if (savedCart) {
-        try {
-            cart = JSON.parse(savedCart);
-        } catch (e) {
-            console.error('Error parsing cart from localStorage:', e);
-            cart = [];
-        }
-    }
-
-    // Update cart display on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        updateCartDisplay();
-        
-        // Add event listeners to Add to Cart buttons
-        document.querySelectorAll('.add-to-cart-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                const menuItem = this.closest('.menu-item');
-                const itemName = menuItem.getAttribute('data-name');
-                const itemPrice = parseInt(menuItem.getAttribute('data-price'));
-                addToCart(itemName, itemPrice);
-            });
-        });
-    });
-
-    // Cart functions
-    function addToCart(name, price) {
-        // Check if item already exists in cart
-        const existingItem = cart.find(item => item.name === name);
-        
-        if (existingItem) {
-            existingItem.quantity += 1;
-        } else {
-            cart.push({
-                name: name,
-                price: price,
-                quantity: 1
-            });
-        }
-        
-        // Save to localStorage
-        localStorage.setItem('globalCart', JSON.stringify(cart));
-        
-        // Update display
-        updateCartDisplay();
-        
-        // Show confirmation
-        showAlert(`${name} added to cart!`);
-    }
-
-    function updateCartDisplay() {
-        const cartCount = document.getElementById('cart-count');
-        const cartItems = document.getElementById('cart-items');
-        const cartTotal = document.getElementById('cart-total');
-        
-        if (cartCount) {
-            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-            cartCount.textContent = totalItems;
-        }
-        
-        if (cartItems && cartTotal) {
-            // Only update if cart popup elements exist
-            let total = 0;
-            cartItems.innerHTML = '';
-            
-            cart.forEach((item, index) => {
-                const itemTotal = item.price * item.quantity;
-                total += itemTotal;
-                
-                const li = document.createElement('li');
-                li.innerHTML = `
-                    ${item.name} x${item.quantity} = ₱${itemTotal}
-                    <button onclick="removeFromCart(${index})" class="remove-item">X</button>
-                `;
-                cartItems.appendChild(li);
-            });
-            
-            cartTotal.textContent = `₱${total}`;
-        }
-    }
-
-    function removeFromCart(index) {
-        cart.splice(index, 1);
-        localStorage.setItem('globalCart', JSON.stringify(cart));
-        updateCartDisplay();
-    }
-
-    // Alert function
-    function showAlert(message) {
-        const alertModal = document.getElementById('custom-alert');
-        const alertMessage = document.getElementById('custom-alert-message');
-        const alertOk = document.getElementById('custom-alert-ok');
-        
-        if (alertModal && alertMessage) {
-            alertMessage.textContent = message;
-            alertModal.style.display = 'flex';
-            
-            if (alertOk) {
-                alertOk.onclick = function() {
-                    alertModal.style.display = 'none';
-                };
-            }
-        } else {
-            alert(message);
-        }
-    }
-</script>
-
 </body>
+
 </html>
+
+
