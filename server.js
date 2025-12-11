@@ -1,1245 +1,2279 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-const path = require('path');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-require('dotenv').config();
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ai-Maize-ing Nachos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-const app = express();
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
 
-// Railway.app provides PORT environment variable
-const PORT = process.env.PORT || 8080;
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
 
-// Middleware - Railway.app specific CORS
-app.use(cors({
-    origin: [
-        'https://aifoodies.up.railway.app',
-        'http://localhost:3000',
-        'http://localhost:8080',
-        'http://127.0.0.1:5500',
-        '*'
-    ],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-    credentials: true,
-    preflightContinue: false,
-    optionsSuccessStatus: 204
-}));
+        /* Header Styles */
+        header {
+            background: linear-gradient(135deg, #FF6B6B 0%, #FFE66D 100%);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.2);
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
 
-app.use(bodyParser.json({ limit: '10mb' }));
-app.use(express.static(path.join(__dirname, 'public')));
+        header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(30deg);
+        }
 
-// Handle preflight requests
-app.options('*', cors());
+        .logo {
+            text-align: center;
+            margin-bottom: 25px;
+            position: relative;
+            z-index: 1;
+        }
 
-// MongoDB Connection for Railway.app
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://aifoodies:mahalkitaivy@aifoodies.ylsnhql.mongodb.net/nachos?retryWrites=true&w=majority';
+        .logo h1 {
+            font-size: 3.5em;
+            color: #2d3436;
+            text-shadow: 3px 3px 0px rgba(255, 230, 109, 0.5);
+            margin-bottom: 10px;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+        }
 
-mongoose.connect(MONGODB_URI)
-    .then(() => console.log('✅ MongoDB Connected to Railway.app'))
-    .catch(err => console.log('❌ MongoDB Error:', err));
+        .logo .tagline {
+            font-size: 1.3em;
+            color: #636e72;
+            font-style: italic;
+            font-weight: 500;
+        }
 
-// JWT Secret for Railway.app
-const JWT_SECRET = process.env.JWT_SECRET || 'railway-secret-key-2024-aifoodies-nachos';
+        .nav-bar {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
 
-// Admin Schema
-const adminSchema = new mongoose.Schema({
-    username: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    email: { type: String },
-    fullName: { type: String },
-    role: { 
-        type: String, 
-        enum: ['superadmin', 'admin', 'manager', 'staff', 'viewer'],
-        default: 'admin'
-    },
-    permissions: [String],
-    isActive: { type: Boolean, default: true },
-    lastLogin: { type: Date },
-    createdAt: { type: Date, default: Date.now },
-    updatedAt: { type: Date, default: Date.now }
-});
+        .nav-btn {
+            padding: 14px 32px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid transparent;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-adminSchema.pre('save', async function(next) {
-    if (!this.isModified('password')) return next();
-    
-    try {
-        const salt = await bcrypt.genSalt(10);
-        this.password = await bcrypt.hash(this.password, salt);
-        next();
-    } catch (error) {
-        next(error);
-    }
-});
+        .nav-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            background: #FFE66D;
+            border-color: #FF6B6B;
+        }
 
-adminSchema.pre('save', function(next) {
-    this.updatedAt = new Date();
-    next();
-});
+        .nav-btn.active {
+            background: #FF6B6B;
+            color: white;
+            border-color: #FF6B6B;
+            transform: translateY(-3px);
+        }
 
-adminSchema.methods.comparePassword = async function(candidatePassword) {
-    return await bcrypt.compare(candidatePassword, this.password);
-};
+        .nav-btn i {
+            font-size: 1.2em;
+        }
 
-const Admin = mongoose.model('Admin', adminSchema);
+        /* Main Content */
+        .main-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            min-height: 600px;
+            margin-bottom: 40px;
+            position: relative;
+        }
 
-// Menu Items Schema
-const menuItemSchema = new mongoose.Schema({
-    name: { type: String, required: true, unique: true },
-    price: { type: Number, required: true },
-    category: { type: String, enum: ['nachos', 'desserts'], required: true },
-    description: { type: String },
-    ingredients: { type: String },
-    isAvailable: { type: Boolean, default: true },
-    imageUrl: { type: String },
-    displayOrder: { type: Number, default: 0 },
-    createdAt: { type: Date, default: Date.now },
-    updatedAt: { type: Date, default: Date.now }
-});
+        .section {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
 
-const MenuItem = mongoose.model('MenuItem', menuItemSchema);
+        .section.active {
+            display: block;
+        }
 
-// Slideshow Schema
-const slideshowSchema = new mongoose.Schema({
-    title: { type: String, required: true },
-    description: { type: String },
-    imageUrl: { type: String, required: true },
-    order: { type: Number, default: 0 },
-    active: { type: Boolean, default: true },
-    promoBadge: { type: String },
-    createdAt: { type: Date, default: Date.now }
-});
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-const Slideshow = mongoose.model('Slideshow', slideshowSchema);
+        /* Slideshow Styles */
+        .slideshow-container {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            overflow: hidden;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
 
-// Initialize default admins
-async function initializeDefaultAdmins() {
-    try {
-        const defaultAdmins = [
-            {
-                username: 'superadmin',
-                password: 'superadmin123',
-                fullName: 'Super Administrator',
-                email: 'superadmin@aimaizeingnachos.com',
-                role: 'superadmin',
-                permissions: ['all'],
-                isActive: true
-            },
-            {
-                username: 'admin',
-                password: 'admin123',
-                fullName: 'Administrator',
-                email: 'admin@aimaizeingnachos.com',
-                role: 'admin',
-                permissions: ['view_dashboard', 'manage_orders', 'manage_menu', 'manage_customers'],
-                isActive: true
-            },
-            {
-                username: 'manager',
-                password: 'manager123',
-                fullName: 'Store Manager',
-                email: 'manager@aimaizeingnachos.com',
-                role: 'manager',
-                permissions: ['view_dashboard', 'manage_orders'],
-                isActive: true
-            },
-            {
-                username: 'staff',
-                password: 'staff123',
-                fullName: 'Store Staff',
-                email: 'staff@aimaizeingnachos.com',
-                role: 'staff',
-                permissions: ['view_dashboard', 'manage_orders'],
-                isActive: true
-            },
-            {
-                username: 'viewer',
-                password: 'viewer123',
-                fullName: 'Report Viewer',
-                email: 'viewer@aimaizeingnachos.com',
-                role: 'viewer',
-                permissions: ['view_dashboard'],
-                isActive: true
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .slide.active {
+            opacity: 1;
+        }
+
+        .slide-content {
+            display: flex;
+            height: 100%;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 60px;
+            color: white;
+            position: relative;
+        }
+
+        .slide-text {
+            flex: 1;
+            max-width: 50%;
+            animation: slideText 0.8s ease 0.3s both;
+        }
+
+        @keyframes slideText {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .slide-title {
+            font-size: 3.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+            line-height: 1.2;
+        }
+
+        .slide-description {
+            font-size: 1.5em;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            line-height: 1.5;
+        }
+
+        .slide-price {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #FFE66D;
+            text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.3);
+            display: inline-block;
+            padding: 10px 25px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+
+        .slide-image-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: slideImage 0.8s ease 0.5s both;
+        }
+
+        @keyframes slideImage {
+            from { opacity: 0; transform: translateX(30px) scale(0.9); }
+            to { opacity: 1; transform: translateX(0) scale(1); }
+        }
+
+        .slide-image {
+            max-width: 350px;
+            max-height: 350px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            object-fit: cover;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .slide-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            border: none;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.8em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+        }
+
+        .slide-nav:hover {
+            background: rgba(0, 0, 0, 0.6);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .slide-nav.prev {
+            left: 25px;
+        }
+
+        .slide-nav.next {
+            right: 25px;
+        }
+
+        .slide-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        .indicator {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .indicator.active {
+            background: #FF6B6B;
+            transform: scale(1.3);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .slideshow-controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .control-btn {
+            padding: 12px 28px;
+            background: #FF6B6B;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1em;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .control-btn:hover {
+            background: #FF5252;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        /* Menu Styles */
+        .menu-categories {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .category-btn {
+            padding: 12px 28px;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1em;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .category-btn:hover {
+            background: #e9ecef;
+            transform: translateY(-3px);
+        }
+
+        .category-btn.active {
+            background: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+            padding: 20px 0;
+        }
+
+        .menu-item {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid #f1f3f4;
+        }
+
+        .menu-item:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .menu-item-image {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .menu-item:hover .menu-item-image {
+            transform: scale(1.05);
+        }
+
+        .menu-item-content {
+            padding: 25px;
+        }
+
+        .menu-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .menu-item-title {
+            font-size: 1.4em;
+            margin-bottom: 10px;
+            color: #2d3436;
+            font-weight: 700;
+            flex: 1;
+        }
+
+        .menu-item-price {
+            font-size: 1.6em;
+            font-weight: bold;
+            color: #FF6B6B;
+            background: rgba(255, 107, 107, 0.1);
+            padding: 6px 15px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        .menu-item-description {
+            color: #636e72;
+            margin-bottom: 20px;
+            line-height: 1.6;
+            font-size: 0.95em;
+        }
+
+        .menu-item-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .availability {
+            font-size: 0.9em;
+            font-weight: 600;
+            padding: 6px 15px;
+            border-radius: 20px;
+        }
+
+        .available {
+            background: rgba(76, 175, 80, 0.1);
+            color: #4CAF50;
+        }
+
+        .unavailable {
+            background: rgba(255, 107, 107, 0.1);
+            color: #FF6B6B;
+        }
+
+        .add-to-cart {
+            padding: 10px 22px;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .add-to-cart:hover:not(:disabled) {
+            background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .add-to-cart:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Cart Styles */
+        .cart-container {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid #e9ecef;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 2px solid #e9ecef;
+            background: white;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .cart-item:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transform: translateX(5px);
+        }
+
+        .cart-item-info {
+            flex: 1;
+        }
+
+        .cart-item-name {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #2d3436;
+            margin-bottom: 5px;
+        }
+
+        .cart-item-price {
+            color: #FF6B6B;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .cart-item-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f1f3f4;
+            padding: 8px 15px;
+            border-radius: 50px;
+        }
+
+        .quantity-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: white;
+            color: #333;
+            cursor: pointer;
+            font-size: 1.2em;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .quantity-btn:hover:not(:disabled) {
+            background: #FF6B6B;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .quantity-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .quantity-display {
+            font-size: 1.2em;
+            font-weight: 600;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .remove-btn {
+            padding: 10px 20px;
+            background: #FF6B6B;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .remove-btn:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .cart-total {
+            text-align: right;
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 3px solid #e9ecef;
+            color: #2d3436;
+        }
+
+        .cart-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            gap: 20px;
+        }
+
+        .clear-cart-btn {
+            padding: 12px 28px;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .clear-cart-btn:hover {
+            background: #5a6268;
+            transform: translateY(-3px);
+        }
+
+        .checkout-btn {
+            padding: 14px 35px;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(76, 175, 80, 0.3);
+        }
+
+        .checkout-btn:hover {
+            background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(76, 175, 80, 0.4);
+        }
+
+        /* Order Form Styles */
+        .order-form {
+            max-width: 800px;
+            margin: 0 auto;
+            display: grid;
+            gap: 25px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-label {
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #2d3436;
+            font-size: 1.1em;
+        }
+
+        .form-input {
+            padding: 15px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+
+        .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .payment-method {
+            position: relative;
+        }
+
+        .payment-method input {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .payment-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .payment-label:hover {
+            border-color: #4CAF50;
+            background: white;
+        }
+
+        .payment-label.active {
+            border-color: #4CAF50;
+            background: rgba(76, 175, 80, 0.1);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.1);
+        }
+
+        .payment-label i {
+            font-size: 2em;
+            margin-bottom: 10px;
+            color: #4CAF50;
+        }
+
+        .order-summary {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+        }
+
+        .order-summary h3 {
+            margin-bottom: 20px;
+            color: #2d3436;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+        }
+
+        .order-items {
+            margin-bottom: 20px;
+        }
+
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #dee2e6;
+        }
+
+        .submit-btn {
+            padding: 16px 40px;
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF5252 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 25px rgba(255, 107, 107, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #FF5252 0%, #ff3d3d 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(255, 107, 107, 0.4);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Admin Styles */
+        .admin-login-form {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 40px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .admin-login-form h2 {
+            margin-bottom: 30px;
+            color: #2d3436;
+        }
+
+        .admin-dashboard {
+            animation: fadeIn 0.5s ease;
+        }
+
+        .admin-welcome {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .admin-welcome h2 {
+            margin-bottom: 10px;
+        }
+
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #FF6B6B;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #636e72;
+            font-weight: 600;
+        }
+
+        .admin-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .admin-action-btn {
+            padding: 20px;
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .admin-action-btn:hover {
+            border-color: #4CAF50;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .admin-action-btn i {
+            font-size: 2.5em;
+            color: #4CAF50;
+        }
+
+        .admin-action-btn span {
+            font-weight: 600;
+            color: #2d3436;
+            font-size: 1.1em;
+        }
+
+        .logout-btn {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            padding: 10px 20px;
+            background: #FF6B6B;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logout-btn:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: #636e72;
+            font-size: 0.95em;
+            border-top: 1px solid #e9ecef;
+            margin-top: 40px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        footer p {
+            margin: 10px 0;
+        }
+
+        .social-icons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #636e72;
+            font-size: 1.2em;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .social-icon:hover {
+            background: #FF6B6B;
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .logo h1 {
+                font-size: 2.8em;
             }
-        ];
-
-        for (const adminData of defaultAdmins) {
-            const existingAdmin = await Admin.findOne({ username: adminData.username });
             
-            if (!existingAdmin) {
-                await Admin.create(adminData);
-                console.log(`✅ Created default admin: ${adminData.username} (${adminData.role})`);
-            } else {
-                const hashedPassword = await bcrypt.hash(adminData.password, 10);
-                existingAdmin.password = hashedPassword;
-                existingAdmin.role = adminData.role;
-                existingAdmin.permissions = adminData.permissions;
-                existingAdmin.isActive = true;
-                await existingAdmin.save();
-                console.log(`✅ Updated default admin: ${adminData.username} (${adminData.role})`);
+            .slide-content {
+                flex-direction: column;
+                text-align: center;
+                padding: 40px 20px;
             }
-        }
-        
-        console.log('✅ All default admin accounts initialized/updated');
-    } catch (error) {
-        console.error('❌ Error initializing default admins:', error);
-    }
-}
-
-// Initialize menu items
-async function initializeMenuItems() {
-    try {
-        const menuItems = [
-            // Nachos
-            {
-                name: 'Regular Nachos',
-                price: 35,
-                category: 'nachos',
-                description: 'Classic nachos with delicious toppings',
-                ingredients: 'Chips, beef, cucumber, white onions, tomatoes, carrots, cheesy sauce, garlic sauce, sesame seeds.',
-                isAvailable: true,
-                imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/regular-nachos.jpg',
-                displayOrder: 1
-            },
-            {
-                name: 'Veggie Nachos',
-                price: 65,
-                category: 'nachos',
-                description: 'Vegetarian delight',
-                ingredients: 'Corn chips, bell peppers, onions, olives, melted cheese, guacamole.',
-                isAvailable: true,
-                imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/veggie-nachos.jpg',
-                displayOrder: 2
-            },
-            {
-                name: 'Overload Cheesy Nachos',
-                price: 95,
-                category: 'nachos',
-                description: 'Extra cheesy goodness',
-                ingredients: 'Chips, beef, cucumber, white onions, tomatoes, carrots, black olives, cheesy sauce, garlic sauce, sesame seeds, Cheese.',
-                isAvailable: true,
-                imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/overload-cheesy-nachos.jpg',
-                displayOrder: 3
-            },
-            {
-                name: 'Nacho Combo',
-                price: 75,
-                category: 'nachos',
-                description: 'Nachos with drink',
-                ingredients: 'Chips, beef, cucumber, white onions, tomatoes, carrots, cheesy sauce, garlic sauce, sesame seeds, Drinks.',
-                isAvailable: true,
-                imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/nacho-combo.jpg',
-                displayOrder: 4
-            },
-            {
-                name: 'Nacho Fries',
-                price: 85,
-                category: 'nachos',
-                description: 'Nachos with fries',
-                ingredients: 'Fries, Chips, beef, cucumber, white onions, tomatoes, carrots, black olives, cheesy sauce, garlic sauce, sesame seeds.',
-                isAvailable: true,
-                imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/nacho-fries.jpg',
-                displayOrder: 5
-            },
-            {
-                name: 'Supreme Nachos',
-                price: 180,
-                category: 'nachos',
-                description: 'Premium nachos experience',
-                ingredients: 'Corn chips, beef, tomatoes, onions, triple cheese, guacamole.',
-                isAvailable: true,
-                imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/supreme-nachos.jpg',
-                displayOrder: 6
-            },
-            {
-                name: 'Shawarma fries',
-                price: 120,
-                category: 'nachos',
-                description: 'Shawarma style fries',
-                ingredients: 'Fries, beef, cucumber, white onions, tomatoes, carrots, black olives, cheesy sauce, garlic sauce, sesame seeds, cheese, guacamole.',
-                isAvailable: true,
-                imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/shawarma-fries.jpg',
-                displayOrder: 7
-            },
-            // Desserts
-            {
-                name: 'Mango Graham',
-                price: 40,
-                category: 'desserts',
-                description: 'Sweet mango graham dessert',
-                ingredients: 'Mango slices, graham crackers, cream, condensed milk.',
-                isAvailable: true,
-                imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/mango-graham.jpg',
-                displayOrder: 1
-            },
-            {
-                name: 'Mango tiramisu on tube',
-                price: 100,
-                category: 'desserts',
-                description: 'Mango tiramisu in a tube',
-                ingredients: 'Mango puree, mascarpone, ladyfingers, cream, cocoa dust.',
-                isAvailable: true,
-                imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/mango-tiramisu.jpg',
-                displayOrder: 2
-            },
-            {
-                name: 'Biscoff',
-                price: 159,
-                category: 'desserts',
-                description: 'Biscoff cookie dessert',
-                ingredients: 'Biscoff spread, crushed cookies, cream, condensed milk.',
-                isAvailable: true,
-                imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/biscoff.jpg',
-                displayOrder: 3
-            },
-            {
-                name: 'Oreo',
-                price: 149,
-                category: 'desserts',
-                description: 'Oreo cookie delight',
-                ingredients: 'Oreo cookies, whipped cream, chocolate syrup, condensed milk.',
-                isAvailable: true,
-                imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/oreo.jpg',
-                displayOrder: 4
-            },
-            {
-                name: 'Mango Graham Float',
-                price: 40,
-                category: 'desserts',
-                description: 'Mango graham float dessert',
-                ingredients: 'Mango, graham crackers, cream, condensed milk, and other delicious ingredients.',
-                isAvailable: true,
-                imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/mango-graham-float.jpg',
-                displayOrder: 5
-            }
-        ];
-
-        for (const itemData of menuItems) {
-            const existingItem = await MenuItem.findOne({ name: itemData.name });
             
-            if (!existingItem) {
-                await MenuItem.create(itemData);
-                console.log(`✅ Created menu item: ${itemData.name}`);
-            } else {
-                existingItem.price = itemData.price;
-                existingItem.isAvailable = itemData.isAvailable;
-                existingItem.imageUrl = itemData.imageUrl;
-                existingItem.displayOrder = itemData.displayOrder;
-                await existingItem.save();
-                console.log(`✅ Updated menu item: ${itemData.name}`);
+            .slide-text {
+                max-width: 100%;
+                margin-bottom: 30px;
+            }
+            
+            .slide-title {
+                font-size: 2.5em;
+            }
+            
+            .menu-grid {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             }
         }
-        
-        console.log('✅ All menu items initialized/updated');
-    } catch (error) {
-        console.error('❌ Error initializing menu items:', error);
-    }
-}
 
-// Initialize slideshow items
-async function initializeSlideshow() {
-    try {
-        const slides = [
-            {
-                title: 'Welcome to Ai-Maize-ing Nachos!',
-                description: 'Delicious food made with love',
-                imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/logo.jpg',
-                order: 1,
-                active: true,
-                promoBadge: 'New'
-            },
-            {
-                title: 'Overload Cheesy Nachos',
-                description: 'Loaded with premium cheese and toppings',
-                imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/overload-cheesy-nachos.jpg',
-                order: 2,
-                active: true,
-                promoBadge: 'Bestseller'
-            },
-            {
-                title: 'Mango Graham Special',
-                description: 'Sweet mango dessert delight',
-                imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/mango-graham.jpg',
-                order: 3,
-                active: true,
-                promoBadge: '20% OFF'
+        @media (max-width: 768px) {
+            .nav-bar {
+                flex-direction: column;
+                align-items: center;
             }
-        ];
-
-        // Clear existing slides
-        await Slideshow.deleteMany({});
-
-        for (const slideData of slides) {
-            await Slideshow.create(slideData);
-            console.log(`✅ Created slideshow slide: ${slideData.title}`);
+            
+            .nav-btn {
+                width: 100%;
+                max-width: 300px;
+                justify-content: center;
+            }
+            
+            .slideshow-container {
+                height: 400px;
+            }
+            
+            .slide-title {
+                font-size: 2em;
+            }
+            
+            .slide-description {
+                font-size: 1.2em;
+            }
+            
+            .cart-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .cart-item-controls {
+                width: 100%;
+                justify-content: space-between;
+            }
         }
-        
-        console.log('✅ Slideshow initialized');
-    } catch (error) {
-        console.error('❌ Error initializing slideshow:', error);
-    }
-}
 
-// Authentication middleware
-const authenticateToken = (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-
-    if (!token) {
-        return res.status(401).json({ 
-            message: 'Access token required',
-            code: 'TOKEN_REQUIRED'
-        });
-    }
-
-    jwt.verify(token, JWT_SECRET, (err, user) => {
-        if (err) {
-            return res.status(403).json({ 
-                message: 'Invalid or expired token',
-                code: 'INVALID_TOKEN'
-            });
+        @media (max-width: 576px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .main-content {
+                padding: 25px;
+            }
+            
+            .logo h1 {
+                font-size: 2.2em;
+            }
+            
+            .slideshow-container {
+                height: 350px;
+            }
+            
+            .menu-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .payment-methods {
+                grid-template-columns: 1fr;
+            }
         }
-        req.user = user;
-        next();
-    });
-};
 
-// =========== SLIDESHOW API ENDPOINTS ===========
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: #4CAF50;
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(76, 175, 80, 0.3);
+            z-index: 1000;
+            animation: slideInRight 0.3s ease, fadeOut 0.3s ease 2.7s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-width: 300px;
+        }
 
-// Get slideshow (public)
-app.get('/api/slideshow', async (req, res) => {
-    try {
-        const slides = await Slideshow.find({ active: true }).sort({ order: 1 });
-        
-        // If no slides, return demo slides
-        if (slides.length === 0) {
-            const demoSlides = [
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            to { opacity: 0; }
+        }
+
+        /* Loading Spinner */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <h1><i class="fas fa-utensils"></i> Ai-Maize-ing Nachos</h1>
+                <div class="tagline">Delicious Nachos & Desserts Made with Love</div>
+            </div>
+            
+            <div class="nav-bar">
+                <button class="nav-btn active" onclick="showSection('home')">
+                    <i class="fas fa-home"></i> Home
+                </button>
+                <button class="nav-btn" onclick="showSection('menu')">
+                    <i class="fas fa-utensils"></i> Menu
+                </button>
+                <button class="nav-btn" onclick="showSection('cart')">
+                    <i class="fas fa-shopping-cart"></i> Cart (<span id="cart-count">0</span>)
+                </button>
+                <button class="nav-btn" onclick="showSection('order')">
+                    <i class="fas fa-shopping-bag"></i> Order Now
+                </button>
+                <button class="nav-btn admin-btn" style="display: none;" onclick="showSection('admin')">
+                    <i class="fas fa-user-shield"></i> Admin
+                </button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- Home Section -->
+            <div id="home-section" class="section active">
+                <h2 style="text-align: center; margin-bottom: 30px; color: #2d3436;">
+                    <i class="fas fa-star"></i> Welcome to Ai-Maize-ing Nachos!
+                </h2>
+                
+                <div class="slideshow-container" id="slideshow-container">
+                    <!-- Slides will be loaded here -->
+                    <div class="slideshow-loading" style="text-align: center; padding: 100px;">
+                        <div class="loading" style="margin: 0 auto 20px;"></div>
+                        <p>Loading delicious treats...</p>
+                    </div>
+                </div>
+                
+                <div class="slideshow-controls">
+                    <button class="control-btn" onclick="prevSlide()">
+                        <i class="fas fa-chevron-left"></i> Previous
+                    </button>
+                    <button class="control-btn" onclick="toggleAutoPlay()" id="autoplay-btn">
+                        <i class="fas fa-pause"></i> Pause Auto-play
+                    </button>
+                    <button class="control-btn" onclick="nextSlide()">
+                        Next <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                
+                <div class="slide-indicators" id="slide-indicators">
+                    <!-- Indicators will be added here -->
+                </div>
+                
+                <div style="text-align: center; margin-top: 40px;">
+                    <button class="checkout-btn" onclick="showSection('menu')">
+                        <i class="fas fa-utensils"></i> View Full Menu
+                    </button>
+                </div>
+            </div>
+
+            <!-- Menu Section -->
+            <div id="menu-section" class="section">
+                <h2 style="text-align: center; margin-bottom: 30px; color: #2d3436;">
+                    <i class="fas fa-book-open"></i> Our Delicious Menu
+                </h2>
+                
+                <div class="menu-categories" id="menu-categories">
+                    <button class="category-btn active" onclick="filterMenu('all')">All Items</button>
+                    <button class="category-btn" onclick="filterMenu('nachos')">Nachos</button>
+                    <button class="category-btn" onclick="filterMenu('desserts')">Desserts</button>
+                    <button class="category-btn" onclick="filterMenu('drinks')">Drinks</button>
+                </div>
+                
+                <div class="menu-grid" id="menu-grid">
+                    <!-- Menu items will be loaded here -->
+                    <div style="grid-column: 1/-1; text-align: center; padding: 50px;">
+                        <div class="loading" style="margin: 0 auto 20px;"></div>
+                        <p>Loading menu items...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cart Section -->
+            <div id="cart-section" class="section">
+                <h2 style="text-align: center; margin-bottom: 30px; color: #2d3436;">
+                    <i class="fas fa-shopping-cart"></i> Your Shopping Cart
+                </h2>
+                
+                <div class="cart-container" id="cart-container">
+                    <div style="text-align: center; padding: 50px;">
+                        <i class="fas fa-shopping-cart" style="font-size: 3em; color: #e9ecef; margin-bottom: 20px;"></i>
+                        <p style="color: #636e72; font-size: 1.1em;">Your cart is empty</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Section -->
+            <div id="order-section" class="section">
+                <h2 style="text-align: center; margin-bottom: 30px; color: #2d3436;">
+                    <i class="fas fa-shopping-bag"></i> Place Your Order
+                </h2>
+                
+                <div class="order-form" id="order-form">
+                    <!-- Order form will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Admin Section -->
+            <div id="admin-section" class="section">
+                <div id="admin-content">
+                    <!-- Admin content will be loaded here -->
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <div style="margin-bottom: 20px;">
+                <h3 style="color: #2d3436; margin-bottom: 15px;">Ai-Maize-ing Nachos</h3>
+                <p>Delicious food made with love and care</p>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <p><i class="fas fa-map-marker-alt"></i> 123 Food Street, City, Country</p>
+                <p><i class="fas fa-phone"></i> +63 123 456 7890</p>
+                <p><i class="fas fa-envelope"></i> info@aimaizeingnachos.com</p>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <p><strong>Opening Hours:</strong></p>
+                <p>Monday - Sunday: 10:00 AM - 10:00 PM</p>
+            </div>
+            
+            <div class="social-icons">
+                <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-tiktok"></i></a>
+            </div>
+            
+            <p style="margin-top: 20px;">&copy; 2024 Ai-Maize-ing Nachos. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        // =========== GLOBAL VARIABLES ===========
+        const API_BASE_URL = window.location.origin;
+        let currentSlides = [];
+        let currentSlideIndex = 0;
+        let autoPlayInterval;
+        let isAutoPlay = true;
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        let currentAdmin = null;
+        let adminToken = null;
+
+        // =========== SLIDESHOW FUNCTIONS ===========
+        async function initSlideshow() {
+            console.log('Initializing slideshow...');
+            const container = document.getElementById('slideshow-container');
+            
+            try {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 100px;">
+                        <div class="loading" style="margin: 0 auto 20px;"></div>
+                        <p>Loading slideshow...</p>
+                    </div>
+                `;
+                
+                const response = await fetch(`${API_BASE_URL}/api/slideshow`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Slideshow data received:', data);
+                
+                if (data && data.success && Array.isArray(data.data)) {
+                    currentSlides = data.data;
+                    if (currentSlides.length > 0) {
+                        renderSlideshow();
+                        startAutoPlay();
+                    } else {
+                        createFallbackSlides();
+                    }
+                } else {
+                    console.warn('Unexpected data format:', data);
+                    createFallbackSlides();
+                }
+                
+            } catch (error) {
+                console.error('Error loading slideshow:', error);
+                createFallbackSlides();
+            }
+        }
+
+        function createFallbackSlides() {
+            console.log('Creating fallback slides...');
+            currentSlides = [
                 {
-                    _id: 'slide_1',
+                    _id: '1',
                     title: 'Welcome to Ai-Maize-ing Nachos!',
-                    description: 'Delicious food made with love',
-                    imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/logo.jpg',
+                    description: 'Delicious food made with love and care. Try our amazing selection of nachos and desserts.',
+                    imageUrl: '/image/LOGO.jpg',
                     order: 1,
-                    active: true,
-                    promoBadge: 'New'
+                    active: true
                 },
                 {
-                    _id: 'slide_2',
+                    _id: '2',
                     title: 'Overload Cheesy Nachos',
-                    description: 'Loaded with premium cheese and toppings',
-                    imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/overload-cheesy-nachos.jpg',
+                    description: 'Loaded with premium cheese and delicious toppings. Our most popular item!',
+                    imageUrl: '/image/overload chees nachos.jpg',
                     order: 2,
                     active: true,
-                    promoBadge: 'Bestseller'
+                    price: 95
                 },
                 {
-                    _id: 'slide_3',
+                    _id: '3',
                     title: 'Mango Graham Special',
-                    description: 'Sweet mango dessert delight',
-                    imageUrl: 'https://raw.githubusercontent.com/id617985-eng/new-items/main/images/mango-graham.jpg',
+                    description: 'Sweet and refreshing mango dessert. Perfect for any occasion.',
+                    imageUrl: '/image/mango.gif',
                     order: 3,
                     active: true,
-                    promoBadge: '20% OFF'
+                    price: 40
+                },
+                {
+                    _id: '4',
+                    title: 'Supreme Nachos',
+                    description: 'Premium nachos experience with triple cheese and guacamole.',
+                    imageUrl: '/image/Supreme Nachos.png',
+                    order: 4,
+                    active: true,
+                    price: 180
                 }
             ];
-            return res.json(demoSlides);
-        }
-        
-        res.json(slides);
-    } catch (error) {
-        console.error('Get slideshow error:', error);
-        res.status(500).json({ 
-            message: 'Internal server error',
-            code: 'INTERNAL_ERROR'
-        });
-    }
-});
-
-// Create slideshow slide (admin only)
-app.post('/api/admin/slideshow', authenticateToken, async (req, res) => {
-    try {
-        const { title, description, imageUrl, order, active, promoBadge } = req.body;
-        
-        if (!title || !imageUrl) {
-            return res.status(400).json({ 
-                message: 'Title and image URL are required',
-                code: 'REQUIRED_FIELDS'
-            });
-        }
-        
-        const slide = new Slideshow({
-            title,
-            description,
-            imageUrl,
-            order: order || 0,
-            active: active !== undefined ? active : true,
-            promoBadge
-        });
-        
-        await slide.save();
-        
-        console.log(`✅ Slideshow slide created: ${title} by ${req.user.username}`);
-        
-        res.status(201).json({
-            success: true,
-            message: 'Slide created successfully',
-            slide
-        });
-        
-    } catch (error) {
-        console.error('Create slide error:', error);
-        res.status(500).json({ 
-            message: 'Internal server error',
-            code: 'INTERNAL_ERROR'
-        });
-    }
-});
-
-// Update slideshow slide (admin only)
-app.put('/api/admin/slideshow/:id', authenticateToken, async (req, res) => {
-    try {
-        const { id } = req.params;
-        const updateData = req.body;
-        
-        const slide = await Slideshow.findByIdAndUpdate(
-            id,
-            updateData,
-            { new: true, runValidators: true }
-        );
-        
-        if (!slide) {
-            return res.status(404).json({ 
-                message: 'Slide not found',
-                code: 'SLIDE_NOT_FOUND'
-            });
-        }
-        
-        console.log(`✅ Slideshow slide updated: ${slide.title} by ${req.user.username}`);
-        
-        res.json({
-            success: true,
-            message: 'Slide updated successfully',
-            slide
-        });
-        
-    } catch (error) {
-        console.error('Update slide error:', error);
-        res.status(500).json({ 
-            message: 'Internal server error',
-            code: 'INTERNAL_ERROR'
-        });
-    }
-});
-
-// Delete slideshow slide (admin only)
-app.delete('/api/admin/slideshow/:id', authenticateToken, async (req, res) => {
-    try {
-        const { id } = req.params;
-        
-        const slide = await Slideshow.findByIdAndDelete(id);
-        
-        if (!slide) {
-            return res.status(404).json({ 
-                message: 'Slide not found',
-                code: 'SLIDE_NOT_FOUND'
-            });
-        }
-        
-        console.log(`🗑️ Slideshow slide deleted: ${slide.title} by ${req.user.username}`);
-        
-        res.json({
-            success: true,
-            message: 'Slide deleted successfully'
-        });
-        
-    } catch (error) {
-        console.error('Delete slide error:', error);
-        res.status(500).json({ 
-            message: 'Internal server error',
-            code: 'INTERNAL_ERROR'
-        });
-    }
-});
-
-// Get all slides (admin only)
-app.get('/api/admin/slideshow', authenticateToken, async (req, res) => {
-    try {
-        const slides = await Slideshow.find().sort({ order: 1 });
-        res.json(slides);
-    } catch (error) {
-        console.error('Get admin slides error:', error);
-        res.status(500).json({ 
-            message: 'Internal server error',
-            code: 'INTERNAL_ERROR'
-        });
-    }
-});
-
-// =========== IMAGE UPLOAD API ENDPOINTS ===========
-
-// Upload image to GitHub (admin only)
-app.post('/api/admin/upload-image', authenticateToken, async (req, res) => {
-    try {
-        const { imageBase64, fileName, productName } = req.body;
-        
-        if (!imageBase64 || !fileName) {
-            return res.status(400).json({ 
-                message: 'Image data and file name are required',
-                code: 'IMAGE_DATA_REQUIRED'
-            });
-        }
-        
-        // Remove data:image/...;base64, prefix if present
-        const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
-        
-        // GitHub credentials for Railway.app
-        const GITHUB_USERNAME = 'id617985-eng';
-        const REPO_NAME = 'new-items';
-        const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-        
-        if (!GITHUB_TOKEN) {
-            console.warn('⚠️ GitHub token not found in environment variables');
-            return res.status(500).json({
-                message: 'GitHub upload not configured',
-                code: 'GITHUB_NOT_CONFIGURED'
-            });
-        }
-        
-        const PATH = `images/${fileName}`;
-        
-        // GitHub API URL
-        const githubApiUrl = `https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/${PATH}`;
-        
-        // Prepare GitHub API request
-        const response = await fetch(githubApiUrl, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `token ${GITHUB_TOKEN}`,
-                'Content-Type': 'application/json',
-                'Accept': 'application/vnd.github.v3+json'
-            },
-            body: JSON.stringify({
-                message: `Add product image for: ${productName || fileName}`,
-                content: base64Data,
-                committer: {
-                    name: 'Ai-Maize-ing Nachos Admin',
-                    email: 'admin@aimaizeingnachos.com'
-                }
-            })
-        });
-        
-        const githubResult = await response.json();
-        
-        if (!response.ok) {
-            console.error('GitHub API error:', githubResult);
-            return res.status(response.status).json({
-                message: 'Failed to upload image to GitHub',
-                details: githubResult.message || 'Unknown GitHub error',
-                code: 'GITHUB_UPLOAD_FAILED'
-            });
-        }
-        
-        // Construct the public URL for the image
-        const imageUrl = `https://raw.githubusercontent.com/${GITHUB_USERNAME}/${REPO_NAME}/main/${PATH}`;
-        
-        console.log(`✅ Image uploaded to GitHub: ${imageUrl} by ${req.user.username}`);
-        
-        res.json({
-            success: true,
-            message: 'Image uploaded successfully',
-            imageUrl: imageUrl,
-            githubUrl: githubResult.content.html_url
-        });
-        
-    } catch (error) {
-        console.error('Upload image error:', error);
-        res.status(500).json({ 
-            message: 'Internal server error',
-            code: 'INTERNAL_ERROR'
-        });
-    }
-});
-
-// =========== MENU ITEMS API ENDPOINTS ===========
-
-// Add new menu item (admin only)
-app.post('/api/admin/menu-items', authenticateToken, async (req, res) => {
-    try {
-        const { 
-            name, 
-            price, 
-            category, 
-            description, 
-            ingredients, 
-            isAvailable = true,
-            imageUrl = '',
-            displayOrder = 0
-        } = req.body;
-        
-        // Validation
-        if (!name || !price || !category) {
-            return res.status(400).json({ 
-                message: 'Name, price, and category are required',
-                code: 'REQUIRED_FIELDS'
-            });
-        }
-        
-        if (!['nachos', 'desserts'].includes(category)) {
-            return res.status(400).json({ 
-                message: 'Category must be either "nachos" or "desserts"',
-                code: 'INVALID_CATEGORY'
-            });
-        }
-        
-        // Check if item already exists
-        const existingItem = await MenuItem.findOne({ name });
-        if (existingItem) {
-            return res.status(409).json({ 
-                message: 'Menu item with this name already exists',
-                code: 'ITEM_EXISTS'
-            });
-        }
-        
-        // Create new menu item
-        const menuItem = new MenuItem({
-            name,
-            price: parseFloat(price),
-            category,
-            description: description || '',
-            ingredients: ingredients || '',
-            isAvailable,
-            imageUrl,
-            displayOrder
-        });
-        
-        await menuItem.save();
-        
-        console.log(`✅ New menu item created: ${name} by ${req.user.username}`);
-        
-        res.status(201).json({
-            success: true,
-            message: 'Menu item created successfully',
-            item: menuItem
-        });
-        
-    } catch (error) {
-        console.error('Create menu item error:', error);
-        res.status(500).json({ 
-            message: 'Internal server error',
-            code: 'INTERNAL_ERROR'
-        });
-    }
-});
-
-// Update menu item (admin only)
-app.put('/api/admin/menu-items/:id', authenticateToken, async (req, res) => {
-    try {
-        const { id } = req.params;
-        const updateData = req.body;
-        
-        if (updateData.price) {
-            updateData.price = parseFloat(updateData.price);
-        }
-        
-        const menuItem = await MenuItem.findByIdAndUpdate(
-            id,
-            { ...updateData, updatedAt: new Date() },
-            { new: true, runValidators: true }
-        );
-        
-        if (!menuItem) {
-            return res.status(404).json({ 
-                message: 'Menu item not found',
-                code: 'ITEM_NOT_FOUND'
-            });
-        }
-        
-        console.log(`✅ Menu item updated: ${menuItem.name} by ${req.user.username}`);
-        
-        res.json({
-            success: true,
-            message: 'Menu item updated successfully',
-            item: menuItem
-        });
-        
-    } catch (error) {
-        console.error('Update menu item error:', error);
-        res.status(500).json({ 
-            message: 'Internal server error',
-            code: 'INTERNAL_ERROR'
-        });
-    }
-});
-
-// Delete menu item (admin only)
-app.delete('/api/admin/menu-items/:id', authenticateToken, async (req, res) => {
-    try {
-        const { id } = req.params;
-        
-        const menuItem = await MenuItem.findByIdAndDelete(id);
-        
-        if (!menuItem) {
-            return res.status(404).json({ 
-                message: 'Menu item not found',
-                code: 'ITEM_NOT_FOUND'
-            });
-        }
-        
-        console.log(`🗑️ Menu item deleted: ${menuItem.name} by ${req.user.username}`);
-        
-        res.json({
-            success: true,
-            message: 'Menu item deleted successfully'
-        });
-        
-    } catch (error) {
-        console.error('Delete menu item error:', error);
-        res.status(500).json({ 
-            message: 'Internal server error',
-            code: 'INTERNAL_ERROR'
-        });
-    }
-});
-
-// =========== EXISTING API ENDPOINTS ===========
-
-// Health check
-app.get('/api/health', (req, res) => {
-    res.json({
-        status: 'OK',
-        database: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected',
-        version: '1.0.0',
-        timestamp: new Date().toISOString(),
-        message: 'Ai-Maize-ing Nachos API is running on Railway.app',
-        environment: process.env.NODE_ENV || 'production',
-        domain: 'https://aifoodies.up.railway.app'
-    });
-});
-
-// Test endpoint
-app.get('/api/test', (req, res) => {
-    res.json({
-        status: 'ok',
-        message: 'API is working correctly',
-        timestamp: new Date().toISOString(),
-        server: 'Railway.app'
-    });
-});
-
-// Admin Login
-app.post('/api/admin/login', async (req, res) => {
-    try {
-        const { username, password } = req.body;
-        
-        console.log(`🔐 Login attempt for username: ${username}`);
-        
-        if (!username || !password) {
-            return res.status(400).json({ 
-                message: 'Username and password are required',
-                code: 'CREDENTIALS_REQUIRED'
-            });
-        }
-
-        const admin = await Admin.findOne({ username });
-        
-        if (!admin) {
-            console.log(`❌ Admin not found: ${username}`);
-            return res.status(401).json({ 
-                message: 'Invalid username or password',
-                code: 'INVALID_CREDENTIALS'
-            });
-        }
-
-        if (!admin.isActive) {
-            return res.status(403).json({ 
-                message: 'Account is deactivated',
-                code: 'ACCOUNT_DEACTIVATED'
-            });
-        }
-
-        const isValidPassword = await admin.comparePassword(password);
-        
-        if (!isValidPassword) {
-            console.log(`❌ Invalid password for: ${username}`);
-            return res.status(401).json({ 
-                message: 'Invalid username or password',
-                code: 'INVALID_CREDENTIALS'
-            });
-        }
-
-        // Update last login
-        admin.lastLogin = new Date();
-        await admin.save();
-
-        // Create JWT token
-        const token = jwt.sign(
-            { 
-                id: admin._id, 
-                username: admin.username,
-                role: admin.role,
-                permissions: admin.permissions
-            },
-            JWT_SECRET,
-            { expiresIn: '24h' }
-        );
-
-        console.log(`✅ Login successful: ${username} (${admin.role})`);
-
-        res.json({
-            token,
-            user: {
-                id: admin._id,
-                username: admin.username,
-                fullName: admin.fullName,
-                email: admin.email,
-                role: admin.role,
-                permissions: admin.permissions,
-                isActive: admin.isActive,
-                lastLogin: admin.lastLogin
-            },
-            message: 'Login successful'
-        });
-
-    } catch (error) {
-        console.error('❌ Login error:', error);
-        res.status(500).json({ 
-            message: 'Internal server error',
-            code: 'INTERNAL_ERROR'
-        });
-    }
-});
-
-// Verify admin token and role
-app.get('/api/admin/verify-role', authenticateToken, async (req, res) => {
-    try {
-        const admin = await Admin.findById(req.user.id).select('-password');
-        
-        if (!admin) {
-            return res.status(404).json({ 
-                valid: false,
-                message: 'Admin not found'
-            });
-        }
-        
-        if (!admin.isActive) {
-            return res.status(403).json({ 
-                valid: false,
-                message: 'Account deactivated'
-            });
-        }
-        
-        res.json({
-            valid: true,
-            admin: {
-                id: admin._id,
-                username: admin.username,
-                role: admin.role,
-                permissions: admin.permissions,
-                isActive: admin.isActive
-            }
-        });
-    } catch (error) {
-        console.error('Verify role error:', error);
-        res.status(500).json({ 
-            valid: false,
-            message: 'Internal server error'
-        });
-    }
-});
-
-// Get admin profile
-app.get('/api/admin/me', authenticateToken, async (req, res) => {
-    try {
-        const admin = await Admin.findById(req.user.id).select('-password');
-        if (!admin) {
-            return res.status(404).json({ message: 'Admin not found' });
-        }
-        
-        res.json({
-            user: admin,
-            permissions: admin.permissions,
-            role: admin.role
-        });
-    } catch (error) {
-        console.error('Get admin profile error:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
-
-// Dashboard stats
-app.get('/api/admin/dashboard-stats', authenticateToken, async (req, res) => {
-    try {
-        // Get real stats from database
-        const totalMenuItems = await MenuItem.countDocuments();
-        const availableItems = await MenuItem.countDocuments({ isAvailable: true });
-        const totalSlides = await Slideshow.countDocuments({ active: true });
-        const totalAdmins = await Admin.countDocuments({ isActive: true });
-        
-        const stats = {
-            totalOrders: 24,
-            totalSales: 5240,
-            todayOrders: 3,
-            todaySales: 650,
-            pendingOrders: 2,
-            totalCustomers: 15,
-            totalMenuItems,
-            availableItems,
-            totalSlides,
-            totalAdmins,
-            popularItems: [
-                { name: 'Overload Cheesy Nachos', count: 12 },
-                { name: 'Mango Graham', count: 10 },
-                { name: 'Regular Nachos', count: 8 }
-            ]
-        };
-        
-        res.json({
-            ...stats,
-            userRole: req.user.role,
-            userPermissions: req.user.permissions
-        });
-    } catch (error) {
-        console.error('Dashboard stats error:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
-
-// Get all admins (superadmin only)
-app.get('/api/admin/admins', authenticateToken, async (req, res) => {
-    try {
-        if (req.user.role !== 'superadmin') {
-            return res.status(403).json({ message: 'Only superadmin can view all admins' });
-        }
-        
-        const admins = await Admin.find().select('-password').sort({ createdAt: -1 });
-        res.json(admins);
-    } catch (error) {
-        console.error('Get admins error:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
-
-// Get all menu items (public)
-app.get('/api/menu-items', async (req, res) => {
-    try {
-        const { category } = req.query;
-        let query = {};
-        
-        if (category) {
-            query.category = category;
-        }
-        
-        const menuItems = await MenuItem.find(query).sort({ displayOrder: 1, name: 1 });
-        res.json(menuItems);
-    } catch (error) {
-        console.error('Get menu items error:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
-
-// Get menu item availability (public)
-app.get('/api/availability', async (req, res) => {
-    try {
-        const menuItems = await MenuItem.find({}, 'name isAvailable category');
-        const availability = {};
-        
-        menuItems.forEach(item => {
-            availability[item.name] = item.isAvailable;
-        });
-        
-        res.json(availability);
-    } catch (error) {
-        console.error('Get availability error:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
-
-// Update item availability (admin only)
-app.put('/api/admin/menu-items/:name/availability', authenticateToken, async (req, res) => {
-    try {
-        const { name } = req.params;
-        const { isAvailable } = req.body;
-        
-        if (typeof isAvailable !== 'boolean') {
-            return res.status(400).json({ message: 'isAvailable must be boolean' });
-        }
-        
-        const menuItem = await MenuItem.findOne({ name });
-        
-        if (!menuItem) {
-            return res.status(404).json({ message: 'Menu item not found' });
-        }
-        
-        menuItem.isAvailable = isAvailable;
-        menuItem.updatedAt = new Date();
-        await menuItem.save();
-        
-        console.log(`✅ Updated availability: ${name} = ${isAvailable} by ${req.user.username}`);
-        
-        res.json({
-            success: true,
-            message: `${name} availability updated to ${isAvailable ? 'available' : 'out of stock'}`,
-            item: {
-                name: menuItem.name,
-                isAvailable: menuItem.isAvailable,
-                category: menuItem.category
-            }
-        });
-    } catch (error) {
-        console.error('Update availability error:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
-
-// Batch update availability (admin only)
-app.put('/api/admin/menu-items/availability/batch', authenticateToken, async (req, res) => {
-    try {
-        const { updates } = req.body; // Array of { name, isAvailable }
-        
-        if (!Array.isArray(updates)) {
-            return res.status(400).json({ message: 'updates must be an array' });
-        }
-        
-        const results = [];
-        
-        for (const update of updates) {
-            const menuItem = await MenuItem.findOne({ name: update.name });
             
-            if (menuItem) {
-                menuItem.isAvailable = update.isAvailable;
-                menuItem.updatedAt = new Date();
-                await menuItem.save();
-                results.push({
-                    name: menuItem.name,
-                    success: true,
-                    isAvailable: menuItem.isAvailable
-                });
+            renderSlideshow();
+            startAutoPlay();
+        }
+
+        function renderSlideshow() {
+            const container = document.getElementById('slideshow-container');
+            const indicatorsContainer = document.getElementById('slide-indicators');
+            
+            if (currentSlides.length === 0) {
+                container.innerHTML = '<div class="slideshow-error">No slides available</div>';
+                indicatorsContainer.innerHTML = '';
+                return;
+            }
+            
+            // Create slides HTML
+            let slidesHTML = '';
+            currentSlides.forEach((slide, index) => {
+                const imagePath = slide.imageUrl || '/image/default-food.jpg';
+                slidesHTML += `
+                    <div class="slide ${index === 0 ? 'active' : ''}" data-index="${index}">
+                        <div class="slide-content">
+                            <div class="slide-text">
+                                <h3 class="slide-title">${slide.title}</h3>
+                                <p class="slide-description">${slide.description || 'Delicious treat'}</p>
+                                ${slide.price ? `<div class="slide-price">₱${slide.price}</div>` : ''}
+                            </div>
+                            <div class="slide-image-container">
+                                <img src="${imagePath}" alt="${slide.title}" class="slide-image"
+                                     onerror="this.src='/image/default-food.jpg'">
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            // Add navigation arrows
+            slidesHTML += `
+                <button class="slide-nav prev" onclick="prevSlide()">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="slide-nav next" onclick="nextSlide()">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            `;
+            
+            container.innerHTML = slidesHTML;
+            
+            // Create indicators
+            let indicatorsHTML = '';
+            currentSlides.forEach((_, index) => {
+                indicatorsHTML += `
+                    <div class="indicator ${index === 0 ? 'active' : ''}" 
+                         onclick="goToSlide(${index})"
+                         data-index="${index}"></div>
+                `;
+            });
+            
+            indicatorsContainer.innerHTML = indicatorsHTML;
+            
+            console.log(`Slideshow rendered with ${currentSlides.length} slides`);
+        }
+
+        function goToSlide(index) {
+            if (index < 0 || index >= currentSlides.length) return;
+            
+            const slides = document.querySelectorAll('.slide');
+            const indicators = document.querySelectorAll('.indicator');
+            
+            // Hide all slides and remove active from indicators
+            slides.forEach(slide => slide.classList.remove('active'));
+            indicators.forEach(indicator => indicator.classList.remove('active'));
+            
+            // Show selected slide
+            slides[index].classList.add('active');
+            if (indicators[index]) {
+                indicators[index].classList.add('active');
+            }
+            
+            currentSlideIndex = index;
+            resetAutoPlay();
+        }
+
+        function nextSlide() {
+            const nextIndex = (currentSlideIndex + 1) % currentSlides.length;
+            goToSlide(nextIndex);
+        }
+
+        function prevSlide() {
+            const prevIndex = (currentSlideIndex - 1 + currentSlides.length) % currentSlides.length;
+            goToSlide(prevIndex);
+        }
+
+        function startAutoPlay() {
+            if (currentSlides.length <= 1) return;
+            
+            clearInterval(autoPlayInterval);
+            isAutoPlay = true;
+            
+            autoPlayInterval = setInterval(() => {
+                if (isAutoPlay) {
+                    nextSlide();
+                }
+            }, 5000);
+            
+            updateAutoPlayButton();
+        }
+
+        function toggleAutoPlay() {
+            isAutoPlay = !isAutoPlay;
+            updateAutoPlayButton();
+            
+            if (isAutoPlay) {
+                startAutoPlay();
             } else {
-                results.push({
-                    name: update.name,
-                    success: false,
-                    error: 'Item not found'
-                });
+                clearInterval(autoPlayInterval);
             }
         }
-        
-        console.log(`✅ Batch updated ${results.length} items by ${req.user.username}`);
-        
-        res.json({
-            success: true,
-            message: `Batch updated ${results.length} items`,
-            results
-        });
-    } catch (error) {
-        console.error('Batch update availability error:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
 
-// Get all menu items for admin (with details)
-app.get('/api/admin/menu-items', authenticateToken, async (req, res) => {
-    try {
-        const menuItems = await MenuItem.find().sort({ category: 1, displayOrder: 1 });
-        res.json(menuItems);
-    } catch (error) {
-        console.error('Get admin menu items error:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
-
-// Orders endpoints
-app.get('/api/admin/orders', authenticateToken, async (req, res) => {
-    try {
-        const demoOrders = [
-            {
-                _id: 'order_001',
-                customerName: 'John Doe',
-                items: [
-                    { name: 'Regular Nachos', quantity: 2, price: 35 },
-                    { name: 'Mango Graham', quantity: 1, price: 40 }
-                ],
-                total: 110,
-                status: 'completed',
-                paymentMethod: 'Cash on Pick-up',
-                pickupTime: '6:30 PM',
-                timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000)
-            },
-            {
-                _id: 'order_002',
-                customerName: 'Jane Smith',
-                items: [
-                    { name: 'Overload Cheesy Nachos', quantity: 1, price: 95 },
-                    { name: 'Biscoff', quantity: 1, price: 159 }
-                ],
-                total: 254,
-                status: 'processing',
-                paymentMethod: 'Gcash',
-                pickupTime: '7:00 PM',
-                timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000)
+        function updateAutoPlayButton() {
+            const btn = document.getElementById('autoplay-btn');
+            if (btn) {
+                btn.innerHTML = isAutoPlay ? 
+                    '<i class="fas fa-pause"></i> Pause Auto-play' : 
+                    '<i class="fas fa-play"></i> Start Auto-play';
             }
-        ];
-        
-        res.json({
-            orders: demoOrders,
-            userRole: req.user.role,
-            permissions: req.user.permissions
+        }
+
+        function resetAutoPlay() {
+            if (isAutoPlay) {
+                clearInterval(autoPlayInterval);
+                startAutoPlay();
+            }
+        }
+
+        // =========== MENU FUNCTIONS ===========
+        async function loadMenuItems() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/menu-items`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.data && data.data.items) {
+                        renderMenuItems(data.data.items);
+                    } else {
+                        renderMenuItems(getFallbackMenuItems());
+                    }
+                } else {
+                    renderMenuItems(getFallbackMenuItems());
+                }
+            } catch (error) {
+                console.error('Error loading menu:', error);
+                renderMenuItems(getFallbackMenuItems());
+            }
+        }
+
+        function getFallbackMenuItems() {
+            return [
+                {
+                    _id: '1',
+                    name: 'Regular Nachos',
+                    price: 35,
+                    category: 'nachos',
+                    description: 'Classic nachos with delicious toppings',
+                    isAvailable: true,
+                    imageUrl: '/image/classic nachos.jpg'
+                },
+                {
+                    _id: '2',
+                    name: 'Veggie Nachos',
+                    price: 65,
+                    category: 'nachos',
+                    description: 'Vegetarian delight with fresh vegetables',
+                    isAvailable: true,
+                    imageUrl: '/image/veggie nachos.jpg'
+                },
+                {
+                    _id: '3',
+                    name: 'Overload Cheesy Nachos',
+                    price: 95,
+                    category: 'nachos',
+                    description: 'Extra cheesy goodness with premium toppings',
+                    isAvailable: true,
+                    imageUrl: '/image/overload chees nachos.jpg'
+                },
+                {
+                    _id: '4',
+                    name: 'Mango Graham',
+                    price: 40,
+                    category: 'desserts',
+                    description: 'Sweet mango graham dessert with cream',
+                    isAvailable: true,
+                    imageUrl: '/image/mango.gif'
+                },
+                {
+                    _id: '5',
+                    name: 'Biscoff',
+                    price: 159,
+                    category: 'desserts',
+                    description: 'Delicious Biscoff cookie dessert',
+                    isAvailable: true,
+                    imageUrl: '/image/biscoff.jpeg'
+                },
+                {
+                    _id: '6',
+                    name: 'Nacho Combo',
+                    price: 75,
+                    category: 'nachos',
+                    description: 'Nachos with your choice of drink',
+                    isAvailable: true,
+                    imageUrl: '/image/combo.png'
+                }
+            ];
+        }
+
+        function renderMenuItems(items) {
+            const container = document.getElementById('menu-grid');
+            if (!container) return;
+            
+            if (!items || items.length === 0) {
+                container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 50px;">No menu items available</div>';
+                return;
+            }
+            
+            let html = '';
+            items.forEach(item => {
+                const imagePath = item.imageUrl || '/image/default-food.jpg';
+                
+                html += `
+                    <div class="menu-item" data-category="${item.category}">
+                        <img src="${imagePath}" alt="${item.name}" class="menu-item-image"
+                             onerror="this.src='/image/default-food.jpg'">
+                        <div class="menu-item-content">
+                            <div class="menu-item-header">
+                                <h3 class="menu-item-title">${item.name}</h3>
+                                <div class="menu-item-price">₱${item.price}</div>
+                            </div>
+                            <p class="menu-item-description">${item.description || 'Delicious treat'}</p>
+                            <div class="menu-item-actions">
+                                <span class="availability ${item.isAvailable ? 'available' : 'unavailable'}">
+                                    ${item.isAvailable ? 'Available' : 'Out of Stock'}
+                                </span>
+                                ${item.isAvailable ? 
+                                    `<button class="add-to-cart" onclick="addToCart('${item._id}', '${item.name}', ${item.price})">
+                                        <i class="fas fa-cart-plus"></i> Add to Cart
+                                    </button>` : 
+                                    `<button class="add-to-cart" disabled>
+                                        <i class="fas fa-times"></i> Out of Stock
+                                    </button>`
+                                }
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function filterMenu(category) {
+            const categoryBtns = document.querySelectorAll('.category-btn');
+            categoryBtns.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const items = document.querySelectorAll('.menu-item');
+            items.forEach(item => {
+                if (category === 'all' || item.dataset.category === category) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        // =========== CART FUNCTIONS ===========
+        function addToCart(id, name, price) {
+            const existingItem = cart.find(item => item.id === id);
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({
+                    id,
+                    name,
+                    price,
+                    quantity: 1
+                });
+            }
+            
+            updateCartStorage();
+            updateCartDisplay();
+            showNotification(`${name} added to cart!`);
+        }
+
+        function updateCartStorage() {
+            localStorage.setItem('cart', JSON.stringify(cart));
+        }
+
+        function updateCartDisplay() {
+            const count = cart.reduce((total, item) => total + item.quantity, 0);
+            document.getElementById('cart-count').textContent = count;
+            
+            if (document.getElementById('cart-section').style.display === 'block') {
+                renderCart();
+            }
+        }
+
+        function renderCart() {
+            const container = document.getElementById('cart-container');
+            if (!container) return;
+            
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 50px;">
+                        <i class="fas fa-shopping-cart" style="font-size: 3em; color: #e9ecef; margin-bottom: 20px;"></i>
+                        <p style="color: #636e72; font-size: 1.1em;">Your cart is empty</p>
+                        <button class="checkout-btn" onclick="showSection('menu')" style="margin-top: 20px;">
+                            <i class="fas fa-utensils"></i> Browse Menu
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            let total = 0;
+            
+            cart.forEach((item, index) => {
+                const itemTotal = item.price * item.quantity;
+                total += itemTotal;
+                
+                html += `
+                    <div class="cart-item">
+                        <div class="cart-item-info">
+                            <div class="cart-item-name">${item.name}</div>
+                            <div class="cart-item-price">₱${item.price} × ${item.quantity}</div>
+                        </div>
+                        <div class="cart-item-controls">
+                            <div class="quantity-controls">
+                                <button class="quantity-btn" onclick="updateQuantity(${index}, ${item.quantity - 1})" ${item.quantity <= 1 ? 'disabled' : ''}>-</button>
+                                <span class="quantity-display">${item.quantity}</span>
+                                <button class="quantity-btn" onclick="updateQuantity(${index}, ${item.quantity + 1})">+</button>
+                            </div>
+                            <div style="font-weight: bold; font-size: 1.2em;">₱${itemTotal.toFixed(2)}</div>
+                            <button class="remove-btn" onclick="removeFromCart(${index})">
+                                <i class="fas fa-trash"></i> Remove
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                <div class="cart-actions">
+                    <button class="clear-cart-btn" onclick="clearCart()">
+                        <i class="fas fa-trash-alt"></i> Clear Cart
+                    </button>
+                    <div style="text-align: right;">
+                        <div class="cart-total">Total: ₱${total.toFixed(2)}</div>
+                        <button class="checkout-btn" onclick="showSection('order')" style="margin-top: 10px;">
+                            <i class="fas fa-shopping-bag"></i> Proceed to Checkout
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        function updateQuantity(index, newQuantity) {
+            if (newQuantity < 1) {
+                removeFromCart(index);
+                return;
+            }
+            
+            cart[index].quantity = newQuantity;
+            updateCartStorage();
+            updateCartDisplay();
+            showNotification('Cart updated');
+        }
+
+        function removeFromCart(index) {
+            const itemName = cart[index].name;
+            cart.splice(index, 1);
+            updateCartStorage();
+            updateCartDisplay();
+            showNotification(`${itemName} removed from cart`);
+        }
+
+        function clearCart() {
+            if (cart.length === 0) return;
+            
+            if (confirm('Are you sure you want to clear your cart?')) {
+                cart = [];
+                updateCartStorage();
+                updateCartDisplay();
+                showNotification('Cart cleared');
+            }
+        }
+
+        // =========== ORDER FUNCTIONS ===========
+        function renderOrderForm() {
+            const container = document.getElementById('order-form');
+            if (!container) return;
+            
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 50px;">
+                        <i class="fas fa-shopping-cart" style="font-size: 3em; color: #e9ecef; margin-bottom: 20px;"></i>
+                        <p style="color: #636e72; font-size: 1.1em; margin-bottom: 20px;">Your cart is empty</p>
+                        <button class="checkout-btn" onclick="showSection('menu')">
+                            <i class="fas fa-utensils"></i> Browse Menu
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Calculate totals
+            let subtotal = 0;
+            cart.forEach(item => {
+                subtotal += item.price * item.quantity;
+            });
+            const tax = subtotal * 0.12; // 12% tax
+            const total = subtotal + tax;
+            
+            // Get items HTML
+            let itemsHTML = '';
+            cart.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                itemsHTML += `
+                    <div class="order-item">
+                        <span>${item.name} × ${item.quantity}</span>
+                        <span>₱${itemTotal.toFixed(2)}</span>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = `
+                <div class="order-summary">
+                    <h3>Order Summary</h3>
+                    <div class="order-items">
+                        ${itemsHTML}
+                    </div>
+                    <div class="order-item">
+                        <span>Subtotal</span>
+                        <span>₱${subtotal.toFixed(2)}</span>
+                    </div>
+                    <div class="order-item">
+                        <span>Tax (12%)</span>
+                        <span>₱${tax.toFixed(2)}</span>
+                    </div>
+                    <div class="order-item" style="font-weight: bold; border-top: 2px solid #dee2e6; padding-top: 10px;">
+                        <span>Total</span>
+                        <span>₱${total.toFixed(2)}</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="order-name" class="form-label">Full Name *</label>
+                    <input type="text" id="order-name" class="form-input" placeholder="Enter your full name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="order-phone" class="form-label">Phone Number *</label>
+                    <input type="tel" id="order-phone" class="form-input" placeholder="Enter your phone number" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="order-email" class="form-label">Email Address (optional)</label>
+                    <input type="email" id="order-email" class="form-input" placeholder="Enter your email address">
+                </div>
+                
+                <div class="form-group">
+                    <label for="order-pickup" class="form-label">Pickup Time *</label>
+                    <input type="datetime-local" id="order-pickup" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Payment Method *</label>
+                    <div class="payment-methods">
+                        <div class="payment-method">
+                            <input type="radio" id="cash" name="payment" value="cash" checked>
+                            <label for="cash" class="payment-label active">
+                                <i class="fas fa-money-bill-wave"></i>
+                                <span>Cash</span>
+                            </label>
+                        </div>
+                        <div class="payment-method">
+                            <input type="radio" id="gcash" name="payment" value="gcash">
+                            <label for="gcash" class="payment-label">
+                                <i class="fas fa-mobile-alt"></i>
+                                <span>GCash</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="order-notes" class="form-label">Special Instructions (optional)</label>
+                    <textarea id="order-notes" class="form-input" rows="4" placeholder="Any special requests or dietary restrictions..."></textarea>
+                </div>
+                
+                <button onclick="submitOrder()" class="submit-btn" id="submit-order-btn">
+                    <i class="fas fa-paper-plane"></i> Place Order
+                </button>
+            `;
+            
+            // Set minimum pickup time (30 minutes from now)
+            const now = new Date();
+            now.setMinutes(now.getMinutes() + 30);
+            const minDate = now.toISOString().slice(0, 16);
+            document.getElementById('order-pickup').min = minDate;
+            
+            // Set default pickup time (1 hour from now)
+            now.setMinutes(now.getMinutes() + 30);
+            const defaultDate = now.toISOString().slice(0, 16);
+            document.getElementById('order-pickup').value = defaultDate;
+            
+            // Handle payment method selection
+            document.querySelectorAll('.payment-label').forEach(label => {
+                label.addEventListener('click', function() {
+                    document.querySelectorAll('.payment-label').forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                    const input = this.previousElementSibling;
+                    input.checked = true;
+                });
+            });
+        }
+
+        async function submitOrder() {
+            const btn = document.getElementById('submit-order-btn');
+            const originalText = btn.innerHTML;
+            
+            try {
+                // Disable button and show loading
+                btn.disabled = true;
+                btn.innerHTML = '<div class="loading"></div> Processing...';
+                
+                // Get form values
+                const name = document.getElementById('order-name').value.trim();
+                const phone = document.getElementById('order-phone').value.trim();
+                const email = document.getElementById('order-email').value.trim();
+                const pickupTime = document.getElementById('order-pickup').value;
+                const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
+                const notes = document.getElementById('order-notes').value.trim();
+                
+                // Validation
+                if (!name || !phone || !pickupTime) {
+                    throw new Error('Please fill in all required fields');
+                }
+                
+                // Calculate totals
+                let subtotal = 0;
+                const items = cart.map(item => {
+                    const itemTotal = item.price * item.quantity;
+                    subtotal += itemTotal;
+                    return {
+                        name: item.name,
+                        quantity: item.quantity,
+                        price: item.price,
+                        total: itemTotal
+                    };
+                });
+                
+                const tax = subtotal * 0.12;
+                const total = subtotal + tax;
+                
+                // Prepare order data
+                const orderData = {
+                    customerName: name,
+                    customerPhone: phone,
+                    customerEmail: email || undefined,
+                    items,
+                    subtotal: parseFloat(subtotal.toFixed(2)),
+                    tax: parseFloat(tax.toFixed(2)),
+                    total: parseFloat(total.toFixed(2)),
+                    pickupTime: new Date(pickupTime).toISOString(),
+                    paymentMethod,
+                    notes: notes || undefined
+                };
+                
+                // Submit order
+                const response = await fetch(`${API_BASE_URL}/api/orders`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(orderData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    // Clear cart
+                    cart = [];
+                    updateCartStorage();
+                    updateCartDisplay();
+                    
+                    // Show success message
+                    showNotification(`Order placed successfully! Order #: ${data.data.orderNumber}`, 'success');
+                    
+                    // Return to home after delay
+                    setTimeout(() => {
+                        showSection('home');
+                    }, 3000);
+                    
+                } else {
+                    throw new Error(data.message || 'Failed to place order');
+                }
+                
+            } catch (error) {
+                console.error('Order submission error:', error);
+                showNotification(error.message || 'Failed to place order. Please try again.', 'error');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // =========== ADMIN FUNCTIONS ===========
+        function checkAdminAuth() {
+            const token = localStorage.getItem('adminToken');
+            const adminData = localStorage.getItem('adminData');
+            
+            if (token && adminData) {
+                try {
+                    adminToken = token;
+                    currentAdmin = JSON.parse(adminData);
+                    showAdminButton(true);
+                    
+                    // Verify token is still valid
+                    verifyAdminToken();
+                } catch (e) {
+                    clearAdminAuth();
+                }
+            } else {
+                showAdminButton(false);
+            }
+        }
+
+        function showAdminButton(show) {
+            const adminBtn = document.querySelector('.admin-btn');
+            if (adminBtn) {
+                adminBtn.style.display = show ? 'flex' : 'none';
+            }
+        }
+
+        function clearAdminAuth() {
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminData');
+            adminToken = null;
+            currentAdmin = null;
+            showAdminButton(false);
+        }
+
+        async function verifyAdminToken() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/admin/verify-role`, {
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    clearAdminAuth();
+                    return false;
+                }
+                
+                const data = await response.json();
+                if (data.valid) {
+                    currentAdmin = data.admin;
+                    localStorage.setItem('adminData', JSON.stringify(data.admin));
+                    showAdminButton(true);
+                    return true;
+                } else {
+                    clearAdminAuth();
+                    return false;
+                }
+            } catch (error) {
+                console.error('Token verification failed:', error);
+                clearAdminAuth();
+                return false;
+            }
+        }
+
+        async function adminLogin(username, password) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/admin/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    adminToken = data.token;
+                    currentAdmin = data.user;
+                    
+                    localStorage.setItem('adminToken', data.token);
+                    localStorage.setItem('adminData', JSON.stringify(data.user));
+                    
+                    showAdminButton(true);
+                    showAdminDashboard();
+                    
+                    return { success: true, user: data.user };
+                } else {
+                    return { success: false, message: data.message || 'Login failed' };
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                return { success: false, message: 'Network error' };
+            }
+        }
+
+        function adminLogout() {
+            clearAdminAuth();
+            
+            if (document.getElementById('admin-section').style.display === 'block') {
+                showSection('home');
+            }
+            
+            showNotification('Logged out successfully');
+        }
+
+        function showAdminLoginForm() {
+            const container = document.getElementById('admin-content');
+            if (!container) return;
+            
+            container.innerHTML = `
+                <div class="admin-login-form">
+                    <h2><i class="fas fa-user-shield"></i> Admin Login</h2>
+                    <div class="form-group">
+                        <label for="admin-username">Username:</label>
+                        <input type="text" id="admin-username" class="form-input" placeholder="Enter username">
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-password">Password:</label>
+                        <input type="password" id="admin-password" class="form-input" placeholder="Enter password">
+                    </div>
+                    <button onclick="handleAdminLogin()" class="submit-btn" style="width: 100%;">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </button>
+                    <div id="admin-login-error" style="color: #FF6B6B; margin-top: 15px; font-weight: 600;"></div>
+                </div>
+            `;
+        }
+
+        async function handleAdminLogin() {
+            const username = document.getElementById('admin-username').value;
+            const password = document.getElementById('admin-password').value;
+            const errorDiv = document.getElementById('admin-login-error');
+            
+            if (!username || !password) {
+                errorDiv.textContent = 'Please enter both username and password';
+                return;
+            }
+            
+            errorDiv.textContent = '';
+            
+            const result = await adminLogin(username, password);
+            
+            if (result.success) {
+                showAdminDashboard();
+            } else {
+                errorDiv.textContent = result.message || 'Login failed';
+            }
+        }
+
+        function showAdminDashboard() {
+            const container = document.getElementById('admin-content');
+            if (!container) return;
+            
+            container.innerHTML = `
+                <div class="admin-dashboard">
+                    <div class="admin-welcome">
+                        <h2><i class="fas fa-user-shield"></i> Welcome, ${currentAdmin.fullName}!</h2>
+                        <p>Role: ${currentAdmin.role} | Username: ${currentAdmin.username}</p>
+                    </div>
+                    
+                    <button class="logout-btn" onclick="adminLogout()">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                    
+                    <div class="admin-stats" id="admin-stats">
+                        <div style="grid-column: 1/-1; text-align: center; padding: 30px;">
+                            <div class="loading" style="margin: 0 auto;"></div>
+                            <p>Loading dashboard...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-actions">
+                        <div class="admin-action-btn" onclick="manageOrders()">
+                            <i class="fas fa-clipboard-list"></i>
+                            <span>Manage Orders</span>
+                        </div>
+                        <div class="admin-action-btn" onclick="manageMenu()">
+                            <i class="fas fa-utensils"></i>
+                            <span>Manage Menu</span>
+                        </div>
+                        <div class="admin-action-btn" onclick="viewReports()">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>View Reports</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            loadAdminStats();
+        }
+
+        async function loadAdminStats() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/admin/dashboard-stats`, {
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        const stats = data.data;
+                        const statsContainer = document.getElementById('admin-stats');
+                        
+                        statsContainer.innerHTML = `
+                            <div class="stat-card">
+                                <div class="stat-value">${stats.totalOrders}</div>
+                                <div class="stat-label">Total Orders</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">₱${stats.totalSales.toFixed(2)}</div>
+                                <div class="stat-label">Total Sales</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${stats.todayOrders}</div>
+                                <div class="stat-label">Today's Orders</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">₱${stats.todaySales.toFixed(2)}</div>
+                                <div class="stat-label">Today's Sales</div>
+                            </div>
+                        `;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading admin stats:', error);
+            }
+        }
+
+        function manageOrders() {
+            alert('Orders management feature coming soon!');
+        }
+
+        function manageMenu() {
+            alert('Menu management feature coming soon!');
+        }
+
+        function viewReports() {
+            alert('Reports feature coming soon!');
+        }
+
+        // =========== UTILITY FUNCTIONS ===========
+        function showNotification(message, type = 'success') {
+            // Remove existing notifications
+            const existingNotifications = document.querySelectorAll('.notification');
+            existingNotifications.forEach(n => n.remove());
+            
+            // Create new notification
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.style.background = type === 'error' ? '#FF6B6B' : '#4CAF50';
+            
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'error' ? 'exclamation-circle' : 'check-circle'}"></i>
+                <span>${message}</span>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 3000);
+        }
+
+        function showSection(sectionId) {
+            // Hide all sections
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active class from all nav buttons
+            const navBtns = document.querySelectorAll('.nav-btn');
+            navBtns.forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected section and activate its button
+            const section = document.getElementById(`${sectionId}-section`);
+            const btn = document.querySelector(`.nav-btn[onclick*="${sectionId}"]`);
+            
+            if (section) {
+                section.classList.add('active');
+            }
+            
+            if (btn) {
+                btn.classList.add('active');
+            }
+            
+            // Special handling for each section
+            switch(sectionId) {
+                case 'home':
+                    if (currentSlides.length === 0) {
+                        initSlideshow();
+                    } else {
+                        resetAutoPlay();
+                    }
+                    break;
+                case 'menu':
+                    loadMenuItems();
+                    break;
+                case 'cart':
+                    renderCart();
+                    break;
+                case 'order':
+                    renderOrderForm();
+                    break;
+                case 'admin':
+                    if (!currentAdmin) {
+                        showAdminLoginForm();
+                    } else {
+                        showAdminDashboard();
+                    }
+                    break;
+            }
+            
+            updateCartDisplay();
+        }
+
+        // =========== INITIALIZATION ===========
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Page loaded, initializing...');
+            
+            // Initialize slideshow
+            initSlideshow();
+            
+            // Load initial data
+            loadMenuItems();
+            
+            // Update cart display
+            updateCartDisplay();
+            
+            // Check admin auth
+            checkAdminAuth();
+            
+            console.log('Initialization complete');
         });
-    } catch (error) {
-        console.error('Get orders error:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
 
-// Customer orders endpoint
-app.post('/api/orders', async (req, res) => {
-    try {
-        const { customerName, items, total, pickupTime, paymentMethod } = req.body;
-        
-        // Create a demo order
-        const order = {
-            _id: 'order_' + Date.now(),
-            customerName: customerName || 'Guest',
-            items: items || [],
-            total: total || 0,
-            status: 'pending',
-            paymentMethod: paymentMethod || 'Cash on Pick-up',
-            pickupTime: pickupTime || 'ASAP',
-            timestamp: new Date()
-        };
-        
-        console.log('✅ New order received:', order);
-        
-        res.status(201).json(order);
-    } catch (error) {
-        console.error('Create order error:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
-
-// Serve static files
-app.use(express.static('public'));
-
-// Default route
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-// Start server
-app.listen(PORT, async () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`🌐 Railway.app URL: https://aifoodies.up.railway.app`);
-    console.log(`🌐 Health: https://aifoodies.up.railway.app/api/health`);
-    console.log(`🔐 Admin Login: https://aifoodies.up.railway.app`);
-    console.log(`📁 Environment: ${process.env.NODE_ENV || 'production'}`);
-    
-    if (!process.env.GITHUB_TOKEN) {
-        console.warn('⚠️ GITHUB_TOKEN not set - image uploads will be disabled');
-    }
-    
-    // Initialize default data
-    await initializeDefaultAdmins();
-    await initializeMenuItems();
-    await initializeSlideshow();
-});
+        // Handle page visibility change
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden && document.getElementById('home-section').classList.contains('active')) {
+                resetAutoPlay();
+            }
+        });
+    </script>
+</body>
+</html>
