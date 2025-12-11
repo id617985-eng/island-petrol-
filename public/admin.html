@@ -7,6 +7,225 @@
     <link rel="stylesheet" href="admin.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Quick inline styles for critical elements */
+        .loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .loader-spinner {
+            text-align: center;
+            color: #8b4513;
+        }
+        
+        .loader-spinner i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            display: block;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 9998;
+            max-width: 400px;
+            animation: slideInRight 0.3s ease;
+        }
+        
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .notification-success {
+            background: #28a745;
+            color: white;
+            border-left: 4px solid #1e7e34;
+        }
+        
+        .notification-error {
+            background: #dc3545;
+            color: white;
+            border-left: 4px solid #c82333;
+        }
+        
+        .notification-warning {
+            background: #ffc107;
+            color: #856404;
+            border-left: 4px solid #e0a800;
+        }
+        
+        .notification-info {
+            background: #17a2b8;
+            color: white;
+            border-left: 4px solid #138496;
+        }
+        
+        .notification-close {
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            margin-left: auto;
+            opacity: 0.7;
+        }
+        
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .quick-stat {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+            transition: transform 0.2s;
+        }
+        
+        .quick-stat:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .quick-stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #8b4513;
+            display: block;
+        }
+        
+        .quick-stat-label {
+            font-size: 13px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .floating-actions {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 100;
+        }
+        
+        .floating-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            background: #8b4513;
+            color: white;
+            box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .floating-btn:hover {
+            transform: scale(1.1);
+            background: #d2691e;
+        }
+        
+        .floating-actions-menu {
+            position: absolute;
+            bottom: 70px;
+            right: 0;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            padding: 10px;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 200px;
+        }
+        
+        .floating-actions:hover .floating-actions-menu {
+            display: flex;
+        }
+        
+        .keyboard-shortcuts {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: none;
+            z-index: 100;
+            max-width: 300px;
+        }
+        
+        .keyboard-shortcuts.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .shortcut-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .shortcut-key {
+            background: #8b4513;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: monospace;
+        }
+        
+        .search-container {
+            position: relative;
+            flex: 1;
+        }
+        
+        .search-container i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            z-index: 1;
+        }
+        
+        .search-container input {
+            padding-left: 40px !important;
+        }
+    </style>
 </head>
 <body class="admin-page">
     <!-- Admin Panel Header -->
@@ -43,7 +262,7 @@
             <i class="fas fa-receipt"></i> Orders
         </button>
         <button class="admin-nav-btn" data-section="products">
-            <i class="fas fa-boxes"></i> Manage Products
+            <i class="fas fa-boxes"></i> Products
         </button>
         <!-- SuperAdmin button will be added dynamically -->
     </div>
@@ -56,6 +275,30 @@
             <div class="admin-section-header">
                 <h2><i class="fas fa-tachometer-alt"></i> Dashboard Overview</h2>
                 <p>Store performance and recent activity</p>
+            </div>
+            
+            <!-- Quick Stats -->
+            <div class="quick-stats" id="quick-stats">
+                <div class="quick-stat">
+                    <span class="quick-stat-value" id="quick-total-orders">0</span>
+                    <span class="quick-stat-label">Total Orders</span>
+                </div>
+                <div class="quick-stat">
+                    <span class="quick-stat-value" id="quick-total-sales">₱0</span>
+                    <span class="quick-stat-label">Total Sales</span>
+                </div>
+                <div class="quick-stat">
+                    <span class="quick-stat-value" id="quick-today-orders">0</span>
+                    <span class="quick-stat-label">Today's Orders</span>
+                </div>
+                <div class="quick-stat">
+                    <span class="quick-stat-value" id="quick-today-sales">₱0</span>
+                    <span class="quick-stat-label">Today's Sales</span>
+                </div>
+                <div class="quick-stat">
+                    <span class="quick-stat-value" id="quick-avg-order">₱0</span>
+                    <span class="quick-stat-label">Avg. Order Value</span>
+                </div>
             </div>
             
             <div class="dashboard-stats">
@@ -135,6 +378,13 @@
                 <p>Control which items are available for ordering</p>
             </div>
             
+            <div class="availability-controls">
+                <div class="search-container" style="margin-bottom: 20px;">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="availability-search" placeholder="Search items..." style="width: 100%;">
+                </div>
+            </div>
+            
             <div class="availability-container">
                 <div class="availability-card">
                     <h3><i class="fas fa-utensils"></i> Nachos Menu</h3>
@@ -199,6 +449,11 @@
             </div>
             
             <div class="orders-controls">
+                <div class="search-container">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="order-search" placeholder="Search orders...">
+                </div>
+                
                 <select id="order-filter">
                     <option value="all">All Orders</option>
                     <option value="pending">Pending</option>
@@ -208,8 +463,6 @@
                 </select>
                 
                 <input type="date" id="order-date">
-                
-                <input type="text" id="order-search" placeholder="Search by customer name, order ID...">
                 
                 <button id="export-orders" class="action-btn secondary">
                     <i class="fas fa-download"></i> Export
@@ -242,15 +495,32 @@
                 </div>
             </div>
             
-            <div class="orders-list" id="orders-list">
-                <div class="empty-state">
-                    <i class="fas fa-receipt"></i>
-                    <h3>No Orders Yet</h3>
-                    <p>Customer orders will appear here in real-time</p>
+            <div class="responsive-table">
+                <!-- Desktop View -->
+                <table class="desktop-table-view" style="width: 100%; display: none;">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Date</th>
+                            <th>Items</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-table-body">
+                        <!-- Table rows will be loaded here -->
+                    </tbody>
+                </table>
+                
+                <!-- Mobile View -->
+                <div class="mobile-cards-view" id="orders-mobile-view">
+                    <!-- Cards will be loaded here -->
                 </div>
             </div>
             
-            <div id="orders-pagination" class="pagination">
+            <div id="orders-pagination" class="pagination" style="margin-top: 20px; display: flex; justify-content: center; gap: 10px;">
                 <!-- Pagination will be added here -->
             </div>
         </div>
@@ -263,12 +533,27 @@
             </div>
             
             <div class="product-management-container">
+                <div class="product-controls" style="display: flex; gap: 15px; margin-bottom: 20px;">
+                    <div class="search-container" style="flex: 1;">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="product-search" placeholder="Search products...">
+                    </div>
+                    <select id="product-category-filter" style="padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+                        <option value="">All Categories</option>
+                        <option value="nachos">Nachos</option>
+                        <option value="desserts">Desserts</option>
+                    </select>
+                </div>
+                
                 <div class="product-actions">
                     <button id="add-product-btn" class="action-btn primary">
                         <i class="fas fa-plus"></i> Add New Product
                     </button>
                     <button id="refresh-products" class="action-btn secondary">
                         <i class="fas fa-sync-alt"></i> Refresh Products
+                    </button>
+                    <button id="export-products" class="action-btn success">
+                        <i class="fas fa-file-export"></i> Export CSV
                     </button>
                 </div>
                 
@@ -370,6 +655,56 @@
     </div>
 
     <!-- SuperAdmin Settings Modal (Will be added dynamically) -->
+
+    <!-- Loading Overlay -->
+    <div id="global-loader" class="loader-overlay" style="display: none;">
+        <div class="loader-spinner">
+            <i class="fas fa-spinner"></i>
+            <span>Loading...</span>
+        </div>
+    </div>
+
+    <!-- Keyboard Shortcuts Help -->
+    <div id="keyboard-shortcuts" class="keyboard-shortcuts">
+        <h4><i class="fas fa-keyboard"></i> Keyboard Shortcuts</h4>
+        <div class="shortcut-item">
+            <span>Search Orders</span>
+            <kbd class="shortcut-key">Ctrl+K</kbd>
+        </div>
+        <div class="shortcut-item">
+            <span>Close Modals</span>
+            <kbd class="shortcut-key">Esc</kbd>
+        </div>
+        <div class="shortcut-item">
+            <span>Refresh Data</span>
+            <kbd class="shortcut-key">F5</kbd>
+        </div>
+        <div class="shortcut-item">
+            <span>Show/Hide Shortcuts</span>
+            <kbd class="shortcut-key">?</kbd>
+        </div>
+    </div>
+
+    <!-- Global Actions Floating Button -->
+    <div class="floating-actions">
+        <button id="quick-actions-btn" class="action-btn primary floating-btn">
+            <i class="fas fa-bolt"></i>
+        </button>
+        <div class="floating-actions-menu">
+            <button class="action-btn secondary" id="quick-refresh">
+                <i class="fas fa-sync"></i> Refresh All
+            </button>
+            <button class="action-btn secondary" id="quick-export">
+                <i class="fas fa-file-export"></i> Export Data
+            </button>
+            <button class="action-btn secondary" id="quick-shortcuts">
+                <i class="fas fa-keyboard"></i> Shortcuts
+            </button>
+            <button class="action-btn secondary" id="quick-help">
+                <i class="fas fa-question-circle"></i> Help
+            </button>
+        </div>
+    </div>
 
     <!-- Load admin script -->
     <script src="admin-script.js"></script>
