@@ -167,49 +167,96 @@
             transform: scale(1.2);
         }
         
+        /* Slide Info Panel for Mobile */
+        .index-page #slideshow-info-panel {
+            display: none;
+            background: white;
+            padding: 15px;
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin-top: -5px;
+            z-index: 5;
+            position: relative;
+            border-top: 2px solid #ffe0b2;
+        }
+        
+        .index-page .slideshow-info-title {
+            font-family: 'Shrikhand', cursive;
+            color: #8b4513;
+            font-size: 1.3rem;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        
+        .index-page .slideshow-info-price {
+            color: #e65100;
+            font-weight: bold;
+            font-size: 1.1rem;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        
+        .index-page .slideshow-info-desc {
+            color: #666;
+            font-size: 0.9rem;
+            text-align: center;
+            line-height: 1.3;
+            margin-bottom: 5px;
+        }
+        
+        .index-page .slideshow-info-order {
+            color: #888;
+            font-size: 0.8rem;
+            text-align: center;
+            font-style: italic;
+        }
+        
         /* Mobile responsive */
         @media (max-width: 768px) {
+            .index-page .logo-section .welcome-text {
+                margin-top: -15px;
+                margin-bottom: 25px;
+            }
+            
             .index-page .slideshow-wrapper {
                 height: 200px;
             }
             
+            /* Hide overlay content on mobile */
             .index-page .slide-content {
-                max-width: 80%;
-                padding: 15px;
+                display: none;
             }
             
-            .index-page .slide-content h3 {
-                font-size: 1.3rem;
-            }
-            
-            .index-page .slide-content p {
-                font-size: 0.9rem;
-            }
-            
-            .index-page .slideshow-controls button {
-                width: 35px;
-                height: 35px;
-                font-size: 1rem;
+            /* Show info panel on mobile */
+            .index-page #slideshow-info-panel {
+                display: block;
             }
         }
         
         @media (max-width: 480px) {
+            .index-page .logo-section .welcome-text {
+                margin-top: -10px;
+                margin-bottom: 20px;
+            }
+            
             .index-page .slideshow-wrapper {
                 height: 180px;
             }
             
-            .index-page .slide-content {
-                max-width: 90%;
-                padding: 10px;
-            }
-            
-            .index-page .slide-content h3 {
+            .index-page .slideshow-info-title {
                 font-size: 1.1rem;
             }
             
-            .index-page .slide-content p {
-                font-size: 0.8rem;
-                margin-bottom: 8px;
+            .index-page .slideshow-info-price {
+                font-size: 1rem;
+            }
+            
+            .index-page .slideshow-info-desc {
+                font-size: 0.85rem;
+            }
+            
+            .index-page .slideshow-info-order {
+                font-size: 0.75rem;
             }
         }
         
@@ -401,6 +448,7 @@
         }
         
         /* ===== MOBILE-FIRST RESPONSIVE ADJUSTMENTS ===== */
+        
         @media (max-width: 768px) {
             .index-page .no-scroll-container {
                 padding: 5px;
@@ -623,6 +671,14 @@
     </div>
 </div>
 
+<!-- Slide Info Panel (Visible on Mobile) -->
+<div id="slideshow-info-panel" class="slideshow-info-panel">
+    <h3 class="slideshow-info-title" id="slide-info-title">Slide Title</h3>
+    <div class="slideshow-info-price" id="slide-info-price">Price/Offer</div>
+    <p class="slideshow-info-desc" id="slide-info-desc">Description text will appear here</p>
+    <div class="slideshow-info-order" id="slide-info-order">Display Order</div>
+</div>
+
 <!-- Updated Admin Dashboard -->
 <div id="admin-dashboard" style="display: none;">
     <div class="dashboard-container">
@@ -687,6 +743,7 @@
         </div>
     </div>
 </div>
+
 <div class="no-scroll-container">
     <!-- Centered Logo and Content Section -->
     <section class="logo-section">
@@ -828,6 +885,25 @@
         
         // Initialize slideshow
         initializeSlideshow();
+        
+        // Initialize mobile info panel
+        const infoPanel = document.getElementById('slideshow-info-panel');
+        if (infoPanel && window.innerWidth <= 768) {
+            updateMobileInfoPanel(0);
+        }
+        
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            const infoPanel = document.getElementById('slideshow-info-panel');
+            if (infoPanel) {
+                if (window.innerWidth <= 768) {
+                    infoPanel.style.display = 'block';
+                    updateMobileInfoPanel(currentSlide);
+                } else {
+                    infoPanel.style.display = 'none';
+                }
+            }
+        });
     });
     
     // Slideshow functionality
@@ -853,6 +929,8 @@
                     </div>
                 </div>
             `;
+            // Update mobile info panel with default
+            updateMobileInfoPanel(0);
             return;
         }
         
@@ -865,11 +943,18 @@
             // Create slide element
             const slideElement = document.createElement('div');
             slideElement.className = `slide ${index === 0 ? 'active' : ''}`;
-            slideElement.style.backgroundImage = `url('${slide.image}')`;
             
+            // Set background image
+            if (slide.image) {
+                slideElement.style.backgroundImage = `url('${slide.image}')`;
+            } else {
+                slideElement.style.backgroundColor = '#8b4513';
+            }
+            
+            // Add slide content for desktop
             slideElement.innerHTML = `
                 <div class="slide-content">
-                    <h3>${slide.title}</h3>
+                    <h3>${slide.title || 'Special Offer'}</h3>
                     ${slide.description ? `<p>${slide.description}</p>` : ''}
                     ${slide.price ? `<div class="price">${slide.price}</div>` : ''}
                 </div>
@@ -892,6 +977,9 @@
             indicatorsContainer.appendChild(indicator);
         });
         
+        // Update mobile info panel with first slide
+        updateMobileInfoPanel(0);
+        
         // Start auto-slide if there are multiple slides
         if (slides.length > 1) {
             startAutoSlide();
@@ -909,7 +997,16 @@
         } catch (error) {
             console.error('Error loading slides:', error);
         }
-        return [];
+        // Return default slides
+        return [
+            {
+                title: 'Welcome to Ai-Maize-ing Nachos!',
+                description: 'Try our delicious nachos and desserts',
+                price: 'Starting at ₱35',
+                order: 1,
+                active: true
+            }
+        ];
     }
     
     function goToSlide(index) {
@@ -927,6 +1024,33 @@
         slides[currentSlide].classList.add('active');
         if (indicators[currentSlide]) {
             indicators[currentSlide].classList.add('active');
+        }
+        
+        // Update mobile info panel
+        updateMobileInfoPanel(index);
+    }
+    
+    function updateMobileInfoPanel(index) {
+        const infoPanel = document.getElementById('slideshow-info-panel');
+        const slides = getActiveSlides();
+        
+        if (slides.length === 0 || !infoPanel) return;
+        
+        const currentSlideData = slides[index];
+        
+        if (currentSlideData) {
+            // Update panel content
+            document.getElementById('slide-info-title').textContent = currentSlideData.title || 'Special Offer';
+            document.getElementById('slide-info-price').textContent = currentSlideData.price || 'Check Price';
+            document.getElementById('slide-info-desc').textContent = currentSlideData.description || 'Delicious offer!';
+            document.getElementById('slide-info-order').textContent = `Display Order: ${currentSlideData.order || 1}`;
+            
+            // Show/hide panel based on screen size
+            if (window.innerWidth <= 768) {
+                infoPanel.style.display = 'block';
+            } else {
+                infoPanel.style.display = 'none';
+            }
         }
     }
     
