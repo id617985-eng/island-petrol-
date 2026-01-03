@@ -5,1111 +5,818 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ai-Maize-ing Nachos - Home</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="slideshow.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Shrikhand&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Web App Manifest for Mobile -->
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#8b4513">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-status-bar-style" content="default">
-    <meta name="mobile-web-app-title" content="Ai-Maize-ing Nachos">
-    <link rel="touch-icon" href="/icon-192x192.png">
-    
+    <script src="api-service.js"></script>
+
     <style>
-        /* ===== ALTERNATIVE: COMPLETE CSS OVERRIDE FOR INDEX PAGE ===== */
-        
-        /* Additional styles for no-scroll layout with centered logo */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        .index-page body {
-            min-height: 100vh;
-            background: #fff8e1;
-            font-family: 'Roboto', sans-serif;
-            overflow-y: auto;
-        }
-        
-        .index-page .no-scroll-container {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            padding: 10px;
-        }
-        
-        /* Slideshow Styles */
-        .index-page #slideshow-container {
-            width: 100%;
+        /* Additional home page styles */
+        .home-content {
             max-width: 1200px;
-            margin: 0 auto 20px;
-            position: relative;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-        
-        .index-page .slideshow-wrapper {
-            position: relative;
-            height: 300px;
-        }
-        
-        .index-page #slides {
-            height: 100%;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .index-page .slide {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            transition: opacity 0.8s ease;
-            display: flex;
-            align-items: center;
-            padding: 20px;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-        }
-        
-        .index-page .slide.active {
-            opacity: 1;
-        }
-        
-        .index-page .slide-content {
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            max-width: 60%;
-            backdrop-filter: blur(5px);
-        }
-        
-        .index-page .slide-content h3 {
-            font-family: 'Shrikhand', cursive;
-            color: #ff9800;
-            margin-bottom: 10px;
-            font-size: 1.8rem;
-        }
-        
-        .index-page .slide-content p {
-            margin-bottom: 15px;
-            font-size: 1rem;
-            line-height: 1.4;
-        }
-        
-        .index-page .slide-content .price {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #4CAF50;
-        }
-        
-        .index-page .slideshow-controls {
-            position: absolute;
-            top: 50%;
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            padding: 0 20px;
-            transform: translateY(-50%);
-            z-index: 10;
-        }
-        
-        .index-page .slideshow-controls button {
-            background: rgba(139, 69, 19, 0.8);
-            color: white;
-            border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 1.2rem;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .index-page .slideshow-controls button:hover {
-            background: rgba(230, 81, 0, 0.9);
-            transform: scale(1.1);
-        }
-        
-        .index-page .slideshow-indicators {
-            position: absolute;
-            bottom: 15px;
-            left: 0;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            z-index: 10;
-        }
-        
-        .index-page .indicator {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.5);
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .index-page .indicator.active {
-            background: #8b4513;
-            transform: scale(1.2);
-        }
-        
-        /* Slide Info Panel for Mobile */
-        .index-page #slideshow-info-panel {
-            display: none;
-            background: white;
-            padding: 15px;
-            border-radius: 0 0 15px 15px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            margin-top: -5px;
-            z-index: 5;
-            position: relative;
-            border-top: 2px solid #ffe0b2;
-        }
-        
-        .index-page .slideshow-info-title {
-            font-family: 'Shrikhand', cursive;
-            color: #8b4513;
-            font-size: 1.3rem;
-            margin-bottom: 8px;
-            text-align: center;
-        }
-        
-        .index-page .slideshow-info-price {
-            color: #e65100;
-            font-weight: bold;
-            font-size: 1.1rem;
-            text-align: center;
-            margin-bottom: 8px;
-        }
-        
-        .index-page .slideshow-info-desc {
-            color: #666;
-            font-size: 0.9rem;
-            text-align: center;
-            line-height: 1.3;
-            margin-bottom: 5px;
-        }
-        
-        .index-page .slideshow-info-order {
-            color: #888;
-            font-size: 0.8rem;
-            text-align: center;
-            font-style: italic;
-        }
-        
-        /* Mobile responsive */
-        @media (max-width: 768px) {
-            .index-page .logo-section .welcome-text {
-                margin-top: -15px;
-                margin-bottom: 25px;
-            }
-            
-            .index-page .slideshow-wrapper {
-                height: 200px;
-            }
-            
-            /* Hide overlay content on mobile */
-            .index-page .slide-content {
-                display: none;
-            }
-            
-            /* Show info panel on mobile */
-            .index-page #slideshow-info-panel {
-                display: block;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .index-page .logo-section .welcome-text {
-                margin-top: -10px;
-                margin-bottom: 20px;
-            }
-            
-            .index-page .slideshow-wrapper {
-                height: 180px;
-            }
-            
-            .index-page .slideshow-info-title {
-                font-size: 1.1rem;
-            }
-            
-            .index-page .slideshow-info-price {
-                font-size: 1rem;
-            }
-            
-            .index-page .slideshow-info-desc {
-                font-size: 0.85rem;
-            }
-            
-            .index-page .slideshow-info-order {
-                font-size: 0.75rem;
-            }
-        }
-        
-        /* Centered Logo Section */
-        .index-page .logo-section {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 20px 0;
-        }
-        
-        .index-page .logo-container {
-            margin-bottom: 20px;
-        }
-        
-        .index-page .logo {
-            max-width: 300px;
-            max-height: 150px;
-            width: auto;
-            height: auto;
-            border-radius: 15px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        }
-        
-        .index-page .welcome-text {
-            color: #666;
-            font-size: 1.1rem;
-            margin-bottom: 30px;
-            max-width: 400px;
-            line-height: 1.4;
-        }
-        
-        /* Compact Category Grid */
-        .index-page .compact-category-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 15px;
             margin: 0 auto;
-            max-width: 800px;
-            width: 100%;
+            padding: 20px;
         }
         
-        .index-page .compact-category-card {
-            background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-            cursor: pointer;
-            border: 3px solid transparent;
+        .welcome-section {
+            margin-bottom: 40px;
+        }
+        
+        .page-title {
+            text-align: center;
+            color: #8b4513;
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            font-family: 'Shrikhand', cursive;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .page-subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .slideshow-wrapper {
+            position: relative;
+            margin: 30px 0;
+        }
+        
+        .current-slide-title {
+            text-align: center;
+            color: #8b4513;
+            font-size: 2.2rem;
+            margin-bottom: 20px;
+            font-family: 'Shrikhand', cursive;
+            min-height: 60px;
+            transition: opacity 0.5s ease;
             display: flex;
-            flex-direction: column;
-            height: 100%;
+            align-items: center;
+            justify-content: center;
+            padding: 0 20px;
         }
         
-        .index-page .compact-category-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 25px rgba(0,0,0,0.15);
-            border-color: #8b4513;
+        .current-slide-description {
+            text-align: center;
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            min-height: 40px;
+            padding: 0 20px;
         }
         
-        .index-page .compact-category-image {
-            height: 140px;
+        .promo-banner {
+            background: linear-gradient(135deg, #8b4513, #e65100);
+            color: white;
+            text-align: center;
+            padding: 15px 20px;
+            margin: 30px 0;
+            border-radius: 15px;
+            box-shadow: 0 6px 20px rgba(139, 69, 19, 0.3);
+            border: 2px solid #ffcc00;
+            position: relative;
             overflow: hidden;
-            flex-shrink: 0;
         }
         
-        .index-page .compact-category-image img {
+        .promo-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: shine 3s infinite;
+        }
+        
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+        
+        .promo-banner p {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .promo-banner .promo-icon {
+            margin-right: 10px;
+            font-size: 1.4rem;
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-5px); }
+            60% { transform: translateY(-3px); }
+        }
+        
+        /* Category Selection */
+        .compact-category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+        
+        .compact-category-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            display: flex;
+            cursor: pointer;
+        }
+        
+        .compact-category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+        
+        .compact-category-image {
+            width: 40%;
+            overflow: hidden;
+        }
+        
+        .compact-category-image img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.3s ease;
+            transition: transform 0.6s;
         }
         
-        .index-page .compact-category-card:hover .compact-category-image img {
-            transform: scale(1.05);
+        .compact-category-card:hover .compact-category-image img {
+            transform: scale(1.1);
         }
         
-        .index-page .compact-category-content {
-            padding: 20px;
-            text-align: center;
-            flex: 1;
+        .compact-category-content {
+            width: 60%;
+            padding: 30px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
         }
         
-        .index-page .compact-category-content h2 {
+        .compact-category-content h2 {
             color: #8b4513;
+            font-size: 2rem;
             margin-bottom: 10px;
-            font-family: 'Shrikhand', cursive;
-            font-size: 1.4rem;
         }
         
-        .index-page .compact-category-content p {
+        .compact-category-content p {
             color: #666;
-            margin-bottom: 15px;
-            font-size: 0.9rem;
-            line-height: 1.3;
-            flex: 1;
+            line-height: 1.6;
+            margin-bottom: 20px;
         }
         
-        .index-page .compact-price-range {
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: #e65100;
-            margin-bottom: 15px;
-            padding: 6px 12px;
-            background: #fff3e0;
+        .compact-price-range {
+            background: #ff6a00;
+            color: white;
+            padding: 8px 16px;
             border-radius: 20px;
+            font-weight: bold;
             display: inline-block;
+            margin-bottom: 15px;
         }
         
-        .index-page .compact-category-btn {
-            background: #8b4513;
+        .compact-category-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 12px 24px;
             border-radius: 25px;
-            font-weight: bold;
+            font-size: 1.1rem;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-            font-family: 'Roboto', sans-serif;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            min-height: 44px;
+            transition: all 0.3s;
         }
         
-        .index-page .compact-category-btn:hover {
-            background: #e65100;
-            transform: scale(1.05);
+        .compact-category-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3);
         }
         
         /* Quick Stats */
-        .index-page .compact-quick-stats {
-            margin-top: 30px;
-            padding: 20px 0;
-        }
-        
-        .index-page .compact-quick-stats h2 {
-            color: #8b4513;
-            margin-bottom: 20px;
-            font-family: 'Shrikhand', cursive;
-            font-size: 1.6rem;
-            text-align: center;
-        }
-        
-        .index-page .compact-stats-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        
-        .index-page .compact-stat-item {
+        .compact-quick-stats {
             background: white;
-            padding: 20px 15px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 40px 0;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .compact-quick-stats h2 {
             text-align: center;
-            border: 2px solid #ffe0b2;
-            transition: transform 0.3s ease;
-        }
-        
-        .index-page .compact-stat-item:hover {
-            transform: translateY(-3px);
-        }
-        
-        .index-page .compact-stat-item i {
-            font-size: 2rem;
             color: #8b4513;
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+            font-family: 'Shrikhand', cursive;
+        }
+        
+        .compact-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+        
+        .compact-stat-item {
+            text-align: center;
+            padding: 30px 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            transition: all 0.3s;
+        }
+        
+        .compact-stat-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .compact-stat-item i {
+            font-size: 3rem;
+            color: #ff6a00;
+            margin-bottom: 20px;
+        }
+        
+        .compact-stat-item h3 {
+            color: #333;
+            font-size: 1.5rem;
             margin-bottom: 10px;
         }
         
-        .index-page .compact-stat-item h3 {
-            color: #333;
-            margin-bottom: 8px;
-            font-size: 1rem;
-        }
-        
-        .index-page .compact-stat-item p {
+        .compact-stat-item p {
             color: #666;
-            margin: 0;
-            font-size: 0.8rem;
+            font-size: 1.1rem;
         }
         
-        /* ===== MOBILE-FIRST RESPONSIVE ADJUSTMENTS ===== */
-        
+        /* Responsive adjustments */
         @media (max-width: 768px) {
-            .index-page .no-scroll-container {
-                padding: 5px;
-                min-height: 100vh;
-                height: auto;
-                display: block;
+            .current-slide-title {
+                font-size: 1.8rem;
+                min-height: 50px;
+                margin-bottom: 15px;
             }
             
-            .index-page .logo-section {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                padding: 80px 0 20px 0;
-                min-height: auto;
-            }
-            
-            .index-page .logo-container {
-                order: 1;
-                margin-bottom: 20px;
-                display: flex;
-                justify-content: center;
-                width: 100%;
-            }
-            
-            .index-page .logo {
-                max-width: 200px;
-                max-height: 100px;
-                margin: 0 auto;
-            }
-            
-            .index-page .welcome-text {
-                order: 2;
-                text-align: center;
-                margin-bottom: 25px;
-                padding: 0 20px;
+            .current-slide-description {
                 font-size: 1rem;
-                width: 100%;
+                margin-bottom: 15px;
             }
             
-            .index-page .compact-category-grid {
-                order: 3;
-                width: 100%;
+            .page-title {
+                font-size: 2.2rem;
+            }
+            
+            .page-subtitle {
+                font-size: 1rem;
+            }
+            
+            .compact-category-grid {
                 grid-template-columns: 1fr;
-                gap: 12px;
-                padding: 0 10px;
-                margin-bottom: 20px;
             }
             
-            .index-page .compact-category-image {
-                height: 120px;
+            .compact-category-card {
+                flex-direction: column;
             }
             
-            .index-page .compact-category-content {
-                padding: 15px;
-            }
-            
-            .index-page .compact-category-content h2 {
-                font-size: 1.2rem;
-            }
-            
-            .index-page .compact-price-range {
-                font-size: 1rem;
-                padding: 4px 10px;
-            }
-            
-            .index-page .compact-category-btn {
-                padding: 8px 16px;
-                font-size: 0.8rem;
-            }
-            
-            .index-page .compact-stats-grid {
-                order: 4;
+            .compact-category-image {
                 width: 100%;
+                height: 200px;
+            }
+            
+            .compact-category-content {
+                width: 100%;
+            }
+            
+            .compact-stats-grid {
                 grid-template-columns: repeat(2, 1fr);
-                gap: 10px;
-                padding: 0 10px;
-            }
-            
-            .index-page .compact-stat-item {
-                padding: 12px 8px;
-            }
-            
-            .index-page .compact-stat-item i {
-                font-size: 1.5rem;
-            }
-            
-            .index-page .compact-stat-item h3 {
-                font-size: 0.9rem;
-            }
-            
-            .index-page .compact-stat-item p {
-                font-size: 0.7rem;
-            }
-            
-            .index-page .compact-quick-stats {
-                order: 5;
-                width: 100%;
-                margin-top: 20px;
-                padding: 15px 0;
             }
         }
         
         @media (max-width: 480px) {
-            .index-page .logo-section {
-                padding: 70px 0 15px 0;
-            }
-            
-            .index-page .logo {
-                max-width: 180px;
-                max-height: 90px;
-            }
-            
-            .index-page .welcome-text {
-                font-size: 0.9rem;
-                margin-bottom: 20px;
-                padding: 0 15px;
-            }
-            
-            .index-page .compact-category-content h2 {
-                font-size: 1.1rem;
-            }
-            
-            .index-page .compact-category-content p {
-                font-size: 0.8rem;
-            }
-            
-            .index-page .compact-stat-item {
-                padding: 10px 8px;
-            }
-        }
-        
-        /* Very small screens and landscape mode */
-        @media (max-height: 600px) {
-            .index-page .logo-section {
-                padding: 60px 0 15px 0;
-            }
-            
-            .index-page .logo {
-                max-width: 120px;
-                max-height: 60px;
-            }
-            
-            .index-page .welcome-text {
+            .current-slide-title {
+                font-size: 1.5rem;
+                min-height: 40px;
                 margin-bottom: 10px;
-                font-size: 0.8rem;
             }
             
-            .index-page .compact-category-image {
-                height: 100px;
-            }
-        }
-        
-        /* Landscape orientation - improved */
-        @media (max-height: 500px) and (orientation: landscape) {
-            .index-page .no-scroll-container {
-                flex-direction: row;
-                align-items: center;
-                gap: 15px;
-                padding: 10px;
+            .current-slide-description {
+                font-size: 0.9rem;
+                margin-bottom: 10px;
             }
             
-            .index-page .logo-section {
-                flex: 0 0 35%;
-                justify-content: center;
-                padding: 0;
+            .page-title {
+                font-size: 1.8rem;
             }
             
-            .index-page .compact-category-grid {
-                flex: 1;
-                max-width: none;
+            .compact-stats-grid {
                 grid-template-columns: 1fr;
-            }
-            
-            .index-page .compact-quick-stats {
-                display: none;
-            }
-            
-            .index-page .logo {
-                max-width: 100px;
-            }
-            
-            .index-page .welcome-text {
-                display: none;
             }
         }
     </style>
 </head>
 <body class="index-page">
     
-<!-- Small Corner Logo -->
-<div class="corner-logo">
-    <img src="image/LOGO.jpg" alt="Ai-Maize-ing Nachos Logo" onerror="this.style.display='none'">
-</div>
-
-<!-- Header Buttons -->
-<div class="header-buttons">
-    <div id="admin-panel">
-        <button id="admin-toggle"><i class="fas fa-user-shield"></i> Admin</button>
+    <!-- Small Corner Logo -->
+    <div class="corner-logo">
+        <img src="image/LOGO.jpg" alt="Ai-Maize-ing Nachos Logo" onerror="this.style.display='none'">
     </div>
-    <div id="customer-panel">
-        <button id="customer-toggle">
-            <i class="fas fa-user"></i> My Profile
-        </button>
-    </div>
-</div>
 
-<!-- Slideshow Section -->
-<div id="slideshow-container">
-    <div class="slideshow-wrapper">
-        <div id="slides">
-            <!-- Slides will be loaded dynamically -->
+    <div class="container">
+        <!-- Header Buttons -->
+        <div class="header-buttons">
+            <div id="admin-panel">
+                <button id="admin-toggle">
+                    <i class="fas fa-user-shield"></i> <span id="admin-btn-text">Admin</span>
+                </button>
+                <button id="admin-logout-btn" style="display: none; background: #dc3545; margin-left: 5px;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+            <div id="customer-panel">
+                <button id="customer-toggle">
+                    <i class="fas fa-user-circle"></i> <span id="customer-btn-text">My Profile</span>
+                </button>
+            </div>
         </div>
-        <div class="slideshow-controls">
-            <button id="prev-slide"><i class="fas fa-chevron-left"></i></button>
-            <button id="next-slide"><i class="fas fa-chevron-right"></i></button>
-        </div>
-        <div class="slideshow-indicators">
-            <!-- Indicators will be added dynamically -->
-        </div>
-    </div>
-</div>
 
-<!-- Slide Info Panel (Visible on Mobile) -->
-<div id="slideshow-info-panel" class="slideshow-info-panel">
-    <h3 class="slideshow-info-title" id="slide-info-title">Slide Title</h3>
-    <div class="slideshow-info-price" id="slide-info-price">Price/Offer</div>
-    <p class="slideshow-info-desc" id="slide-info-desc">Description text will appear here</p>
-    <div class="slideshow-info-order" id="slide-info-order">Display Order</div>
-</div>
+        <div class="home-content">
+            <!-- Page Header -->
+            <div class="welcome-section">
+                <h1 class="page-title">Ai-Maize-ing Nachos</h1>
+                <p class="page-subtitle">Delicious nachos and desserts made with love! Order now for quick pickup.</p>
+            </div>
 
-<!-- Updated Admin Dashboard -->
-<div id="admin-dashboard" style="display: none;">
-    <div class="dashboard-container">
-        <div class="dashboard-header">
-            <h2>Admin Dashboard</h2>
-            <button class="dashboard-close"><i class="fas fa-times"></i></button>
-        </div>
-        
-        <div class="dashboard-stats">
-            <div class="stat-card">
-                <h3>Total Orders</h3>
-                <div class="stat-value" id="total-orders">0</div>
+            <!-- Promotional Banner -->
+            <div class="promo-banner">
+                <p>
+                    <span class="promo-icon">🍃</span>
+                    Lahat ng pagkain ay sariwa naming inihahanda! Mangyaring mag-order 1 bago ipickup
+                    <span class="promo-icon">⏰</span>
+                </p>
             </div>
-            <div class="stat-card">
-                <h3>Total Sales</h3>
-                <div class="stat-value" id="total-sales">₱0</div>
+
+            <!-- SLIDESHOW SECTION -->
+            <div class="slideshow-wrapper">
+                <!-- Slideshow container -->
+                <div class="slideshow-container">
+
+                    <div class="slideshow" id="slideshow">
+                        <!-- Slides will be dynamically loaded here -->
+                        <div class="slideshow-loading">
+                            <div class="spinner"></div>
+                            <p>Loading delicious content...</p>
+                        </div>
+                    </div>
+
+                    <!-- Dots -->
+                    <div class="slideshow-dots" id="slideshow-dots"></div>
+
+                </div>
+                
+                <!-- Title & Description Below Slideshow -->
+                <div class="slideshow-text-below">
+                    <h2 id="current-slide-title" class="below-title">Welcome to Ai-Maize-ing Nachos</h2>
+                    <p id="current-slide-description" class="below-desc">Your go-to spot for the most delicious nachos and desserts in town!</p>
+                </div>
+
+                <!-- Timer Bar -->
+                <div class="slideshow-timer">
+                    <div class="timer-bar" id="timer-bar"></div>
+                </div>
             </div>
-            <div class="stat-card">
-                <h3>Today's Orders</h3>
-                <div class="stat-value" id="today-orders">0</div>
+
+            <!-- Category Selection -->
+            <div class="compact-category-grid">
+                <div class="compact-category-card" onclick="navigateTo('nachos.html')">
+                    <div class="compact-category-image">
+                        <img src="image/overload chees nachos.jpg" alt="Nachos" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZmY2YTAwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSJ3aGl0ZSI+TmFjaG9zPC90ZXh0Pjwvc3ZnPg=='">
+                    </div>
+                    <div class="compact-category-content">
+                        <div>
+                            <h2>Our Nachos</h2>
+                            <p>Delicious, cheesy nachos with various toppings and flavors. From classic to overloaded, we have something for everyone!</p>
+                        </div>
+                        <div>
+                            <div class="compact-price-range">₱35 - ₱180</div>
+                            <button class="compact-category-btn">Order Nachos</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="compact-category-card" onclick="navigateTo('aifoodies.html')">
+                    <div class="compact-category-image">
+                        <img src="image/mango.gif" alt="AI Foodies" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNGNhZjUwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSJ3aGl0ZSI+QUkgRm9vZGllczwvdGV4dD48L3N2Zz4='">
+                    </div>
+                    <div class="compact-category-content">
+                        <div>
+                            <h2>Desserts</h2>
+                            <p>Sweet desserts and treats including mango graham, biscoff, tiramisu and more. Perfect for satisfying your sweet tooth!</p>
+                        </div>
+                        <div>
+                            <div class="compact-price-range">₱40 - ₱159</div>
+                            <button class="compact-category-btn">Order Desserts</button>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="stat-card">
-                <h3>Today's Sales</h3>
-                <div class="stat-value" id="today-sales">₱0</div>
-            </div>
-        </div>
-        
-        <!-- Availability Controls Section -->
-        <div class="availability-section">
-            <h3>📦 Item Availability Management</h3>
-            <div class="section-content">
-                <p>Toggle item availability for customers:</p>
-                <div id="availability-controls" class="availability-controls-grid">
-                    <p>Loading availability controls...</p>
+
+            <!-- Quick Stats -->
+            <div class="compact-quick-stats">
+                <h2>Why Choose Us?</h2>
+                <div class="compact-stats-grid">
+                    <div class="compact-stat-item">
+                        <i class="fas fa-shipping-fast"></i>
+                        <h3>Fast Pickup</h3>
+                        <p>Ready when you are. Average preparation time: 15-20 minutes</p>
+                    </div>
+                    <div class="compact-stat-item">
+                        <i class="fas fa-utensils"></i>
+                        <h3>Fresh Ingredients</h3>
+                        <p>Made with love and fresh ingredients daily</p>
+                    </div>
+                    <div class="compact-stat-item">
+                        <i class="fas fa-tags"></i>
+                        <h3>Best Prices</h3>
+                        <p>Great value for delicious quality food</p>
+                    </div>
+                    <div class="compact-stat-item">
+                        <i class="fas fa-star"></i>
+                        <h3>Loyalty Points</h3>
+                        <p>Earn rewards with every purchase</p>
+                    </div>
                 </div>
             </div>
         </div>
-        
-        <div class="dashboard-content">
-            <div class="orders-section">
-                <h3>Recent Orders</h3>
-                <div id="orders-list">
-                    <p>Loading orders...</p>
-                </div>
-            </div>
+
+        <!-- Navigation Footer -->
+        <div class="page-navigation">
+            <button class="nav-btn" onclick="navigateTo('nachos.html')">
+                <i class="fas fa-utensils"></i> Order Nachos
+            </button>
+            <button class="nav-btn" onclick="navigateTo('aifoodies.html')">
+                <i class="fas fa-ice-cream"></i> Order Desserts
+            </button>
+        </div>
+    </div>
+
+    <!-- Cart Trigger Button -->
+    <button id="cart-trigger">View Cart (<span id="cart-count">0</span>)</button>
+
+    <!-- Cart Popup -->
+    <div id="cart-popup">
+        <div class="cart-header">
+            <h3>Your Order</h3>
+            <button class="close-btn">X</button>
+        </div>
+        <ul id="cart-items"></ul>
+        <p>Total: <span id="cart-total">₱0</span></p>
+
+        <div class="order-details">
+            <input type="text" id="customer-name" placeholder="Your Name for Pickup">
+            <input type="tel" id="customer-phone" placeholder="Phone Number (Optional)">
+            <input type="text" id="pickup-time" placeholder="Pick-up Time (e.g., 6:30 PM)">
+        </div>
+
+        <div class="payment-options">
+            <select id="payment-method">
+                <option value="Cash on Pick-up">Cash on Pick-up</option>
+                <option value="Gcash">Gcash / PayMaya</option>
+                <option value="Bank Transfer">Bank Transfer</option>
+            </select>
+        </div>
+
+        <button id="checkout-btn">Send Order</button>
+    </div>
+
+    <!-- Modals -->
+    <div id="custom-alert" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <p id="custom-alert-message"></p>
+            <button id="custom-alert-ok">OK</button>
+        </div>
+    </div>
+
+    <div id="login-modal" class="modal-overlay" style="display: none;">
+        <div class="login-container">
+            <h2>Admin Login</h2>
+            <input type="text" id="admin-username" placeholder="Username">
+            <input type="password" id="admin-password" placeholder="Password">
+            <button id="login-btn">Login</button>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
+    
+    <!-- Slideshow JavaScript -->
+    <script>
+        // Slideshow functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🏠 Home page initialized with slideshow');
             
-            <div class="sales-section">
-                <h3>Sales Overview</h3>
-                <div id="sales-chart-container">
-                    <canvas id="sales-chart"></canvas>
-                </div>
-            </div>
-        </div>
-        
-        <div class="dashboard-actions">
-            <button onclick="resetAllAvailability()" style="background: #17a2b8;">
-                <i class="fas fa-sync"></i> Mark All Items Available
-            </button>
-            <button onclick="clearCart()" style="background: #6c757d;">
-                <i class="fas fa-trash"></i> Clear All Carts
-            </button>
-        </div>
-    </div>
-</div>
+            // Initialize slideshow
+            initSlideshow();
+            
+            // Check if customer is logged in and update button text
+            const customerData = localStorage.getItem('customerData');
+            const customerToggle = document.getElementById('customer-toggle');
+            if (customerData && customerToggle) {
+                customerToggle.innerHTML = '<i class="fas fa-user"></i> My Profile';
+            }
+        });
 
-<div class="no-scroll-container">
-    <!-- Centered Logo and Content Section -->
-    <section class="logo-section">
-        <!-- Logo Container - Will be centered on mobile -->
-        <div class="logo-container">
-            <img src="logo.jpg" alt="Ai-Maize-ing Nachos" class="logo" onerror="this.style.display='none'">
-        </div>
-        
-        <!-- Welcome Text - Will appear under logo on mobile -->
-        <p class="welcome-text">Welcome to our delicious food ordering system! Choose your category below.</p>
+        // Slideshow variables
+        let currentSlide = 0;
+        let slides = [];
+        let slideInterval;
+        let isPaused = false;
+        const SLIDE_DURATION = 5000; // 5 seconds per slide
 
-        <!-- Category Selection -->
-        <div class="compact-category-grid">
-            <div class="compact-category-card" onclick="navigateTo('nachos.html')">
-                <div class="compact-category-image">
-                    <img src="image/overload chees nachos.jpg" alt="Nachos" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZmY2YTAwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSJ3aGl0ZSI+TmFjaG9zPC90ZXh0Pjwvc3ZnPg=='">
-                </div>
-                <div class="compact-category-content">
-                    <div>
-                        <h2>Our Nachos</h2>
-                        <p>Delicious, cheesy nachos with various toppings and flavors</p>
-                    </div>
-                    <div>
-                        <div class="compact-price-range">₱35 - ₱180</div>
-                        <button class="compact-category-btn">Order Nachos</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="compact-category-card" onclick="navigateTo('aifoodies.html')">
-                <div class="compact-category-image">
-                    <img src="image/mango.gif" alt="AI Foodies" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNGNhZjUwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSJ3aGl0ZSI+QUkgRm9vZGllczwvdGV4dD48L3N2Zz4='">
-                </div>
-                <div class="compact-category-content">
-                    <div>
-                        <h2>Desserts</h2>
-                        <p>Sweet desserts and treats including mango graham, biscoff, and more</p>
-                    </div>
-                    <div>
-                        <div class="compact-price-range">₱40 - ₱159</div>
-                        <button class="compact-category-btn">Order Desserts</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Quick Stats -->
-        <div class="compact-quick-stats">
-            <h2>Why Choose Us?</h2>
-            <div class="compact-stats-grid">
-                <div class="compact-stat-item">
-                    <i class="fas fa-shipping-fast"></i>
-                    <h3>Fast Pickup</h3>
-                    <p>Ready when you are</p>
-                </div>
-                <div class="compact-stat-item">
-                    <i class="fas fa-utensils"></i>
-                    <h3>Fresh Ingredients</h3>
-                    <p>Made with love</p>
-                </div>
-                <div class="compact-stat-item">
-                    <i class="fas fa-tags"></i>
-                    <h3>Best Prices</h3>
-                    <p>Great value</p>
-                </div>
-                <div class="compact-stat-item">
-                    <i class="fas fa-star"></i>
-                    <h3>Loyalty Points</h3>
-                    <p>Earn rewards</p>
-                </div>
-            </div>
-        </div>
-    </section>
-</div>
-
-<!-- Cart Trigger Button -->
-<button id="cart-trigger">View Cart (<span id="cart-count">0</span>)</button>
-
-<!-- Cart Popup -->
-<div id="cart-popup">
-    <div class="cart-header">
-        <h3>Your Order</h3>
-        <button class="close-btn">X</button>
-    </div>
-    <ul id="cart-items"></ul>
-    <p>Total: <span id="cart-total">₱0</span></p>
-
-    <div class="order-details">
-        <input type="text" id="customer-name" placeholder="Your Name for Pickup">
-        <input type="tel" id="customer-phone" placeholder="Phone Number (Optional)">
-        <input type="text" id="pickup-time" placeholder="Pick-up Time (e.g., 6:30 PM)">
-    </div>
-
-    <div class="payment-options">
-        <select id="payment-method">
-            <option value="Cash on Pick-up">Cash on Pick-up</option>
-            <option value="Gcash">Gcash / PayMaya</option>
-            <option value="Bank Transfer">Bank Transfer</option>
-        </select>
-    </div>
-
-    <button id="checkout-btn">Send Order</button>
-</div>
-
-<!-- Modals -->
-<div id="custom-alert" class="modal-overlay" style="display: none;">
-    <div class="modal-content">
-        <p id="custom-alert-message"></p>
-        <button id="custom-alert-ok">OK</button>
-    </div>
-</div>
-
-<div id="login-modal" class="modal-overlay" style="display: none;">
-    <div class="login-container">
-        <h2>Admin Login</h2>
-        <input type="text" id="admin-username" placeholder="Username">
-        <input type="password" id="admin-password" placeholder="Password">
-        <button id="login-btn">Login</button>
-    </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="script.js"></script>
-<script>
-    // Initialize minimal functionality for home page
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('🏠 Home page initialized - Centered Logo Version');
-        
-        // Check if customer is logged in and update button text
-        const customerData = localStorage.getItem('customerData');
-        const customerToggle = document.getElementById('customer-toggle');
-        if (customerData && customerToggle) {
-            customerToggle.innerHTML = '<i class="fas fa-user"></i> My Profile';
-        }
-        
-        // Allow scrolling on home page
-        document.body.style.overflowY = 'auto';
-        document.documentElement.style.overflowY = 'auto';
-        
-        // Initialize slideshow
-        initializeSlideshow();
-        
-        // Initialize mobile info panel
-        const infoPanel = document.getElementById('slideshow-info-panel');
-        if (infoPanel && window.innerWidth <= 768) {
-            updateMobileInfoPanel(0);
-        }
-        
-        // Handle window resize
-        window.addEventListener('resize', function() {
-            const infoPanel = document.getElementById('slideshow-info-panel');
-            if (infoPanel) {
-                if (window.innerWidth <= 768) {
-                    infoPanel.style.display = 'block';
-                    updateMobileInfoPanel(currentSlide);
-                } else {
-                    infoPanel.style.display = 'none';
+        async function initSlideshow() {
+            console.log('Initializing slideshow...');
+            
+            try {
+                // Load slides from localStorage or use demo slides
+                slides = JSON.parse(localStorage.getItem('slideshowSlides') || '[]');
+                
+                // If no slides in localStorage, use demo slides
+                if (!slides || slides.length === 0) {
+                    console.log('No slides found, using demo slides');
+                    slides = getDemoSlides();
+                    localStorage.setItem('slideshowSlides', JSON.stringify(slides));
                 }
-            }
-        });
-    });
-    
-    // Slideshow functionality
-    let currentSlide = 0;
-    let slideshowInterval;
-    
-    function initializeSlideshow() {
-        const slidesContainer = document.getElementById('slides');
-        const indicatorsContainer = document.querySelector('.slideshow-indicators');
-        
-        if (!slidesContainer) return;
-        
-        const slides = getActiveSlides();
-        
-        if (slides.length === 0) {
-            // Use default slides if none exist
-            slidesContainer.innerHTML = `
-                <div class="slide active">
-                    <div class="slide-content">
-                        <h3>Welcome to Ai-Maize-ing Nachos!</h3>
-                        <p>Try our delicious nachos and desserts</p>
-                        <div class="price">Starting at ₱35</div>
-                    </div>
-                </div>
-            `;
-            // Update mobile info panel with default
-            updateMobileInfoPanel(0);
-            return;
-        }
-        
-        // Clear existing slides
-        slidesContainer.innerHTML = '';
-        indicatorsContainer.innerHTML = '';
-        
-        // Create slides and indicators
-        slides.forEach((slide, index) => {
-            // Create slide element
-            const slideElement = document.createElement('div');
-            slideElement.className = `slide ${index === 0 ? 'active' : ''}`;
-            
-            // Set background image
-            if (slide.image) {
-                slideElement.style.backgroundImage = `url('${slide.image}')`;
-            } else {
-                slideElement.style.backgroundColor = '#8b4513';
-            }
-            
-            // Add slide content for desktop
-            slideElement.innerHTML = `
-                <div class="slide-content">
-                    <h3>${slide.title || 'Special Offer'}</h3>
-                    ${slide.description ? `<p>${slide.description}</p>` : ''}
-                    ${slide.price ? `<div class="price">${slide.price}</div>` : ''}
-                </div>
-            `;
-            
-            // Add click event if action is specified
-            if (slide.action) {
-                slideElement.style.cursor = 'pointer';
-                slideElement.onclick = () => {
-                    window.location.href = slide.action;
-                };
-            }
-            
-            slidesContainer.appendChild(slideElement);
-            
-            // Create indicator
-            const indicator = document.createElement('div');
-            indicator.className = `indicator ${index === 0 ? 'active' : ''}`;
-            indicator.onclick = () => goToSlide(index);
-            indicatorsContainer.appendChild(indicator);
-        });
-        
-        // Update mobile info panel with first slide
-        updateMobileInfoPanel(0);
-        
-        // Start auto-slide if there are multiple slides
-        if (slides.length > 1) {
-            startAutoSlide();
-        }
-    }
-    
-    function getActiveSlides() {
-        try {
-            const slides = localStorage.getItem('slideshowItems');
-            if (slides) {
-                return JSON.parse(slides)
-                    .filter(slide => slide.active !== false)
-                    .sort((a, b) => (a.order || 99) - (b.order || 99));
-            }
-        } catch (error) {
-            console.error('Error loading slides:', error);
-        }
-        // Return default slides
-        return [
-            {
-                title: 'Welcome to Ai-Maize-ing Nachos!',
-                description: 'Try our delicious nachos and desserts',
-                price: 'Starting at ₱35',
-                order: 1,
-                active: true
-            }
-        ];
-    }
-    
-    function goToSlide(index) {
-        const slides = document.querySelectorAll('.slide');
-        const indicators = document.querySelectorAll('.indicator');
-        
-        if (slides.length === 0) return;
-        
-        // Remove active class from all slides and indicators
-        slides.forEach(slide => slide.classList.remove('active'));
-        indicators.forEach(indicator => indicator.classList.remove('active'));
-        
-        // Add active class to current slide and indicator
-        currentSlide = index;
-        slides[currentSlide].classList.add('active');
-        if (indicators[currentSlide]) {
-            indicators[currentSlide].classList.add('active');
-        }
-        
-        // Update mobile info panel
-        updateMobileInfoPanel(index);
-    }
-    
-    function updateMobileInfoPanel(index) {
-        const infoPanel = document.getElementById('slideshow-info-panel');
-        const slides = getActiveSlides();
-        
-        if (slides.length === 0 || !infoPanel) return;
-        
-        const currentSlideData = slides[index];
-        
-        if (currentSlideData) {
-            // Update panel content
-            document.getElementById('slide-info-title').textContent = currentSlideData.title || 'Special Offer';
-            document.getElementById('slide-info-price').textContent = currentSlideData.price || 'Check Price';
-            document.getElementById('slide-info-desc').textContent = currentSlideData.description || 'Delicious offer!';
-            document.getElementById('slide-info-order').textContent = `Display Order: ${currentSlideData.order || 1}`;
-            
-            // Show/hide panel based on screen size
-            if (window.innerWidth <= 768) {
-                infoPanel.style.display = 'block';
-            } else {
-                infoPanel.style.display = 'none';
+                
+                // Filter only active slides
+                const activeSlides = slides.filter(slide => slide.active);
+                
+                if (activeSlides.length === 0) {
+                    showEmptySlideshow();
+                    return;
+                }
+                
+                // Render slideshow
+                renderSlideshow(activeSlides);
+                
+                // Setup controls
+                setupSlideshowControls();
+                
+                // Start autoplay
+                startSlideshow();
+                
+                // Timer bar animation
+                updateTimerBar();
+                
+                // Set initial title and description
+                updateSlideTitleAndDescription(activeSlides[0]);
+                
+            } catch (error) {
+                console.error('Error initializing slideshow:', error);
+                showErrorSlideshow();
             }
         }
-    }
-    
-    function nextSlide() {
-        const slides = document.querySelectorAll('.slide');
-        if (slides.length === 0) return;
-        
-        const nextIndex = (currentSlide + 1) % slides.length;
-        goToSlide(nextIndex);
-    }
-    
-    function prevSlide() {
-        const slides = document.querySelectorAll('.slide');
-        if (slides.length === 0) return;
-        
-        const prevIndex = (currentSlide - 1 + slides.length) % slides.length;
-        goToSlide(prevIndex);
-    }
-    
-    function startAutoSlide() {
-        clearInterval(slideshowInterval);
-        slideshowInterval = setInterval(nextSlide, 5000); // Change slide every 5 seconds
-    }
-    
-    function stopAutoSlide() {
-        clearInterval(slideshowInterval);
-    }
-    
-    // Add event listeners for slideshow controls
-    document.addEventListener('DOMContentLoaded', function() {
-        const prevBtn = document.getElementById('prev-slide');
-        const nextBtn = document.getElementById('next-slide');
-        
-        if (prevBtn) {
-            prevBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                stopAutoSlide();
-                prevSlide();
-                startAutoSlide();
-            });
-        }
-        
-        if (nextBtn) {
-            nextBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                stopAutoSlide();
-                nextSlide();
-                startAutoSlide();
-            });
-        }
-        
-        // Pause auto-slide on hover
-        const slideshow = document.getElementById('slideshow-container');
-        if (slideshow) {
-            slideshow.addEventListener('mouseenter', stopAutoSlide);
-            slideshow.addEventListener('mouseleave', startAutoSlide);
-        }
-    });
-</script>
 
+        function getDemoSlides() {
+            return [
+                {
+                    _id: 'slide_1',
+                    title: 'Welcome to Ai-Maize-ing Nachos',
+                    description: 'Your go-to spot for the most delicious nachos and desserts in town!',
+                    imageUrl: 'image/logo.png',
+                    order: 1,
+                    active: true,
+                    createdAt: new Date(),
+                    promoBadge: 'New'
+                },
+                {
+                    _id: 'slide_2',
+                    title: 'Fresh Ingredients Daily',
+                    description: 'We use only the freshest, highest quality ingredients in all our dishes',
+                    imageUrl: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+                    order: 2,
+                    active: true,
+                    createdAt: new Date(Date.now() - 86400000)
+                },
+                {
+                    _id: 'slide_3',
+                    title: 'Special Offers Every Week',
+                    description: 'Check out our weekly specials and get amazing discounts',
+                    imageUrl: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+                    order: 3,
+                    active: true,
+                    createdAt: new Date(Date.now() - 172800000),
+                    promoBadge: '20% OFF'
+                }
+            ];
+        }
+
+        function renderSlideshow(slidesToShow) {
+            const slideshow = document.getElementById('slideshow');
+            const dotsContainer = document.getElementById('slideshow-dots');
+            
+            // Clear existing content
+            slideshow.innerHTML = '';
+            dotsContainer.innerHTML = '';
+            
+            // Sort slides by order
+            slidesToShow.sort((a, b) => a.order - b.order);
+            
+            // Create slides
+            slidesToShow.forEach((slide, index) => {
+                // Create slide element
+                const slideElement = document.createElement('div');
+                slideElement.className = 'slide';
+                slideElement.id = `slide-${index}`;
+                slideElement.dataset.title = slide.title;
+                slideElement.dataset.description = slide.description;
+                
+                // Add promo badge if present
+                let promoBadge = '';
+                if (slide.promoBadge) {
+                    promoBadge = `<div class="promo-badge">${slide.promoBadge}</div>`;
+                }
+                
+                slideElement.innerHTML = `
+                    <img src="${slide.imageUrl}" alt="${slide.title}" class="slide-image" 
+                         onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjM1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjOGI0NTEzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSJ3aGl0ZSI+JHtzbGlkZS50aXRsZX08L3RleHQ+PC9zdmc+'">
+                    ${promoBadge}
+                `;
+                
+                slideshow.appendChild(slideElement);
+                
+                // Create dot
+                const dot = document.createElement('div');
+                dot.className = 'dot';
+                dot.dataset.index = index;
+                dot.addEventListener('click', () => goToSlide(index));
+                dotsContainer.appendChild(dot);
+            });
+            
+            // Show first slide
+            if (slidesToShow.length > 0) {
+                goToSlide(0);
+            }
+        }
+
+        function setupSlideshowControls() {
+            // Pause on hover
+            const slideshowContainer = document.querySelector('.slideshow-container');
+            if (slideshowContainer) {
+                slideshowContainer.addEventListener('mouseenter', pauseSlideshow);
+                slideshowContainer.addEventListener('mouseleave', resumeSlideshow);
+                
+                // Touch events for mobile
+                slideshowContainer.addEventListener('touchstart', pauseSlideshow);
+                slideshowContainer.addEventListener('touchend', () => {
+                    setTimeout(resumeSlideshow, 3000);
+                });
+            }
+        }
+
+        function goToSlide(index, direction = 'right') {
+            const activeSlides = slides.filter(slide => slide.active);
+            if (activeSlides.length === 0) return;
+            
+            const oldIndex = currentSlide;
+            currentSlide = (index + activeSlides.length) % activeSlides.length;
+            
+            // Update slide classes
+            const slidesElements = document.querySelectorAll('.slide');
+            const dots = document.querySelectorAll('.dot');
+            
+            // Remove active classes
+            slidesElements.forEach(slide => slide.classList.remove('active'));
+            dots.forEach(dot => dot.classList.remove('active'));
+            
+            // Add animation class based on direction
+            const currentSlideElement = slidesElements[currentSlide];
+            currentSlideElement.classList.add('active');
+            currentSlideElement.classList.add(`slide-in-${direction}`);
+            
+            // Remove animation class after animation completes
+            setTimeout(() => {
+                currentSlideElement.classList.remove(`slide-in-${direction}`);
+            }, 800);
+            
+            // Update dot
+            if (dots[currentSlide]) {
+                dots[currentSlide].classList.add('active');
+            }
+            
+            // Update title and description outside slideshow
+            updateSlideTitleAndDescription(activeSlides[currentSlide]);
+            
+            // Reset timer bar
+            updateTimerBar();
+        }
+
+        function updateSlideTitleAndDescription(slide) {
+            const titleElement = document.getElementById('current-slide-title');
+            const descriptionElement = document.getElementById('current-slide-description');
+            
+            if (titleElement && slide.title) {
+                titleElement.textContent = slide.title;
+            }
+            
+            if (descriptionElement && slide.description) {
+                descriptionElement.textContent = slide.description;
+            }
+        }
+
+        function nextSlide() {
+            goToSlide(currentSlide + 1, 'right');
+        }
+
+        function prevSlide() {
+            goToSlide(currentSlide - 1, 'left');
+        }
+
+        function startSlideshow() {
+            if (slideInterval) clearInterval(slideInterval);
+            slideInterval = setInterval(nextSlide, SLIDE_DURATION);
+            isPaused = false;
+        }
+
+        function pauseSlideshow() {
+            if (slideInterval) {
+                clearInterval(slideInterval);
+                slideInterval = null;
+                isPaused = true;
+            }
+        }
+
+        function resumeSlideshow() {
+            if (isPaused) {
+                startSlideshow();
+            }
+        }
+
+        function updateTimerBar() {
+            const timerBar = document.getElementById('timer-bar');
+            if (!timerBar) return;
+            
+            // Reset timer bar
+            timerBar.style.transition = 'none';
+            timerBar.style.width = '0%';
+            
+            // Force reflow
+            timerBar.offsetWidth;
+            
+            // Start animation
+            timerBar.style.transition = `width ${SLIDE_DURATION}ms linear`;
+            timerBar.style.width = '100%';
+        }
+
+        function showEmptySlideshow() {
+            const slideshow = document.getElementById('slideshow');
+            slideshow.innerHTML = `
+                <div class="slideshow-empty">
+                    <i class="fas fa-images"></i>
+                    <h3>No Slides Available</h3>
+                    <p>Check back soon for promotions and updates!</p>
+                </div>
+            `;
+            
+            // Update title and description for empty state
+            const titleElement = document.getElementById('current-slide-title');
+            const descriptionElement = document.getElementById('current-slide-description');
+            if (titleElement) titleElement.textContent = 'Check Back Soon!';
+            if (descriptionElement) descriptionElement.textContent = 'We\'re preparing something special for you!';
+        }
+
+        function showErrorSlideshow() {
+            const slideshow = document.getElementById('slideshow');
+            slideshow.innerHTML = `
+                <div class="slideshow-empty">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>Unable to Load Slideshow</h3>
+                    <p>Please check your connection and try again.</p>
+                </div>
+            `;
+            
+            // Update title and description for error state
+            const titleElement = document.getElementById('current-slide-title');
+            const descriptionElement = document.getElementById('current-slide-description');
+            if (titleElement) titleElement.textContent = 'Oops! Something went wrong';
+            if (descriptionElement) descriptionElement.textContent = 'Please try refreshing the page';
+        }
+
+        // Global function for navigation
+        function navigateTo(page) {
+            window.location.href = page;
+        }
+        
+        // Make navigateTo available globally
+        window.navigateTo = navigateTo;
+    </script>
 </body>
 </html>
