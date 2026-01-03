@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
+const path = require("path");
 require("dotenv").config();
 
 // Environment variable validation
@@ -19,15 +20,17 @@ const app = express();
 
 // CORS Configuration
 const corsOptions = {
-    origin: process.env.NODE_ENV === 'production' 
-        ? ['https://yourdomain.com', 'https://www.yourdomain.com']
-        : '*',
+    origin: '*', // Allow all origins for development
     credentials: true,
     optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Serve static files from public directory
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Request logging middleware
 app.use((req, res, next) => {
@@ -63,12 +66,31 @@ const Customer = require("./models/Customer");
 // ======== AUTH MIDDLEWARE ========
 const auth = require("./auth");
 
+// ======== ROOT ENDPOINT ========
+app.get("/", (req, res) => {
+    res.json({
+        message: "🍕 AI Foodies API",
+        version: "1.0.0",
+        endpoints: {
+            admin: "/api/admin/login",
+            products: "/api/menu-items",
+            orders: "/api/orders",
+            customers: "/api/customers/register",
+            health: "/api/health"
+        },
+        status: "Server is running 🚀"
+    });
+});
+
+// ======== FAVICON FIX ========
+app.get("/favicon.ico", (req, res) => {
+    res.status(204).end();
+});
+
 // ======== ADMIN LOGIN ========
 app.post("/api/admin/login", async (req, res) => {
     const { username, password } = req.body;
     
-    // For demo, accept any username/password
-    // In production, check against database
     if (!username || !password) {
         return res.status(401).json({ success: false, msg: "Username and password required" });
     }
@@ -122,7 +144,7 @@ app.post("/api/admin/login", async (req, res) => {
     }
 });
 
-// ======== ADMIN REGISTRATION (Optional, for development) ========
+// ======== ADMIN REGISTRATION ========
 app.post("/api/admin/register", async (req, res) => {
     try {
         const { username, password, role = "admin" } = req.body;
@@ -166,24 +188,14 @@ app.post("/api/admin/register", async (req, res) => {
 
 // ======== GET VERIFY ADMIN ========
 app.get("/api/admin/verify-role", auth, (req, res) => {
-    res.json({ success: true, role: req.admin.role, username: req.admin.username });
+    res.json({ 
+        success: true, 
+        role: req.admin?.role || req.user?.role, 
+        username: req.admin?.username || req.user?.username 
+    });
 });
 
-// ======== GET ADMIN PROFILE ========
-app.get("/api/admin/profile", auth, async (req, res) => {
-    try {
-        const admin = await Admin.findById(req.admin.id).select("-password");
-        if (!admin) {
-            return res.status(404).json({ success: false, msg: "Admin not found" });
-        }
-        res.json({ success: true, admin });
-    } catch (error) {
-        console.error("Error fetching admin profile:", error);
-        res.status(500).json({ success: false, msg: "Server error" });
-    }
-});
-
-// ======== PRODUCTS CRUD ========
+// ======== PRODUCTS ENDPOINTS ========
 
 // GET ALL PRODUCTS or FILTER BY CATEGORY
 app.get("/api/menu-items", async (req, res) => {
@@ -282,8 +294,6 @@ app.put("/api/products/:id/availability", auth, async (req, res) => {
 });
 
 // ======== FEATURED PRODUCTS ========
-
-// TOGGLE FEATURED STATUS
 app.put("/api/products/:id/featured", auth, async (req, res) => {
     try {
         const { featured } = req.body;
@@ -313,21 +323,32 @@ app.get("/api/featured-products", async (req, res) => {
     }
 });
 
-// ======== ORDERS ========
+// ======== ORDERS ENDPOINTS ========
 
 // CREATE ORDER (CUSTOMER)
 app.post("/api/orders", async (req, res) => {
     try {
-        // Calculate total if not provided
         const orderData = { ...req.body };
+        
+        // Calculate total if not provided
         if (!orderData.total && orderData.items && Array.isArray(orderData.items)) {
             orderData.total = orderData.items.reduce((sum, item) => {
                 return sum + (item.price * item.quantity);
             }, 0);
         }
         
+        // Set default status
+        if (!orderData.status) {
+            orderData.status = 'pending';
+        }
+        
         const order = await Order.create(orderData);
-        res.status(201).json({ success: true, orderId: order._id, order });
+        res.status(201).json({ 
+            success: true, 
+            message: "Order placed successfully!",
+            orderId: order._id, 
+            order 
+        });
     } catch (error) {
         console.error("Error creating order:", error);
         res.status(400).json({ success: false, error: error.message });
@@ -345,8 +366,8 @@ app.get("/api/orders", auth, async (req, res) => {
     }
 });
 
-// GET SINGLE ORDER (ADMIN)
-app.get("/api/orders/:id", auth, async (req, res) => {
+// GET SINGLE ORDER
+app.get("/api/orders/:id", async (req, res) => {
     try {
         const order = await Order.findById(req.params.id);
         if (!order) {
@@ -379,7 +400,11 @@ app.put("/api/orders/:id/status", auth, async (req, res) => {
             return res.status(404).json({ success: false, msg: "Order not found" });
         }
         
-        res.json({ success: true, order: updated });
+        res.json({ 
+            success: true, 
+            message: "Order status updated",
+            order: updated 
+        });
     } catch (error) {
         console.error("Error updating order status:", error);
         res.status(400).json({ success: false, error: error.message });
@@ -434,27 +459,13 @@ app.get("/api/dashboard/stats", auth, async (req, res) => {
         
         const monthlySales = monthlySalesData.length > 0 ? monthlySalesData[0].total : 0;
         
-        // Order status counts
-        const orderStatusCounts = await Order.aggregate([
-            {
-                $group: {
-                    _id: "$status",
-                    count: { $sum: 1 }
-                }
-            }
-        ]);
-        
         res.json({
             totalProducts,
             availableProducts,
             totalOrders,
             todayOrders,
             todaySales,
-            monthlySales,
-            orderStatusCounts: orderStatusCounts.reduce((acc, curr) => {
-                acc[curr._id] = curr.count;
-                return acc;
-            }, {})
+            monthlySales
         });
     } catch (error) {
         console.error("Error fetching dashboard stats:", error);
@@ -561,6 +572,73 @@ app.get("/api/health", (req, res) => {
     });
 });
 
+// ======== SERVE FRONTEND (Optional) ========
+app.get("/admin", (req, res) => {
+    res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>AI Foodies Admin Panel</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    max-width: 800px;
+                    margin: 50px auto;
+                    padding: 20px;
+                    text-align: center;
+                }
+                h1 { color: #333; }
+                .endpoint {
+                    background: #f5f5f5;
+                    padding: 15px;
+                    margin: 10px 0;
+                    border-radius: 5px;
+                    text-align: left;
+                }
+                .method { 
+                    display: inline-block; 
+                    padding: 3px 8px; 
+                    border-radius: 3px; 
+                    font-weight: bold; 
+                    margin-right: 10px;
+                }
+                .get { background: #61affe; color: white; }
+                .post { background: #49cc90; color: white; }
+                .put { background: #fca130; color: white; }
+                .delete { background: #f93e3e; color: white; }
+            </style>
+        </head>
+        <body>
+            <h1>🍕 AI Foodies Backend API</h1>
+            <p>Server is running successfully! 🚀</p>
+            <div>
+                <h3>Available Endpoints:</h3>
+                <div class="endpoint">
+                    <span class="method get">GET</span> /api/menu-items
+                    <p>Get all menu items or filter by category</p>
+                </div>
+                <div class="endpoint">
+                    <span class="method post">POST</span> /api/admin/login
+                    <p>Admin login (demo: admin/admin123)</p>
+                </div>
+                <div class="endpoint">
+                    <span class="method post">POST</span> /api/orders
+                    <p>Place a new order</p>
+                </div>
+                <div class="endpoint">
+                    <span class="method get">GET</span> /api/orders
+                    <p>Get all orders (admin only)</p>
+                </div>
+                <div class="endpoint">
+                    <span class="method get">GET</span> /api/health
+                    <p>Check server health</p>
+                </div>
+            </div>
+        </body>
+        </html>
+    `);
+});
+
 // ======== 404 HANDLER ========
 app.use((req, res) => {
     res.status(404).json({
@@ -580,5 +658,5 @@ app.use((err, req, res, next) => {
 });
 
 // ======== START SERVER ========
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
