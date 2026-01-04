@@ -34,6 +34,14 @@ async function apiRequest(endpoint, method = 'GET', data = null) {
             throw new Error('Unauthorized');
         }
         
+        // Better error handling for non-JSON responses
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+            const text = await response.text();
+            console.error("Non-JSON response:", text.substring(0, 200));
+            throw new Error(`Server returned HTML instead of JSON. Status: ${response.status}`);
+        }
+        
         const result = await response.json();
         
         if (!response.ok) {
