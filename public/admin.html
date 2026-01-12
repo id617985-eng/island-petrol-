@@ -1,342 +1,4062 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Admin Panel - Ai-Maize-ing Nachos</title>
-<link rel="stylesheet" href="admin.css">
-
-<script src="sync-products.js"></script>
-<script src="api-service.js"></script>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Ai-Maize-ing Nachos</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Shrikhand&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Admin Panel Specific Styles */
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, #8b4513, #e65100);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(139, 69, 19, 0.3);
+        }
+        
+        .admin-header h1 {
+            font-size: 2.5rem;
+            font-family: 'Shrikhand', cursive;
+            margin: 0;
+        }
+        
+        .admin-header .admin-info {
+            text-align: right;
+        }
+        
+        .admin-role-badge {
+            background: #ffcc00;
+            color: #333;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+        
+        .admin-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .admin-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .admin-btn-primary {
+            background: #28a745;
+            color: white;
+        }
+        
+        .admin-btn-primary:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+        
+        .admin-btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .admin-btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+        
+        .admin-btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .admin-btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+        
+        .admin-btn-warning {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .admin-btn-warning:hover {
+            background: #e0a800;
+            transform: translateY(-2px);
+        }
+        
+        /* Tabs Navigation */
+        .admin-tabs {
+            display: flex;
+            background: white;
+            border-radius: 15px 15px 0 0;
+            overflow: hidden;
+            margin-bottom: 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .admin-tab {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            background: #f8f9fa;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #666;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .admin-tab:hover {
+            background: #e9ecef;
+            color: #333;
+        }
+        
+        .admin-tab.active {
+            background: #8b4513;
+            color: white;
+        }
+        
+        /* Tab Content */
+        .admin-tab-content {
+            display: none;
+            background: white;
+            padding: 30px;
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            min-height: 600px;
+        }
+        
+        .admin-tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Content Sections */
+        .section-title {
+            color: #8b4513;
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #ffcc00;
+            font-family: 'Shrikhand', cursive;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-color: #8b4513;
+        }
+        
+        .stat-card i {
+            font-size: 2.5rem;
+            color: #8b4513;
+            margin-bottom: 15px;
+        }
+        
+        .stat-card h3 {
+            color: #333;
+            font-size: 2.5rem;
+            margin: 10px 0;
+        }
+        
+        .stat-card p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+        
+        /* Forms */
+        .admin-form {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #8b4513;
+            box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
+        }
+        
+        /* Tables */
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .admin-table th {
+            background: #8b4513;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        .admin-table td {
+            padding: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .admin-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .table-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        
+        .edit-btn {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .edit-btn:hover {
+            background: #138496;
+        }
+        
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .delete-btn:hover {
+            background: #c82333;
+        }
+        
+        .toggle-btn {
+            background: #28a745;
+            color: white;
+        }
+        
+        .toggle-btn.inactive {
+            background: #6c757d;
+        }
+        
+        /* Product Grid */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        
+        .product-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+        
+        .product-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .product-card-content {
+            padding: 20px;
+        }
+        
+        .product-card h3 {
+            color: #8b4513;
+            margin-bottom: 10px;
+            font-size: 1.4rem;
+        }
+        
+        .product-card .price {
+            color: #28a745;
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .product-card .category {
+            display: inline-block;
+            background: #e9ecef;
+            color: #666;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        
+        .product-card .availability {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .availability-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        .available {
+            background: #28a745;
+        }
+        
+        .unavailable {
+            background: #dc3545;
+        }
+        
+        /* Slideshow Preview */
+        .slideshow-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        
+        .slide-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .slide-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .slide-card-content {
+            padding: 20px;
+        }
+        
+        .slide-card h3 {
+            color: #8b4513;
+            margin-bottom: 10px;
+        }
+        
+        .slide-badge {
+            display: inline-block;
+            background: #ffcc00;
+            color: #333;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        /* Order Status */
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-preparing {
+            background: #cce5ff;
+            color: #004085;
+        }
+        
+        .status-ready {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-completed {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .status-cancelled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .quick-action-btn {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .quick-action-btn:hover {
+            border-color: #8b4513;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .quick-action-btn i {
+            font-size: 2.5rem;
+            color: #8b4513;
+            margin-bottom: 15px;
+        }
+        
+        .quick-action-btn h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .quick-action-btn p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        /* GitHub Upload Styles */
+        .file-item {
+            transition: all 0.3s;
+        }
+        
+        .file-item:hover {
+            background: #e9ecef !important;
+        }
+        
+        .progress-item {
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Drag and drop area */
+        .drag-over {
+            border-color: #8b4513 !important;
+            background: rgba(139, 69, 19, 0.05) !important;
+        }
+        
+        /* Menu Items Grid */
+        .menu-items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .menu-item-card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .menu-item-card:hover {
+            border-color: #8b4513;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .menu-item-card.selected {
+            border-color: #28a745;
+            background: #f0fff4;
+        }
+        
+        .menu-item-card h4 {
+            color: #8b4513;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+        
+        .menu-item-card .price {
+            color: #28a745;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .menu-item-card .category-tag {
+            display: inline-block;
+            background: #e9ecef;
+            color: #666;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+        }
+        
+        .menu-item-card .in-slideshow {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #28a745;
+            font-size: 0.9rem;
+        }
+        
+        /* Dynamic Slides Grid */
+        .dynamic-slides-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .dynamic-slide-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s;
+        }
+        
+        .dynamic-slide-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        
+        .dynamic-slide-card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+        
+        .dynamic-slide-content {
+            padding: 15px;
+        }
+        
+        .dynamic-slide-content h4 {
+            color: #8b4513;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+        
+        .dynamic-slide-content .order {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+        
+        .dynamic-slide-content .promo-badge {
+            display: inline-block;
+            background: #ffcc00;
+            color: #333;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .admin-header {
+                flex-direction: column;
+                text-align: center;
+                gap: 20px;
+            }
+            
+            .admin-controls {
+                justify-content: center;
+            }
+            
+            .admin-tabs {
+                flex-direction: column;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .product-grid, .slideshow-preview, .menu-items-grid, .dynamic-slides-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body class="admin-page">
-
-<header class="admin-header">
-  <h1>🎛️ Business Control Center</h1>
-  <div class="admin-user-info">
-    <span id="admin-username">Admin</span>
-    <button class="action-btn danger" onclick="logoutAdmin()">
-      <i class="fas fa-sign-out-alt"></i> Logout
-    </button>
-  </div>
-</header>
-
-<nav class="admin-nav">
-  <button class="admin-nav-btn active" onclick="showSection('dashboard')">
-    <i class="fas fa-tachometer-alt"></i> Dashboard
-  </button>
-  <button class="admin-nav-btn" onclick="showSection('products')">
-    <i class="fas fa-boxes"></i> All Products
-  </button>
-  <button class="admin-nav-btn" onclick="showSection('availability')">
-    <i class="fas fa-toggle-on"></i> Availability
-  </button>
-  <button class="admin-nav-btn" onclick="showSection('slideshow')">
-    <i class="fas fa-images"></i> Slideshow
-  </button>
-  <button class="admin-nav-btn" onclick="showSection('orders')">
-    <i class="fas fa-shopping-cart"></i> Orders
-  </button>
-</nav>
-
-<div class="admin-sections">
-
-  <!-- 📊 DASHBOARD -->
-  <section id="dashboard" class="admin-section active">
-    <div class="admin-section-header">
-      <h2><i class="fas fa-tachometer-alt"></i> Dashboard Overview</h2>
-      <p>Complete overview of your business</p>
-    </div>
-    <div class="dashboard-stats" id="dashboard-stats">
-      <!-- Stats will be loaded here -->
-    </div>
-    
-    <div class="dashboard-content">
-      <div class="dashboard-card">
-        <h3><i class="fas fa-chart-line"></i> Quick Actions</h3>
-        <div class="quick-actions">
-          <button class="action-btn primary" onclick="openProductModal()">
-            <i class="fas fa-plus"></i> Add New Product
-          </button>
-          <button class="action-btn success" onclick="showSection('availability')">
-            <i class="fas fa-toggle-on"></i> Manage Availability
-          </button>
-          <button class="action-btn info" onclick="showSection('orders')">
-            <i class="fas fa-shopping-cart"></i> View Orders
-          </button>
-          <button class="action-btn warning" onclick="exportAllData()">
-            <i class="fas fa-download"></i> Backup Data
-          </button>
+    <div class="admin-container">
+        <!-- Admin Header -->
+        <div class="admin-header">
+            <div>
+                <h1>Admin Panel</h1>
+                <p style="margin-top: 10px; opacity: 0.9;">Manage your store efficiently</p>
+            </div>
+            <div class="admin-info">
+                <div class="admin-role-badge" id="admin-role">Admin</div>
+                <p style="margin-bottom: 10px;"><i class="fas fa-user"></i> <span id="admin-username">Administrator</span></p>
+                <div class="admin-controls">
+                    <button class="admin-btn admin-btn-primary" onclick="refreshData()">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                    <button class="admin-btn admin-btn-secondary" onclick="goToStore()">
+                        <i class="fas fa-store"></i> View Store
+                    </button>
+                    <button class="admin-btn admin-btn-danger" onclick="logoutAdmin()">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </div>
         </div>
-      </div>
-      
-      <div class="dashboard-card">
-        <h3><i class="fas fa-exclamation-circle"></i> Recent Alerts</h3>
-        <div id="recent-alerts" class="alerts-list">
-          <!-- Alerts will be loaded here -->
+
+        <!-- Admin Tabs -->
+        <div class="admin-tabs">
+            <button class="admin-tab active" data-tab="dashboard">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </button>
+            <button class="admin-tab" data-tab="orders">
+                <i class="fas fa-shopping-cart"></i> Orders
+            </button>
+            <button class="admin-tab" data-tab="products">
+                <i class="fas fa-utensils"></i> Products
+            </button>
+            <button class="admin-tab" data-tab="slideshow">
+                <i class="fas fa-images"></i> Slideshow
+            </button>
+            <button class="admin-tab" data-tab="customers">
+                <i class="fas fa-users"></i> Customers
+            </button>
+            <!-- GitHub Upload Tab -->
+            <button class="admin-tab" data-tab="github-upload">
+                <i class="fab fa-github"></i> GitHub Upload
+            </button>
         </div>
-      </div>
-    </div>
-  </section>
 
-  <!-- 📦 ALL PRODUCTS MANAGER -->
-  <section id="products" class="admin-section">
-    <div class="admin-section-header">
-      <h2><i class="fas fa-boxes"></i> All Products Manager</h2>
-      <p>Manage all menu items across all categories</p>
-    </div>
-    
-    <div class="product-actions">
-      <button class="action-btn primary" onclick="openProductModal()">
-        <i class="fas fa-plus"></i> Add New Product
-      </button>
-      <button class="action-btn success" onclick="exportProducts()">
-        <i class="fas fa-file-export"></i> Export Products
-      </button>
-      <button class="action-btn info" onclick="importProducts()">
-        <i class="fas fa-file-import"></i> Import Products
-      </button>
-      <button class="action-btn warning" onclick="resetToDefault()">
-        <i class="fas fa-redo"></i> Reset to Default
-      </button>
-      <button class="action-btn danger" onclick="deleteAllProducts()">
-        <i class="fas fa-trash"></i> Delete All
-      </button>
-    </div>
-    
-    <div class="products-filters">
-      <input type="text" id="product-search" placeholder="Search products..." onkeyup="filterProducts()">
-      <select id="category-filter" onchange="filterProducts()">
-        <option value="all">All Categories</option>
-        <option value="nachos">Nachos</option>
-        <option value="desserts">Desserts</option>
-        <option value="drinks">Drinks</option>
-        <option value="specials">Specials</option>
-      </select>
-      <select id="availability-filter" onchange="filterProducts()">
-        <option value="all">All Status</option>
-        <option value="available">Available Only</option>
-        <option value="unavailable">Unavailable Only</option>
-      </select>
-    </div>
-    
-    <div id="product-list" class="products-container">
-      <!-- Products will be loaded here -->
-    </div>
-  </section>
+        <!-- Tab Content: Dashboard -->
+        <div id="dashboard" class="admin-tab-content active">
+            <h2 class="section-title">Dashboard Overview</h2>
+            
+            <!-- Quick Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <i class="fas fa-shopping-cart"></i>
+                    <h3 id="total-orders">0</h3>
+                    <p>Total Orders</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <h3 id="total-sales">₱0</h3>
+                    <p>Total Sales</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-calendar-day"></i>
+                    <h3 id="today-orders">0</h3>
+                    <p>Today's Orders</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-chart-line"></i>
+                    <h3 id="today-sales">₱0</h3>
+                    <p>Today's Sales</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-box"></i>
+                    <h3 id="available-products">0</h3>
+                    <p>Available Products</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-users"></i>
+                    <h3 id="total-customers">0</h3>
+                    <p>Total Customers</p>
+                </div>
+            </div>
 
-  <!-- 🟢 AVAILABILITY CONTROL -->
-  <section id="availability" class="admin-section">
-    <div class="admin-section-header">
-      <h2><i class="fas fa-toggle-on"></i> Availability Control</h2>
-      <p>Enable/disable items for customers</p>
-    </div>
-    
-    <div class="availability-actions">
-      <button class="action-btn success" onclick="enableAllItems()">
-        <i class="fas fa-check-circle"></i> Enable All
-      </button>
-      <button class="action-btn danger" onclick="disableAllItems()">
-        <i class="fas fa-times-circle"></i> Disable All
-      </button>
-      <button class="action-btn info" onclick="saveAvailability()">
-        <i class="fas fa-save"></i> Save Changes
-      </button>
-    </div>
-    
-    <div class="availability-container">
-      <table id="availability-table" class="availability-table">
-        <!-- Availability table will be loaded here -->
-      </table>
-    </div>
-  </section>
+            <!-- Quick Actions -->
+            <h3 class="section-title">Quick Actions</h3>
+            <div class="quick-actions">
+                <div class="quick-action-btn" onclick="showAddProductModal()">
+                    <i class="fas fa-plus-circle"></i>
+                    <h3>Add New Product</h3>
+                    <p>Add a new item to your menu</p>
+                </div>
+                <div class="quick-action-btn" onclick="addDynamicSlide()">
+                    <i class="fas fa-image"></i>
+                    <h3>Add Slideshow Slide</h3>
+                    <p>Create a new promotion slide</p>
+                </div>
+                <div class="quick-action-btn" onclick="showUpdateAvailabilityModal()">
+                    <i class="fas fa-toggle-on"></i>
+                    <h3>Update Availability</h3>
+                    <p>Manage product availability</p>
+                </div>
+                <div class="quick-action-btn" onclick="exportData()">
+                    <i class="fas fa-download"></i>
+                    <h3>Export Data</h3>
+                    <p>Export orders and reports</p>
+                </div>
+            </div>
 
-  <!-- 🖼️ SLIDESHOW MANAGER -->
-  <section id="slideshow" class="admin-section">
-    <div class="admin-section-header">
-      <h2><i class="fas fa-images"></i> Homepage Slideshow</h2>
-      <p>Manage slides displayed on the homepage</p>
-    </div>
-    
-    <div class="slideshow-actions">
-      <button class="action-btn success" onclick="addSlide()">
-        <i class="fas fa-plus"></i> Add New Slide
-      </button>
-      <button class="action-btn warning" onclick="reorderSlides()">
-        <i class="fas fa-sort"></i> Reorder Slides
-      </button>
-      <button class="action-btn info" onclick="previewSlideshow()">
-        <i class="fas fa-eye"></i> Preview
-      </button>
-    </div>
-    
-    <div id="slide-list" class="slideshow-current">
-      <!-- Slides will be loaded here -->
-    </div>
-  </section>
+            <!-- Recent Orders -->
+            <h3 class="section-title">Recent Orders</h3>
+            <div id="recent-orders-container">
+                <p>Loading recent orders...</p>
+            </div>
 
-  <!-- 📦 ORDERS MANAGEMENT -->
-  <section id="orders" class="admin-section">
-    <div class="admin-section-header">
-      <h2><i class="fas fa-shopping-cart"></i> Orders Management</h2>
-      <p>View and manage customer orders</p>
-    </div>
-    
-    <div class="orders-filters">
-      <input type="text" id="order-search" placeholder="Search orders...">
-      <select id="order-status-filter">
-        <option value="all">All Status</option>
-        <option value="pending">Pending</option>
-        <option value="confirmed">Confirmed</option>
-        <option value="preparing">Preparing</option>
-        <option value="ready">Ready for Pickup</option>
-        <option value="completed">Completed</option>
-        <option value="cancelled">Cancelled</option>
-      </select>
-      <input type="date" id="order-date-filter">
-    </div>
-    
-    <div id="orders-list" class="orders-container">
-      <!-- Orders will be loaded here -->
-    </div>
-  </section>
+            <!-- Sales Chart -->
+            <h3 class="section-title">Sales Overview</h3>
+            <div style="background: white; padding: 20px; border-radius: 15px;">
+                <canvas id="sales-chart"></canvas>
+            </div>
+        </div>
 
-</div>
+        <!-- Tab Content: Orders -->
+        <div id="orders" class="admin-tab-content">
+            <h2 class="section-title">Order Management</h2>
+            
+            <!-- Order Filters -->
+            <div style="margin-bottom: 30px; display: flex; gap: 15px; flex-wrap: wrap;">
+                <select class="form-control" style="max-width: 200px;" onchange="filterOrders(this.value)">
+                    <option value="all">All Orders</option>
+                    <option value="pending">Pending</option>
+                    <option value="preparing">Preparing</option>
+                    <option value="ready">Ready for Pickup</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+                <input type="date" class="form-control" style="max-width: 200px;" onchange="filterByDate(this.value)">
+                <input type="text" class="form-control" style="max-width: 300px;" placeholder="Search by customer name or order ID..." onkeyup="searchOrders(this.value)">
+            </div>
 
-<!-- 📌 PRODUCT MODAL -->
-<div id="product-modal" class="modal-overlay">
-  <div class="modal-content">
-    <h2 id="modal-title"><i class="fas fa-plus"></i> Add New Product</h2>
-    
-    <div class="form-group">
-      <label for="p-name"><i class="fas fa-tag"></i> Product Name *</label>
-      <input type="text" id="p-name" placeholder="Enter product name" required>
-    </div>
-    
-    <div class="form-group">
-      <label for="p-price"><i class="fas fa-money-bill"></i> Price *</label>
-      <input type="number" id="p-price" placeholder="0.00" step="0.01" min="0" required>
-    </div>
-    
-    <div class="form-group">
-      <label for="p-category"><i class="fas fa-folder"></i> Category *</label>
-      <select id="p-category" required>
-        <option value="nachos">🌮 Nachos</option>
-        <option value="desserts">🍰 Desserts</option>
-        <option value="drinks">🥤 Drinks</option>
-        <option value="specials">⭐ Specials</option>
-      </select>
-    </div>
-    
-    <div class="form-group">
-      <label for="p-image"><i class="fas fa-image"></i> Image URL</label>
-      <input type="text" id="p-image" placeholder="https://example.com/image.jpg">
-      <small>Leave empty to use default image</small>
-    </div>
-    
-    <div class="form-group">
-      <label for="p-desc"><i class="fas fa-align-left"></i> Description</label>
-      <textarea id="p-desc" placeholder="Enter product description..." rows="3"></textarea>
-    </div>
-    
-    <div class="form-group">
-      <label for="p-ingredients"><i class="fas fa-list"></i> Ingredients</label>
-      <textarea id="p-ingredients" placeholder="List ingredients separated by commas..." rows="2"></textarea>
-    </div>
-    
-    <div class="form-group checkbox-group">
-      <input type="checkbox" id="p-avail" checked>
-      <label for="p-avail">Available for purchase</label>
-    </div>
-    
-    <div class="form-group checkbox-group">
-      <input type="checkbox" id="p-featured">
-      <label for="p-featured">Featured item (show on homepage)</label>
-    </div>
-    
-    <div class="modal-actions">
-      <button class="action-btn primary" onclick="saveProduct()">
-        <i class="fas fa-save"></i> Save Product
-      </button>
-      <button class="action-btn danger" onclick="closeProductModal()">
-        <i class="fas fa-times"></i> Cancel
-      </button>
-    </div>
-  </div>
-</div>
+            <!-- Orders Table -->
+            <div id="orders-container">
+                <p>Loading orders...</p>
+            </div>
+        </div>
 
-<!-- 📌 SLIDE MODAL -->
-<div id="slide-modal" class="modal-overlay">
-  <div class="modal-content">
-    <h2 id="slide-modal-title"><i class="fas fa-image"></i> Add Slide</h2>
-    
-    <div class="form-group">
-      <label for="slide-title"><i class="fas fa-heading"></i> Slide Title *</label>
-      <input type="text" id="slide-title" placeholder="Enter slide title" required>
-    </div>
-    
-    <div class="form-group">
-      <label for="slide-description"><i class="fas fa-align-left"></i> Description</label>
-      <textarea id="slide-description" placeholder="Enter slide description..." rows="2"></textarea>
-    </div>
-    
-    <div class="form-group">
-      <label for="slide-image"><i class="fas fa-image"></i> Image URL *</label>
-      <input type="text" id="slide-image" placeholder="https://example.com/image.jpg" required>
-    </div>
-    
-    <div class="form-group">
-      <label for="slide-order"><i class="fas fa-sort-numeric-down"></i> Display Order</label>
-      <input type="number" id="slide-order" placeholder="1" min="1" value="1">
-    </div>
-    
-    <div class="form-group checkbox-group">
-      <input type="checkbox" id="slide-active" checked>
-      <label for="slide-active">Active (show on homepage)</label>
-    </div>
-    
-    <div class="form-group checkbox-group">
-      <input type="checkbox" id="slide-promo">
-      <label for="slide-promo">Show promotion badge</label>
-    </div>
-    
-    <div class="form-group" id="promo-badge-group" style="display: none;">
-      <label for="slide-promo-text"><i class="fas fa-badge"></i> Badge Text</label>
-      <input type="text" id="slide-promo-text" placeholder="e.g., NEW, 20% OFF">
-    </div>
-    
-    <div class="modal-actions">
-      <button class="action-btn primary" onclick="saveSlide()">
-        <i class="fas fa-save"></i> Save Slide
-      </button>
-      <button class="action-btn danger" onclick="closeSlideModal()">
-        <i class="fas fa-times"></i> Cancel
-      </button>
-    </div>
-  </div>
-</div>
+        <!-- Tab Content: Products -->
+        <div id="products" class="admin-tab-content">
+            <h2 class="section-title">Product Management</h2>
+            
+            <!-- Add Product Button -->
+            <button class="admin-btn admin-btn-primary" style="margin-bottom: 30px;" onclick="showAddProductModal()">
+                <i class="fas fa-plus"></i> Add New Product
+            </button>
 
-<!-- 📌 ORDER DETAILS MODAL -->
-<div id="order-modal" class="modal-overlay">
-  <div class="modal-content wide-modal">
-    <h2 id="order-modal-title"><i class="fas fa-receipt"></i> Order Details</h2>
-    
-    <div id="order-details-content">
-      <!-- Order details will be loaded here -->
-    </div>
-    
-    <div class="modal-actions">
-      <button class="action-btn success" onclick="updateOrderStatus()">
-        <i class="fas fa-check"></i> Update Status
-      </button>
-      <button class="action-btn danger" onclick="closeOrderModal()">
-        <i class="fas fa-times"></i> Close
-      </button>
-    </div>
-  </div>
-</div>
+            <!-- Products Grid -->
+            <div id="products-container">
+                <p>Loading products...</p>
+            </div>
+        </div>
 
-<script src="admin-script.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+        <!-- Tab Content: Slideshow -->
+        <div id="slideshow" class="admin-tab-content">
+            <h2 class="section-title">Dynamic Slideshow Management</h2>
+            
+            <div style="display: flex; gap: 15px; margin-bottom: 30px;">
+                <button class="admin-btn admin-btn-primary" onclick="addDynamicSlide()">
+                    <i class="fas fa-plus"></i> Add Slide from Menu
+                </button>
+                <button class="admin-btn admin-btn-secondary" onclick="regenerateAllSlides()">
+                    <i class="fas fa-sync"></i> Regenerate All Slides
+                </button>
+                <button class="admin-btn admin-btn-warning" onclick="clearSlideshowCache()">
+                    <i class="fas fa-trash"></i> Clear Cache
+                </button>
+            </div>
+
+            <!-- Slideshow Configuration -->
+            <div class="admin-form" style="margin-bottom: 30px;">
+                <h3 style="color: #8b4513; margin-bottom: 20px;">Slideshow Settings</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="slide-duration">Slide Duration (seconds)</label>
+                        <input type="number" id="slide-duration" class="form-control" 
+                               min="3" max="15" value="5" onchange="updateSlideshowSettings()">
+                    </div>
+                    <div class="form-group">
+                        <label for="max-slides">Maximum Slides</label>
+                        <input type="number" id="max-slides" class="form-control" 
+                               min="3" max="10" value="5" onchange="updateSlideshowSettings()">
+                    </div>
+                    <div class="form-group">
+                        <label for="slide-animation">Animation Type</label>
+                        <select id="slide-animation" class="form-control" onchange="updateSlideshowSettings()">
+                            <option value="fade">Fade</option>
+                            <option value="slide">Slide</option>
+                            <option value="zoom">Zoom</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" id="auto-refresh" checked>
+                        <span>Auto-refresh slides from menu items</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Current Slides -->
+            <div class="admin-form">
+                <h3 style="color: #8b4513; margin-bottom: 20px;">Current Slideshow Slides</h3>
+                <div id="dynamic-slides-container">
+                    <p>Loading slides...</p>
+                </div>
+            </div>
+
+            <!-- Available Menu Items for Slides -->
+            <div class="admin-form" style="margin-top: 30px;">
+                <h3 style="color: #8b4513; margin-bottom: 20px;">Available Menu Items</h3>
+                <div style="margin-bottom: 20px;">
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                        <button class="admin-btn admin-btn-secondary" onclick="filterItems('all')">All</button>
+                        <button class="admin-btn admin-btn-secondary" onclick="filterItems('nachos')">Nachos Only</button>
+                        <button class="admin-btn admin-btn-secondary" onclick="filterItems('desserts')">Desserts Only</button>
+                        <input type="text" class="form-control" style="flex-grow: 1;" 
+                               placeholder="Search items..." onkeyup="searchMenuItems(this.value)">
+                    </div>
+                </div>
+                
+                <div id="menu-items-container">
+                    <p>Loading menu items...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Customers -->
+        <div id="customers" class="admin-tab-content">
+            <h2 class="section-title">Customer Management</h2>
+            
+            <!-- Customers Table -->
+            <div id="customers-container">
+                <p>Loading customers...</p>
+            </div>
+        </div>
+
+        <!-- Tab Content: GitHub Upload -->
+        <div id="github-upload" class="admin-tab-content">
+            <h2 class="section-title">GitHub Upload Service</h2>
+            
+            <!-- Configuration Section -->
+            <div class="admin-form" style="margin-bottom: 30px;">
+                <h3 style="color: #8b4513; margin-bottom: 20px;">GitHub Configuration</h3>
+                <div id="github-config">
+                    <div style="background: #e9ecef; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        <p style="margin: 0; color: #666;">
+                            <i class="fas fa-info-circle"></i> 
+                            GitHub token is configured on the server. No client-side configuration needed.
+                        </p>
+                    </div>
+                    
+                    <div style="display: flex; gap: 15px; margin-top: 20px;">
+                        <button class="admin-btn admin-btn-primary" onclick="testGitHubConnection()">
+                            <i class="fas fa-test"></i> Test Connection
+                        </button>
+                    </div>
+                    
+                    <div id="config-status" style="margin-top: 20px; padding: 15px; border-radius: 8px; display: none;"></div>
+                </div>
+            </div>
+            
+            <!-- Current Configuration -->
+            <div class="admin-form" style="margin-bottom: 30px;">
+                <h3 style="color: #8b4513; margin-bottom: 20px;">Current Configuration</h3>
+                <div id="current-config"></div>
+            </div>
+            
+            <!-- Image Upload Section -->
+            <div class="admin-form" style="margin-bottom: 30px;">
+                <h3 style="color: #8b4513; margin-bottom: 20px;">Upload Images</h3>
+                
+                <!-- Upload Form -->
+                <div style="border: 2px dashed #ddd; border-radius: 15px; padding: 40px; text-align: center; margin-bottom: 20px;">
+                    <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #8b4513; margin-bottom: 20px;"></i>
+                    <h3 style="margin-bottom: 15px;">Drop images here or click to browse</h3>
+                    <p style="color: #666; margin-bottom: 25px;">Upload product images, slideshow slides, or banners</p>
+                    
+                    <input type="file" id="image-upload" multiple accept="image/*" 
+                           style="display: none;" onchange="handleImageUpload(event)">
+                    
+                    <button class="admin-btn admin-btn-primary" onclick="document.getElementById('image-upload').click()">
+                        <i class="fas fa-folder-open"></i> Select Images
+                    </button>
+                    
+                    <div style="margin-top: 20px; display: none;" id="upload-queue">
+                        <h4>Upload Queue</h4>
+                        <div id="queue-list"></div>
+                    </div>
+                </div>
+                
+                <!-- Upload Progress -->
+                <div id="upload-progress" style="display: none;">
+                    <h4>Upload Progress</h4>
+                    <div id="progress-container"></div>
+                </div>
+                
+                <!-- Upload Results -->
+                <div id="upload-results" style="display: none;">
+                    <h4>Upload Results</h4>
+                    <div id="results-container"></div>
+                </div>
+            </div>
+            
+            <!-- Data Upload Section -->
+            <div class="admin-form">
+                <h3 style="color: #8b4513; margin-bottom: 20px;">Upload Data</h3>
+                <p style="margin-bottom: 20px; color: #666;">Upload your store data to GitHub for backup or synchronization</p>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                    <button class="admin-btn admin-btn-primary" onclick="uploadProductsData()">
+                        <i class="fas fa-utensils"></i> Upload Products
+                    </button>
+                    <button class="admin-btn admin-btn-primary" onclick="uploadOrdersData()">
+                        <i class="fas fa-shopping-cart"></i> Upload Orders
+                    </button>
+                    <button class="admin-btn admin-btn-primary" onclick="uploadSlideshowData()">
+                        <i class="fas fa-images"></i> Upload Slideshow
+                    </button>
+                    <button class="admin-btn admin-btn-primary" onclick="uploadAllData()">
+                        <i class="fas fa-database"></i> Upload All Data
+                    </button>
+                </div>
+                
+                <div id="data-upload-results" style="margin-top: 20px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+    <!-- Add Product Modal -->
+    <div id="add-product-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>Add New Product</h3>
+                <button class="close-btn" onclick="closeModal('add-product-modal')">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="product-form" onsubmit="saveProduct(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="product-name">Product Name *</label>
+                            <input type="text" id="product-name" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="product-price">Price (₱) *</label>
+                            <input type="number" id="product-price" class="form-control" min="0" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="product-category">Category *</label>
+                            <select id="product-category" class="form-control" required>
+                                <option value="">Select Category</option>
+                                <option value="nachos">Nachos</option>
+                                <option value="desserts">Desserts</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="product-image">Image URL</label>
+                            <input type="url" id="product-image" class="form-control" placeholder="https://example.com/image.jpg">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-description">Description</label>
+                        <textarea id="product-description" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 10px;">
+                            <input type="checkbox" id="product-available" checked>
+                            <span>Product is available for ordering</span>
+                        </label>
+                    </div>
+                    <div style="display: flex; gap: 15px; margin-top: 30px;">
+                        <button type="submit" class="admin-btn admin-btn-primary">
+                            <i class="fas fa-save"></i> Save Product
+                        </button>
+                        <button type="button" class="admin-btn admin-btn-secondary" onclick="closeModal('add-product-modal')">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Dynamic Slide Modal -->
+    <div id="add-dynamic-slide-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>Add Slide from Menu Item</h3>
+                <button class="close-btn" onclick="closeModal('add-dynamic-slide-modal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="dynamic-slide-form">
+                    <p>Select a menu item to create a slide...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Availability Modal -->
+    <div id="availability-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h3>Update Product Availability</h3>
+                <button class="close-btn" onclick="closeModal('availability-modal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="availability-list">
+                    <p>Loading products...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Details Modal -->
+    <div id="order-details-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h3>Order Details</h3>
+                <button class="close-btn" onclick="closeModal('order-details-modal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="order-details-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer Details Modal -->
+    <div id="customer-details-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h3>Customer Details</h3>
+                <button class="close-btn" onclick="closeModal('customer-details-modal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="customer-details-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirm-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-body">
+                <h3 id="confirm-title"></h3>
+                <p id="confirm-message"></p>
+                <div style="display: flex; gap: 15px; margin-top: 30px;">
+                    <button id="confirm-yes" class="admin-btn admin-btn-danger">Yes</button>
+                    <button id="confirm-no" class="admin-btn admin-btn-secondary" onclick="closeModal('confirm-modal')">No</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="background: transparent; box-shadow: none;">
+            <div class="spinner" style="width: 60px; height: 60px; border-width: 6px;"></div>
+            <p style="margin-top: 20px; color: white; font-size: 1.2rem;">Loading...</p>
+        </div>
+    </div>
+
+    <!-- Environment Config (Injected by build process) -->
+    <script id="env-config">
+        // This will be replaced by build process with actual environment variables
+        // For development, you can set window.LOCAL_CONFIG here
+        window.env = window.env || {};
+        
+        // Development fallback - REMOVE IN PRODUCTION
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            window.env.GITHUB_TOKEN = window.env.GITHUB_TOKEN || '';
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
+    <script>
+        // Admin Panel JavaScript
+        let allOrders = [];
+        let allProducts = [];
+        let allSlides = [];
+        let allCustomers = [];
+        let salesChart = null;
+        let githubToken = null;
+        let slideshowSettings = {
+            duration: 5,
+            maxSlides: 5,
+            animation: 'fade',
+            autoRefresh: true
+        };
+        
+        let slideshowManager = null;
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🔧 Admin panel initialized');
+            
+            // Check admin authentication
+            if (!checkAdminAuth()) {
+                return;
+            }
+            
+            // Set admin info
+            setAdminInfo();
+            
+            // Setup tab navigation
+            setupTabs();
+            
+            // Load GitHub token from environment
+            await loadGitHubToken();
+            
+            // Load initial data
+            await loadAllData();
+            
+            // Setup event listeners
+            setupEventListeners();
+            
+            // Load GitHub config
+            loadGitHubConfig();
+            
+            // Load slideshow settings
+            loadSlideshowSettings();
+        });
+
+        // Check admin authentication
+        function checkAdminAuth() {
+            const adminToken = localStorage.getItem('adminToken');
+            const adminRole = localStorage.getItem('adminRole');
+            
+            if (!adminToken || !adminRole) {
+                alert('Access denied. Please login as admin.');
+                window.location.href = 'index.html';
+                return false;
+            }
+            
+            return true;
+        }
+
+        // Set admin information
+        function setAdminInfo() {
+            const role = localStorage.getItem('adminRole');
+            const roleBadge = document.getElementById('admin-role');
+            const username = document.getElementById('admin-username');
+            
+            if (roleBadge) {
+                roleBadge.textContent = role === 'superadmin' ? 'Super Admin' : 'Admin';
+                roleBadge.style.background = role === 'superadmin' ? '#ff6a00' : '#ffcc00';
+            }
+            
+            if (username) {
+                username.textContent = role === 'superadmin' ? 'Super Administrator' : 'Administrator';
+            }
+        }
+
+        // Setup tab navigation
+        function setupTabs() {
+            const tabs = document.querySelectorAll('.admin-tab');
+            const tabContents = document.querySelectorAll('.admin-tab-content');
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.dataset.tab;
+                    
+                    // Update active tab
+                    tabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Show selected content
+                    tabContents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === tabId) {
+                            content.classList.add('active');
+                        }
+                    });
+                    
+                    // Load specific tab data if needed
+                    switch(tabId) {
+                        case 'orders':
+                            loadOrders();
+                            break;
+                        case 'products':
+                            loadProducts();
+                            break;
+                        case 'slideshow':
+                            initSlideshowManager();
+                            break;
+                        case 'customers':
+                            loadCustomers();
+                            break;
+                        case 'github-upload':
+                            loadGitHubConfig();
+                            break;
+                    }
+                });
+            });
+        }
+
+        // Initialize Slideshow Manager
+        async function initSlideshowManager() {
+            if (!window.SlideshowManager) {
+                console.error('SlideshowManager class not found. Make sure script.js is loaded.');
+                return;
+            }
+            
+            if (!slideshowManager) {
+                slideshowManager = new SlideshowManager();
+            }
+            
+            try {
+                // Load data
+                await slideshowManager.loadMenuItems();
+                slideshowManager.loadSlides();
+                
+                // Update UI
+                loadDynamicSlidesForManager();
+                loadMenuItemsForSlidesForManager();
+            } catch (error) {
+                console.error('Error initializing slideshow manager:', error);
+            }
+        }
+
+        // Load all data
+        async function loadAllData() {
+            showLoading();
+            
+            try {
+                // Load orders from localStorage and API
+                await loadOrdersFromStorage();
+                
+                // Load products
+                await loadProductsFromStorage();
+                
+                // Load slideshow
+                await loadSlideshowFromStorage();
+                
+                // Load customers
+                await loadCustomersFromStorage();
+                
+                // Update dashboard
+                updateDashboard();
+                
+                // Load recent orders
+                loadRecentOrders();
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                alert('Error loading data. Please try again.');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Load orders from storage
+        async function loadOrdersFromStorage() {
+            try {
+                // Try to load from API first
+                const response = await fetch('https://aifoodies.up.railway.app/api/orders');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        allOrders = data.orders || [];
+                        localStorage.setItem('adminOrders', JSON.stringify(allOrders));
+                        return;
+                    }
+                }
+            } catch (error) {
+                console.log('Using localStorage for orders:', error);
+            }
+            
+            // Fallback to localStorage
+            const savedOrders = localStorage.getItem('adminOrders') || '[]';
+            const customerOrders = localStorage.getItem('orders') || '[]';
+            
+            allOrders = [];
+            
+            // Parse admin orders
+            try {
+                const adminOrders = JSON.parse(savedOrders);
+                if (Array.isArray(adminOrders)) {
+                    allOrders = adminOrders;
+                }
+            } catch (e) {
+                console.error('Error parsing admin orders:', e);
+            }
+            
+            // Parse and merge customer orders
+            try {
+                const customerOrdersArray = JSON.parse(customerOrders);
+                if (Array.isArray(customerOrdersArray)) {
+                    // Add customer orders that aren't already in allOrders
+                    customerOrdersArray.forEach(order => {
+                        if (!allOrders.find(o => o._id === order._id || o.id === order.id)) {
+                            allOrders.push(order);
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error('Error parsing customer orders:', e);
+            }
+            
+            // Sort by date (newest first)
+            allOrders.sort((a, b) => {
+                const dateA = new Date(a.timestamp || a.createdAt || Date.now());
+                const dateB = new Date(b.timestamp || b.createdAt || Date.now());
+                return dateB - dateA;
+            });
+            
+            localStorage.setItem('adminOrders', JSON.stringify(allOrders));
+        }
+
+        // Load products from storage
+        async function loadProductsFromStorage() {
+            try {
+                // Try to load from API first
+                const response = await fetch('https://aifoodies.up.railway.app/api/products');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        allProducts = data.products || [];
+                        localStorage.setItem('adminProducts', JSON.stringify(allProducts));
+                        return;
+                    }
+                }
+            } catch (error) {
+                console.log('Using localStorage for products:', error);
+            }
+            
+            // Fallback: Extract products from menu items
+            const savedProducts = localStorage.getItem('adminProducts') || '[]';
+            
+            try {
+                allProducts = JSON.parse(savedProducts);
+                if (!Array.isArray(allProducts) || allProducts.length === 0) {
+                    // Create products from existing menu items
+                    allProducts = createDefaultProducts();
+                    localStorage.setItem('adminProducts', JSON.stringify(allProducts));
+                }
+            } catch (e) {
+                console.error('Error parsing products:', e);
+                allProducts = createDefaultProducts();
+                localStorage.setItem('adminProducts', JSON.stringify(allProducts));
+            }
+        }
+
+        // Create default products from menu items
+        function createDefaultProducts() {
+            const nachosItems = [
+                { name: "Regular Nachos", price: 35, category: "nachos" },
+                { name: "Veggie Nachos", price: 65, category: "nachos" },
+                { name: "Overload Cheesy Nachos", price: 95, category: "nachos" },
+                { name: "Nacho Combo", price: 75, category: "nachos" },
+                { name: "Nacho Fries", price: 85, category: "nachos" },
+                { name: "Supreme Nachos", price: 180, category: "nachos" },
+                { name: "Shawarma fries", price: 120, category: "nachos" }
+            ];
+            
+            const dessertsItems = [
+                { name: "Mango Graham", price: 40, category: "desserts" },
+                { name: "Mango tiramisu on tube", price: 100, category: "desserts" },
+                { name: "Biscoff", price: 159, category: "desserts" },
+                { name: "Oreo", price: 149, category: "desserts" },
+                { name: "Mango Graham Float", price: 40, category: "desserts" }
+            ];
+            
+            const allItems = [...nachosItems, ...dessertsItems];
+            
+            return allItems.map((item, index) => ({
+                _id: `prod_${Date.now()}_${index}`,
+                name: item.name,
+                price: item.price,
+                category: item.category,
+                available: true,
+                image: getDefaultImage(item.name),
+                description: `Delicious ${item.name.toLowerCase()} made with fresh ingredients.`,
+                createdAt: new Date().toISOString()
+            }));
+        }
+
+        // Get default image based on product name
+        function getDefaultImage(productName) {
+            const lowerName = productName.toLowerCase();
+            
+            if (lowerName.includes('mango')) {
+                return 'image/mango.gif';
+            } else if (lowerName.includes('biscoff') || lowerName.includes('oreo')) {
+                return 'image/biscoff.jpeg';
+            } else if (lowerName.includes('nachos')) {
+                return 'image/classic nachos.jpg';
+            } else if (lowerName.includes('fries')) {
+                return 'image/nacho fries.jpg';
+            } else {
+                return 'https://via.placeholder.com/300x200/8b4513/ffffff?text=' + encodeURIComponent(productName);
+            }
+        }
+
+        // Load slideshow from storage
+        async function loadSlideshowFromStorage() {
+            const savedSlides = localStorage.getItem('slideshowSlides') || '[]';
+            
+            try {
+                allSlides = JSON.parse(savedSlides);
+                if (!Array.isArray(allSlides) || allSlides.length === 0) {
+                    // Create dynamic slides from products
+                    await generateDynamicSlides();
+                }
+                
+                // Sort by order
+                allSlides.sort((a, b) => a.order - b.order);
+                
+            } catch (e) {
+                console.error('Error parsing slides:', e);
+                allSlides = [];
+                await generateDynamicSlides();
+            }
+        }
+
+        // Load customers from storage
+        async function loadCustomersFromStorage() {
+            const savedCustomers = localStorage.getItem('customerData') ? [JSON.parse(localStorage.getItem('customerData'))] : [];
+            const orderCustomers = [];
+            
+            // Extract customers from orders
+            allOrders.forEach(order => {
+                if (order.customerName) {
+                    const existingCustomer = orderCustomers.find(c => 
+                        c.name === order.customerName && c.phone === order.customerPhone
+                    );
+                    
+                    if (!existingCustomer) {
+                        orderCustomers.push({
+                            _id: `cust_${Date.now()}_${orderCustomers.length}`,
+                            name: order.customerName,
+                            phone: order.customerPhone || '',
+                            email: order.customerEmail || '',
+                            totalOrders: 1,
+                            totalSpent: order.total || 0,
+                            loyaltyPoints: Math.floor((order.total || 0) / 10),
+                            firstOrder: order.timestamp || order.createdAt,
+                            lastOrder: order.timestamp || order.createdAt
+                        });
+                    }
+                }
+            });
+            
+            allCustomers = [...savedCustomers, ...orderCustomers];
+        }
+
+        // Update dashboard
+        function updateDashboard() {
+            // Calculate stats
+            const totalOrders = allOrders.length;
+            const totalSales = allOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+            
+            const today = new Date().toDateString();
+            const todayOrders = allOrders.filter(order => {
+                const orderDate = new Date(order.timestamp || order.createdAt).toDateString();
+                return orderDate === today;
+            });
+            const todaySales = todayOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+            
+            const availableProducts = allProducts.filter(p => p.available).length;
+            const totalCustomers = allCustomers.length;
+            
+            // Update DOM
+            document.getElementById('total-orders').textContent = totalOrders;
+            document.getElementById('total-sales').textContent = '₱' + totalSales.toFixed(2);
+            document.getElementById('today-orders').textContent = todayOrders.length;
+            document.getElementById('today-sales').textContent = '₱' + todaySales.toFixed(2);
+            document.getElementById('available-products').textContent = availableProducts;
+            document.getElementById('total-customers').textContent = totalCustomers;
+            
+            // Update sales chart
+            updateSalesChart();
+        }
+
+        // Update sales chart
+        function updateSalesChart() {
+            const ctx = document.getElementById('sales-chart')?.getContext('2d');
+            if (!ctx) return;
+            
+            // Destroy existing chart
+            if (salesChart) {
+                salesChart.destroy();
+            }
+            
+            // Get sales data for last 7 days
+            const last7Days = Array.from({length: 7}, (_, i) => {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                return date.toDateString();
+            }).reverse();
+            
+            const dailySales = last7Days.map(day => {
+                const dayOrders = allOrders.filter(order => {
+                    const orderDate = new Date(order.timestamp || order.createdAt).toDateString();
+                    return orderDate === day;
+                });
+                return dayOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+            });
+            
+            salesChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: last7Days.map(d => d.split(' ')[0]), // Just show day name
+                    datasets: [{
+                        label: 'Daily Sales (₱)',
+                        data: dailySales,
+                        borderColor: '#8b4513',
+                        backgroundColor: 'rgba(139, 69, 19, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '₱' + value;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Load recent orders
+        function loadRecentOrders() {
+            const container = document.getElementById('recent-orders-container');
+            if (!container) return;
+            
+            const recentOrders = allOrders.slice(0, 5); // Get 5 most recent
+            
+            if (recentOrders.length === 0) {
+                container.innerHTML = '<p>No recent orders</p>';
+                return;
+            }
+            
+            let html = '<table class="admin-table">';
+            html += '<thead><tr><th>Order ID</th><th>Customer</th><th>Total</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead><tbody>';
+            
+            recentOrders.forEach(order => {
+                const orderId = order._id?.substring(0, 8) || order.id?.substring(0, 8) || 'N/A';
+                const customerName = order.customerName || 'Unknown';
+                const total = order.total || 0;
+                const status = order.status || 'pending';
+                const date = new Date(order.timestamp || order.createdAt).toLocaleDateString();
+                
+                html += `<tr>
+                    <td>#${orderId}</td>
+                    <td>${customerName}</td>
+                    <td>₱${total.toFixed(2)}</td>
+                    <td><span class="status-badge status-${status}">${status}</span></td>
+                    <td>${date}</td>
+                    <td class="table-actions">
+                        <button class="action-btn edit-btn" onclick="viewOrderDetails('${order._id || order.id}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="action-btn edit-btn" onclick="updateOrderStatus('${order._id || order.id}', 'preparing')">
+                            <i class="fas fa-clock"></i>
+                        </button>
+                        <button class="action-btn delete-btn" onclick="deleteOrder('${order._id || order.id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>`;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        // Load orders
+        function loadOrders() {
+            const container = document.getElementById('orders-container');
+            if (!container) return;
+            
+            if (allOrders.length === 0) {
+                container.innerHTML = '<p>No orders found</p>';
+                return;
+            }
+            
+            let html = '<table class="admin-table">';
+            html += '<thead><tr><th>Order ID</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th>Payment</th><th>Date</th><th>Actions</th></tr></thead><tbody>';
+            
+            allOrders.forEach(order => {
+                const orderId = order._id?.substring(0, 8) || order.id?.substring(0, 8) || 'N/A';
+                const customerName = order.customerName || 'Unknown';
+                const items = order.items ? order.items.length : 0;
+                const total = order.total || 0;
+                const status = order.status || 'pending';
+                const payment = order.paymentMethod || 'Cash';
+                const date = new Date(order.timestamp || order.createdAt).toLocaleDateString();
+                
+                html += `<tr>
+                    <td>#${orderId}</td>
+                    <td>${customerName}</td>
+                    <td>${items} items</td>
+                    <td>₱${total.toFixed(2)}</td>
+                    <td><span class="status-badge status-${status}">${status}</span></td>
+                    <td>${payment}</td>
+                    <td>${date}</td>
+                    <td class="table-actions">
+                        <button class="action-btn edit-btn" onclick="viewOrderDetails('${order._id || order.id}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="action-btn edit-btn" onclick="updateOrderStatus('${order._id || order.id}', 'preparing')">
+                            <i class="fas fa-clock"></i>
+                        </button>
+                        <button class="action-btn delete-btn" onclick="deleteOrder('${order._id || order.id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>`;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        // Load products
+        function loadProducts() {
+            const container = document.getElementById('products-container');
+            if (!container) return;
+            
+            if (allProducts.length === 0) {
+                container.innerHTML = '<p>No products found</p>';
+                return;
+            }
+            
+            let html = '<div class="product-grid">';
+            
+            allProducts.forEach(product => {
+                const category = product.category || 'uncategorized';
+                const available = product.available !== false;
+                
+                html += `<div class="product-card">
+                    <img src="${product.image || getDefaultImage(product.name)}" alt="${product.name}" 
+                         onerror="this.src='https://via.placeholder.com/300x200/8b4513/ffffff?text=${encodeURIComponent(product.name)}'">
+                    <div class="product-card-content">
+                        <h3>${product.name}</h3>
+                        <div class="category">${category}</div>
+                        <div class="price">₱${product.price?.toFixed(2) || '0.00'}</div>
+                        <div class="availability">
+                            <span class="availability-dot ${available ? 'available' : 'unavailable'}"></span>
+                            <span>${available ? 'Available' : 'Out of Stock'}</span>
+                        </div>
+                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 15px;">${product.description || 'No description'}</p>
+                        <div class="table-actions">
+                            <button class="action-btn edit-btn" onclick="editProduct('${product._id}')">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="action-btn toggle-btn ${!available ? 'inactive' : ''}" onclick="toggleProductAvailability('${product._id}', ${!available})">
+                                <i class="fas fa-toggle-${available ? 'on' : 'off'}"></i> ${available ? 'Available' : 'Unavailable'}
+                            </button>
+                            <button class="action-btn delete-btn" onclick="deleteProduct('${product._id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // Load dynamic slideshow
+        function loadDynamicSlideshow() {
+            loadDynamicSlides();
+            loadMenuItemsForSlides();
+        }
+
+        // Load dynamic slides
+        function loadDynamicSlides() {
+            const container = document.getElementById('dynamic-slides-container');
+            if (!container) return;
+            
+            if (allSlides.length === 0) {
+                container.innerHTML = '<p>No slideshow slides found. Try regenerating slides from menu items.</p>';
+                return;
+            }
+            
+            let html = '<div class="dynamic-slides-grid">';
+            
+            allSlides.forEach(slide => {
+                const product = allProducts.find(p => p.name === slide.title);
+                const isActive = slide.active !== false;
+                const imageUrl = slide.imageUrl || (product ? product.image : '');
+                
+                html += `<div class="dynamic-slide-card">
+                    <img src="${imageUrl}" alt="${slide.title}" 
+                         onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjM1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjOGI0NTEzIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSJ3aGl0ZSI+${encodeURIComponent(slide.title)}</tle></svg>'">
+                    <div class="dynamic-slide-content">
+                        <h4>${slide.title}</h4>
+                        <div class="order">Order: ${slide.order}</div>
+                        ${slide.promoBadge ? `<div class="promo-badge">${slide.promoBadge}</div>` : ''}
+                        <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="display: flex; align-items: center; gap: 5px;">
+                                <i class="fas fa-circle" style="color: ${isActive ? '#28a745' : '#dc3545'}; font-size: 0.8rem;"></i>
+                                ${isActive ? 'Active' : 'Inactive'}
+                            </span>
+                            <div class="table-actions">
+                                <button class="action-btn edit-btn" onclick="editDynamicSlide('${slide._id}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn toggle-btn ${!isActive ? 'inactive' : ''}" onclick="toggleSlide('${slide._id}', ${!isActive})">
+                                    <i class="fas fa-toggle-${isActive ? 'on' : 'off'}"></i>
+                                </button>
+                                <button class="action-btn delete-btn" onclick="deleteSlide('${slide._id}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // Load menu items for slides
+        function loadMenuItemsForSlides() {
+            const container = document.getElementById('menu-items-container');
+            if (!container) return;
+            
+            if (allProducts.length === 0) {
+                container.innerHTML = '<p>No menu items found</p>';
+                return;
+            }
+            
+            let html = '<div class="menu-items-grid">';
+            
+            allProducts.forEach(product => {
+                const inSlideshow = allSlides.some(slide => slide.title === product.name);
+                const category = product.category || 'uncategorized';
+                const available = product.available !== false;
+                
+                html += `<div class="menu-item-card ${inSlideshow ? 'selected' : ''}" onclick="selectMenuItemForSlide('${product._id}')">
+                    <h4>${product.name}</h4>
+                    <div class="price">₱${product.price?.toFixed(2) || '0.00'}</div>
+                    <div class="category-tag">${category}</div>
+                    <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="display: flex; align-items: center; gap: 5px;">
+                            <i class="fas fa-circle" style="color: ${available ? '#28a745' : '#dc3545'}; font-size: 0.8rem;"></i>
+                            ${available ? 'Available' : 'Out of Stock'}
+                        </span>
+                        ${inSlideshow ? '<span class="in-slideshow"><i class="fas fa-check"></i> In Slideshow</span>' : ''}
+                    </div>
+                </div>`;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // Load customers
+        function loadCustomers() {
+            const container = document.getElementById('customers-container');
+            if (!container) return;
+            
+            if (allCustomers.length === 0) {
+                container.innerHTML = '<p>No customers found</p>';
+                return;
+            }
+            
+            let html = '<table class="admin-table">';
+            html += '<thead><tr><th>Customer</th><th>Phone</th><th>Total Orders</th><th>Total Spent</th><th>Loyalty Points</th><th>First Order</th><th>Actions</th></tr></thead><tbody>';
+            
+            allCustomers.forEach(customer => {
+                const name = customer.name || 'Unknown';
+                const phone = customer.phone || 'N/A';
+                const totalOrders = customer.totalOrders || 0;
+                const totalSpent = customer.totalSpent || 0;
+                const loyaltyPoints = customer.loyaltyPoints || 0;
+                const firstOrder = customer.firstOrder ? new Date(customer.firstOrder).toLocaleDateString() : 'N/A';
+                
+                html += `<tr>
+                    <td>${name}</td>
+                    <td>${phone}</td>
+                    <td>${totalOrders}</td>
+                    <td>₱${totalSpent.toFixed(2)}</td>
+                    <td>${loyaltyPoints}</td>
+                    <td>${firstOrder}</td>
+                    <td class="table-actions">
+                        <button class="action-btn edit-btn" onclick="viewCustomerDetails('${customer._id || customer.id}')">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                    </td>
+                </tr>`;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        // Load GitHub token from environment
+        async function loadGitHubToken() {
+            try {
+                // Method 1: Try to load from window.env (injected by build process)
+                if (window.env && window.env.GITHUB_TOKEN) {
+                    githubToken = window.env.GITHUB_TOKEN;
+                    console.log('GitHub token loaded from environment');
+                    return;
+                }
+                
+                // Method 2: Try to load from a config file (for static hosting)
+                try {
+                    const response = await fetch('/config.json');
+                    if (response.ok) {
+                        const config = await response.json();
+                        if (config.GITHUB_TOKEN) {
+                            githubToken = config.GITHUB_TOKEN;
+                            console.log('GitHub token loaded from config.json');
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    console.log('No config.json file found');
+                }
+                
+                // Method 3: For development only - load from localStorage
+                // Note: This is for development convenience only
+                // In production, tokens should NEVER be stored in localStorage
+                if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                    const devToken = localStorage.getItem('dev_github_token');
+                    if (devToken) {
+                        githubToken = devToken;
+                        console.log('GitHub token loaded from localStorage (development only)');
+                        return;
+                    }
+                }
+                
+                console.warn('No GitHub token found in environment');
+                githubToken = null;
+                
+            } catch (error) {
+                console.error('Error loading GitHub token:', error);
+                githubToken = null;
+            }
+        }
+
+        // Load GitHub configuration
+        function loadGitHubConfig() {
+            const config = window.githubUploadService?.getConfig();
+            const container = document.getElementById('current-config');
+            
+            if (!container) return;
+            
+            if (!config || !config.username || !config.repo) {
+                container.innerHTML = `
+                    <div style="background: #fff3cd; padding: 15px; border-radius: 8px;">
+                        <p style="margin: 0; color: #856404;">
+                            <i class="fas fa-exclamation-triangle"></i> 
+                            GitHub configuration not set up. Please configure below.
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const tokenStatus = githubToken ? 'Configured (from environment) ✓' : 'Not configured';
+            const tokenDisplay = githubToken ? '••••••••' : 'Not set';
+            
+            container.innerHTML = `
+                <div style="background: #d4edda; padding: 15px; border-radius: 8px;">
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+                        <div>
+                            <strong>Username:</strong><br>
+                            <span>${config.username}</span>
+                        </div>
+                        <div>
+                            <strong>Repository:</strong><br>
+                            <span>${config.repo}</span>
+                        </div>
+                        <div>
+                            <strong>Token:</strong><br>
+                            <span>${tokenDisplay}</span>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <strong>Status:</strong> 
+                        <span style="color: ${githubToken ? '#28a745' : '#dc3545'}; font-weight: bold;">${tokenStatus}</span>
+                    </div>
+                    ${!githubToken ? `
+                    <div style="margin-top: 10px; background: #fff3cd; padding: 10px; border-radius: 5px;">
+                        <small><i class="fas fa-info-circle"></i> Token must be set in environment variables (GITHUB_TOKEN)</small>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        // Load slideshow settings
+        function loadSlideshowSettings() {
+            const savedSettings = localStorage.getItem('slideshowSettings');
+            if (savedSettings) {
+                slideshowSettings = JSON.parse(savedSettings);
+            }
+            
+            // Update UI
+            document.getElementById('slide-duration').value = slideshowSettings.duration;
+            document.getElementById('max-slides').value = slideshowSettings.maxSlides;
+            document.getElementById('slide-animation').value = slideshowSettings.animation;
+            document.getElementById('auto-refresh').checked = slideshowSettings.autoRefresh;
+        }
+
+        // Update slideshow settings
+        function updateSlideshowSettings() {
+            slideshowSettings.duration = parseInt(document.getElementById('slide-duration').value) || 5;
+            slideshowSettings.maxSlides = parseInt(document.getElementById('max-slides').value) || 5;
+            slideshowSettings.animation = document.getElementById('slide-animation').value;
+            slideshowSettings.autoRefresh = document.getElementById('auto-refresh').checked;
+            
+            localStorage.setItem('slideshowSettings', JSON.stringify(slideshowSettings));
+            
+            // Update main store if it's open
+            if (typeof window.updateSlideshowSettings === 'function') {
+                window.updateSlideshowSettings(slideshowSettings);
+            }
+            
+            showAlert('✅ Slideshow settings updated!');
+        }
+
+        // Generate dynamic slides from products
+        async function generateDynamicSlides() {
+            try {
+                // Filter available products
+                const availableProducts = allProducts.filter(p => p.available !== false);
+                
+                if (availableProducts.length === 0) {
+                    allSlides = [];
+                    localStorage.setItem('slideshowSlides', JSON.stringify(allSlides));
+                    return;
+                }
+                
+                // Determine which products to feature
+                const productsToFeature = availableProducts.slice(0, slideshowSettings.maxSlides);
+                
+                // Generate slides
+                allSlides = productsToFeature.map((product, index) => {
+                    const promoBadges = ['Special', 'New', 'Popular', 'Chef\'s Choice', 'Bestseller'];
+                    const randomBadge = promoBadges[Math.floor(Math.random() * promoBadges.length)];
+                    
+                    return {
+                        _id: `slide_${Date.now()}_${index}`,
+                        title: product.name,
+                        description: `Try our delicious ${product.name.toLowerCase()}! Only ₱${product.price?.toFixed(2) || '0.00'}`,
+                        imageUrl: product.image || getDefaultImage(product.name),
+                        order: index + 1,
+                        active: true,
+                        promoBadge: Math.random() > 0.5 ? randomBadge : null,
+                        productId: product._id,
+                        createdAt: new Date().toISOString()
+                    };
+                });
+                
+                // Add a welcome slide
+                allSlides.unshift({
+                    _id: `slide_${Date.now()}_welcome`,
+                    title: 'Welcome to Ai-Maize-ing Nachos',
+                    description: 'Your go-to spot for the most delicious nachos and desserts in town!',
+                    imageUrl: 'image/logo.png',
+                    order: 0,
+                    active: true,
+                    promoBadge: 'Welcome',
+                    createdAt: new Date().toISOString()
+                });
+                
+                localStorage.setItem('slideshowSlides', JSON.stringify(allSlides));
+                
+                // Update slideshow display if active
+                if (document.getElementById('slideshow').classList.contains('active')) {
+                    loadDynamicSlides();
+                    loadMenuItemsForSlides();
+                }
+                
+            } catch (error) {
+                console.error('Error generating dynamic slides:', error);
+            }
+        }
+
+        // Add dynamic slide
+        function addDynamicSlide() {
+            // Show modal with product selection
+            const modal = document.getElementById('add-dynamic-slide-modal');
+            const form = document.getElementById('dynamic-slide-form');
+            
+            let html = '<p>Select a product to create a slideshow slide:</p>';
+            html += '<div style="max-height: 300px; overflow-y: auto; margin: 20px 0;">';
+            html += '<div class="menu-items-grid">';
+            
+            allProducts.forEach(product => {
+                const inSlideshow = allSlides.some(slide => slide.title === product.name);
+                if (inSlideshow) return; // Skip products already in slideshow
+                
+                const category = product.category || 'uncategorized';
+                const available = product.available !== false;
+                
+                html += `<div class="menu-item-card" onclick="createSlideFromProduct('${product._id}')">
+                    <h4>${product.name}</h4>
+                    <div class="price">₱${product.price?.toFixed(2) || '0.00'}</div>
+                    <div class="category-tag">${category}</div>
+                    <div style="margin-top: 10px; display: flex; align-items: center; gap: 5px;">
+                        <i class="fas fa-circle" style="color: ${available ? '#28a745' : '#dc3545'}; font-size: 0.8rem;"></i>
+                        ${available ? 'Available' : 'Out of Stock'}
+                    </div>
+                </div>`;
+            });
+            
+            html += '</div></div>';
+            
+            if (html.includes('menu-item-card')) {
+                form.innerHTML = html;
+                modal.style.display = 'flex';
+            } else {
+                showAlert('⚠️ All available products are already in the slideshow!');
+            }
+        }
+
+        // Create slide from product
+        function createSlideFromProduct(productId) {
+            const product = allProducts.find(p => p._id === productId);
+            if (!product) return;
+            
+            const existingSlide = allSlides.find(slide => slide.title === product.name);
+            if (existingSlide) {
+                showAlert('⚠️ This product is already in the slideshow!');
+                closeModal('add-dynamic-slide-modal');
+                return;
+            }
+            
+            const promoBadges = ['Special', 'New', 'Popular', 'Chef\'s Choice', 'Bestseller'];
+            const randomBadge = promoBadges[Math.floor(Math.random() * promoBadges.length)];
+            
+            const newSlide = {
+                _id: `slide_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                title: product.name,
+                description: `Try our delicious ${product.name.toLowerCase()}! Only ₱${product.price?.toFixed(2) || '0.00'}`,
+                imageUrl: product.image || getDefaultImage(product.name),
+                order: allSlides.length,
+                active: true,
+                promoBadge: Math.random() > 0.5 ? randomBadge : null,
+                productId: product._id,
+                createdAt: new Date().toISOString()
+            };
+            
+            allSlides.push(newSlide);
+            localStorage.setItem('slideshowSlides', JSON.stringify(allSlides));
+            
+            closeModal('add-dynamic-slide-modal');
+            showAlert('✅ Slide added from menu item!');
+            
+            loadDynamicSlides();
+            loadMenuItemsForSlides();
+        }
+
+        // Select menu item for slide
+        function selectMenuItemForSlide(productId) {
+            const product = allProducts.find(p => p._id === productId);
+            if (!product) return;
+            
+            createSlideFromProduct(productId);
+        }
+
+        // Filter menu items
+        function filterItems(category) {
+            if (slideshowManager) {
+                loadMenuItemsForSlidesForManager(category);
+            } else {
+                // Fallback to original function
+                const container = document.getElementById('menu-items-container');
+                if (!container) return;
+                
+                let filteredProducts = allProducts;
+                
+                if (category === 'nachos') {
+                    filteredProducts = allProducts.filter(p => p.category === 'nachos');
+                } else if (category === 'desserts') {
+                    filteredProducts = allProducts.filter(p => p.category === 'desserts');
+                }
+                
+                let html = '<div class="menu-items-grid">';
+                
+                filteredProducts.forEach(product => {
+                    const inSlideshow = allSlides.some(slide => slide.title === product.name);
+                    const category = product.category || 'uncategorized';
+                    const available = product.available !== false;
+                    
+                    html += `<div class="menu-item-card ${inSlideshow ? 'selected' : ''}" onclick="selectMenuItemForSlide('${product._id}')">
+                        <h4>${product.name}</h4>
+                        <div class="price">₱${product.price?.toFixed(2) || '0.00'}</div>
+                        <div class="category-tag">${category}</div>
+                        <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="display: flex; align-items: center; gap: 5px;">
+                                <i class="fas fa-circle" style="color: ${available ? '#28a745' : '#dc3545'}; font-size: 0.8rem;"></i>
+                                ${available ? 'Available' : 'Out of Stock'}
+                            </span>
+                            ${inSlideshow ? '<span class="in-slideshow"><i class="fas fa-check"></i> In Slideshow</span>' : ''}
+                        </div>
+                    </div>`;
+                });
+                
+                html += '</div>';
+                container.innerHTML = html;
+            }
+        }
+
+        // Search menu items
+        function searchMenuItems(query) {
+            if (slideshowManager) {
+                searchMenuItemsForSlideshow(query);
+            } else {
+                // Fallback to original function
+                const container = document.getElementById('menu-items-container');
+                if (!container) return;
+                
+                if (!query.trim()) {
+                    loadMenuItemsForSlides();
+                    return;
+                }
+                
+                const searchTerm = query.toLowerCase();
+                const filteredProducts = allProducts.filter(product => 
+                    product.name.toLowerCase().includes(searchTerm) ||
+                    (product.description && product.description.toLowerCase().includes(searchTerm)) ||
+                    product.category.toLowerCase().includes(searchTerm)
+                );
+                
+                let html = '<div class="menu-items-grid">';
+                
+                filteredProducts.forEach(product => {
+                    const inSlideshow = allSlides.some(slide => slide.title === product.name);
+                    const category = product.category || 'uncategorized';
+                    const available = product.available !== false;
+                    
+                    html += `<div class="menu-item-card ${inSlideshow ? 'selected' : ''}" onclick="selectMenuItemForSlide('${product._id}')">
+                        <h4>${product.name}</h4>
+                        <div class="price">₱${product.price?.toFixed(2) || '0.00'}</div>
+                        <div class="category-tag">${category}</div>
+                        <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="display: flex; align-items: center; gap: 5px;">
+                                <i class="fas fa-circle" style="color: ${available ? '#28a745' : '#dc3545'}; font-size: 0.8rem;"></i>
+                                ${available ? 'Available' : 'Out of Stock'}
+                            </span>
+                            ${inSlideshow ? '<span class="in-slideshow"><i class="fas fa-check"></i> In Slideshow</span>' : ''}
+                        </div>
+                    </div>`;
+                });
+                
+                if (filteredProducts.length === 0) {
+                    html = '<p>No menu items found matching your search.</p>';
+                } else {
+                    html += '</div>';
+                }
+                
+                container.innerHTML = html;
+            }
+        }
+
+        // Edit dynamic slide
+        function editDynamicSlide(slideId) {
+            const slide = allSlides.find(s => s._id === slideId);
+            if (!slide) return;
+            
+            let html = `
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="edit-slide-title">Slide Title *</label>
+                        <input type="text" id="edit-slide-title" class="form-control" value="${slide.title}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-slide-description">Description</label>
+                        <textarea id="edit-slide-description" class="form-control" rows="3">${slide.description || ''}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-slide-order">Display Order *</label>
+                        <input type="number" id="edit-slide-order" class="form-control" min="0" value="${slide.order}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-slide-badge">Promo Badge (optional)</label>
+                        <input type="text" id="edit-slide-badge" class="form-control" value="${slide.promoBadge || ''}" placeholder="e.g., NEW, SPECIAL">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" id="edit-slide-active" ${slide.active !== false ? 'checked' : ''}>
+                        <span>Slide is active</span>
+                    </label>
+                </div>
+                <div style="display: flex; gap: 15px; margin-top: 30px;">
+                    <button class="admin-btn admin-btn-primary" onclick="updateDynamicSlide('${slideId}')">
+                        <i class="fas fa-save"></i> Update Slide
+                    </button>
+                    <button class="admin-btn admin-btn-secondary" onclick="closeModal('add-dynamic-slide-modal')">
+                        Cancel
+                    </button>
+                </div>
+            `;
+            
+            document.getElementById('dynamic-slide-form').innerHTML = html;
+            document.getElementById('add-dynamic-slide-modal').querySelector('.modal-header h3').textContent = 'Edit Slide';
+            document.getElementById('add-dynamic-slide-modal').style.display = 'flex';
+        }
+
+        // Update dynamic slide
+        function updateDynamicSlide(slideId) {
+            const slideIndex = allSlides.findIndex(s => s._id === slideId);
+            if (slideIndex === -1) return;
+            
+            const title = document.getElementById('edit-slide-title').value;
+            const description = document.getElementById('edit-slide-description').value;
+            const order = parseInt(document.getElementById('edit-slide-order').value);
+            const promoBadge = document.getElementById('edit-slide-badge').value;
+            const active = document.getElementById('edit-slide-active').checked;
+            
+            allSlides[slideIndex] = {
+                ...allSlides[slideIndex],
+                title,
+                description,
+                order,
+                promoBadge: promoBadge || null,
+                active
+            };
+            
+            // Sort by order
+            allSlides.sort((a, b) => a.order - b.order);
+            
+            localStorage.setItem('slideshowSlides', JSON.stringify(allSlides));
+            
+            closeModal('add-dynamic-slide-modal');
+            showAlert('✅ Slide updated successfully!');
+            
+            // Reset modal title
+            document.getElementById('add-dynamic-slide-modal').querySelector('.modal-header h3').textContent = 'Add Slide from Menu Item';
+            
+            loadDynamicSlides();
+        }
+
+        // Load dynamic slides for manager
+        function loadDynamicSlidesForManager() {
+            if (!slideshowManager) return;
+            
+            const container = document.getElementById('dynamic-slides-container');
+            if (!container) return;
+            
+            const slides = slideshowManager.getActiveSlides();
+            
+            if (slides.length === 0) {
+                container.innerHTML = '<p>No slides in slideshow. Add some from the menu items below.</p>';
+                return;
+            }
+            
+            let html = '<div class="slides-grid">';
+            
+            slides.forEach(slide => {
+                html += `
+                    <div class="dynamic-slide-card" style="
+                        background: white;
+                        border-radius: 10px;
+                        overflow: hidden;
+                        margin-bottom: 15px;
+                        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                        border: 1px solid #eee;
+                        display: flex;
+                    ">
+                        <div style="width: 100px; height: 100px; overflow: hidden;">
+                            <img src="${slide.imageUrl}" alt="${slide.title}" 
+                                 style="width: 100%; height: 100%; object-fit: cover;"
+                                 onerror="this.src='https://via.placeholder.com/100x100/8b4513/ffffff?text=${encodeURIComponent(slide.title.substring(0, 10))}'">
+                        </div>
+                        <div style="flex: 1; padding: 15px;">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div>
+                                    <h4 style="margin: 0 0 5px 0; color: #333;">${slide.title}</h4>
+                                    <p style="margin: 0 0 5px 0; color: #666; font-size: 0.9em;">${slide.description}</p>
+                                    <div style="display: flex; gap: 10px; font-size: 0.8em;">
+                                        <span style="background: #e9ecef; padding: 2px 8px; border-radius: 10px;">${slide.category}</span>
+                                        ${slide.promoBadge ? `<span style="background: #ffc107; padding: 2px 8px; border-radius: 10px;">${slide.promoBadge}</span>` : ''}
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 5px;">
+                                    <button class="action-btn edit-btn" onclick="editDynamicSlide('${slide._id}')">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="action-btn toggle-btn ${!slide.active ? 'inactive' : ''}" 
+                                            onclick="toggleDynamicSlide('${slide._id}', ${!slide.active})">
+                                        <i class="fas fa-toggle-${slide.active ? 'on' : 'off'}"></i>
+                                    </button>
+                                    <button class="action-btn delete-btn" onclick="deleteDynamicSlide('${slide._id}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 0.9em; color: #888;">
+                                    Order: ${slide.order}
+                                </span>
+                                <div style="display: flex; gap: 5px;">
+                                    <button class="action-btn" style="padding: 2px 8px; font-size: 0.8em;" 
+                                            onclick="moveSlideUp('${slide._id}')" ${slide.order <= 1 ? 'disabled' : ''}>
+                                        <i class="fas fa-arrow-up"></i>
+                                    </button>
+                                    <button class="action-btn" style="padding: 2px 8px; font-size: 0.8em;" 
+                                            onclick="moveSlideDown('${slide._id}')" ${slide.order >= slides.length ? 'disabled' : ''}>
+                                        <i class="fas fa-arrow-down"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // Load menu items for slides for manager
+        function loadMenuItemsForSlidesForManager(filterCategory = 'all') {
+            if (!slideshowManager) return;
+            
+            const container = document.getElementById('menu-items-container');
+            if (!container) return;
+            
+            let items = [];
+            if (filterCategory === 'all') {
+                items = slideshowManager.getAllMenuItems();
+            } else {
+                items = slideshowManager.filterItemsByCategory(filterCategory);
+            }
+            
+            if (items.length === 0) {
+                container.innerHTML = '<p>No menu items found.</p>';
+                return;
+            }
+            
+            // Group by category
+            const grouped = {};
+            items.forEach(item => {
+                if (!grouped[item.category]) {
+                    grouped[item.category] = [];
+                }
+                grouped[item.category].push(item);
+            });
+            
+            let html = '';
+            
+            Object.entries(grouped).forEach(([category, categoryItems]) => {
+                const categoryName = category === 'nachos' ? 'Nachos' : 'Desserts';
+                const categoryIcon = category === 'nachos' ? 'fas fa-utensils' : 'fas fa-ice-cream';
+                
+                html += `
+                    <div style="margin-bottom: 30px;">
+                        <h4 style="color: #8b4513; margin-bottom: 15px;">
+                            <i class="${categoryIcon}"></i> ${categoryName} (${categoryItems.length})
+                        </h4>
+                        <div class="menu-items-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
+                `;
+                
+                categoryItems.forEach(item => {
+                    const itemId = item.name.toLowerCase().replace(/ /g, '_');
+                    const isInSlideshow = slideshowManager.slides.some(s => s.itemId === itemId);
+                    
+                    html += `
+                        <div class="menu-item-card" style="
+                            background: white;
+                            border-radius: 10px;
+                            overflow: hidden;
+                            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                            border: ${isInSlideshow ? '2px solid #28a745' : '1px solid #ddd'};
+                        ">
+                            <div style="height: 120px; overflow: hidden;">
+                                <img src="${item.image}" alt="${item.name}" 
+                                     style="width: 100%; height: 100%; object-fit: cover;"
+                                     onerror="this.src='https://via.placeholder.com/200x120/8b4513/ffffff?text=${encodeURIComponent(item.name)}'">
+                            </div>
+                            <div style="padding: 10px;">
+                                <h5 style="margin: 0 0 5px 0; color: #333;">${item.name}</h5>
+                                <p style="margin: 0 0 5px 0; color: #666; font-size: 0.9em;">${item.description.substring(0, 60)}...</p>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-weight: bold; color: #28a745;">₱${item.price}</span>
+                                    <button class="action-btn ${isInSlideshow ? 'toggle-btn inactive' : 'edit-btn'}" 
+                                            onclick="${isInSlideshow ? `removeFromSlideshow('${itemId}')` : `addMenuItemToSlideshow('${itemId}')`}"
+                                            style="padding: 5px 10px; font-size: 0.8em;">
+                                        <i class="fas ${isInSlideshow ? 'fa-check' : 'fa-plus'}"></i>
+                                        ${isInSlideshow ? 'In Slideshow' : 'Add to Slideshow'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += '</div></div>';
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // Add menu item to slideshow
+        function addMenuItemToSlideshow(itemId) {
+            if (!slideshowManager) return;
+            
+            try {
+                slideshowManager.addSlideFromMenuItem(itemId);
+                loadDynamicSlidesForManager();
+                loadMenuItemsForSlidesForManager();
+                showAlert('Item added to slideshow');
+            } catch (error) {
+                showAlert(`Error: ${error.message}`);
+            }
+        }
+
+        // Remove from slideshow
+        function removeFromSlideshow(itemId) {
+            if (!slideshowManager) return;
+            
+            const slide = slideshowManager.slides.find(s => s.itemId === itemId);
+            if (!slide) return;
+            
+            showConfirm(
+                'Remove from Slideshow',
+                `Remove "${slide.title}" from the slideshow?`,
+                function() {
+                    slideshowManager.removeSlide(slide._id);
+                    loadDynamicSlidesForManager();
+                    loadMenuItemsForSlidesForManager();
+                    showAlert('Item removed from slideshow');
+                }
+            );
+        }
+
+        // Toggle dynamic slide
+        function toggleDynamicSlide(slideId, makeActive) {
+            if (!slideshowManager) return;
+            
+            const result = slideshowManager.toggleSlide(slideId, makeActive);
+            if (result) {
+                loadDynamicSlidesForManager();
+                showAlert(`Slide ${makeActive ? 'activated' : 'deactivated'}`);
+            }
+        }
+
+        // Delete dynamic slide
+        function deleteDynamicSlide(slideId) {
+            if (!slideshowManager) return;
+            
+            const slide = slideshowManager.slides.find(s => s._id === slideId);
+            if (!slide) return;
+            
+            showConfirm(
+                'Delete Slide',
+                `Are you sure you want to delete "${slide.title}" from the slideshow?`,
+                function() {
+                    const result = slideshowManager.removeSlide(slideId);
+                    if (result) {
+                        loadDynamicSlidesForManager();
+                        loadMenuItemsForSlidesForManager();
+                        showAlert('Slide deleted');
+                    }
+                }
+            );
+        }
+
+        // Move slide up
+        function moveSlideUp(slideId) {
+            if (!slideshowManager) return;
+            
+            const slide = slideshowManager.slides.find(s => s._id === slideId);
+            if (!slide || slide.order <= 1) return;
+            
+            slideshowManager.updateSlideOrder(slideId, slide.order - 1);
+            loadDynamicSlidesForManager();
+        }
+
+        // Move slide down
+        function moveSlideDown(slideId) {
+            if (!slideshowManager) return;
+            
+            const slide = slideshowManager.slides.find(s => s._id === slideId);
+            if (!slide) return;
+            
+            slideshowManager.updateSlideOrder(slideId, slide.order + 1);
+            loadDynamicSlidesForManager();
+        }
+
+        // Search menu items for slideshow
+        function searchMenuItemsForSlideshow(query) {
+            if (!slideshowManager) return;
+            
+            const items = slideshowManager.searchMenuItems(query);
+            const container = document.getElementById('menu-items-container');
+            
+            if (!container) return;
+            
+            if (items.length === 0) {
+                container.innerHTML = '<p>No items match your search.</p>';
+                return;
+            }
+            
+            let html = '<div class="menu-items-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">';
+            
+            items.forEach(item => {
+                const itemId = item.name.toLowerCase().replace(/ /g, '_');
+                const isInSlideshow = slideshowManager.slides.some(s => s.itemId === itemId);
+                
+                html += `
+                    <div class="menu-item-card" style="
+                        background: white;
+                        border-radius: 10px;
+                        overflow: hidden;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                    ">
+                        <div style="height: 120px; overflow: hidden;">
+                            <img src="${item.image}" alt="${item.name}" 
+                                 style="width: 100%; height: 100%; object-fit: cover;"
+                                 onerror="this.src='https://via.placeholder.com/200x120/8b4513/ffffff?text=${encodeURIComponent(item.name)}'">
+                        </div>
+                        <div style="padding: 10px;">
+                            <h5 style="margin: 0 0 5px 0; color: #333;">${item.name}</h5>
+                            <p style="margin: 0 0 5px 0; color: #666; font-size: 0.9em;">${item.description.substring(0, 60)}...</p>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-weight: bold; color: #28a745;">₱${item.price}</span>
+                                <button class="action-btn ${isInSlideshow ? 'toggle-btn inactive' : 'edit-btn'}" 
+                                        onclick="${isInSlideshow ? `removeFromSlideshow('${itemId}')` : `addMenuItemToSlideshow('${itemId}')`}"
+                                        style="padding: 5px 10px; font-size: 0.8em;">
+                                    <i class="fas ${isInSlideshow ? 'fa-check' : 'fa-plus'}"></i>
+                                    ${isInSlideshow ? 'In Slideshow' : 'Add to Slideshow'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // Regenerate all slides
+        function regenerateAllSlides() {
+            if (slideshowManager) {
+                showConfirm(
+                    'Regenerate All Slides',
+                    'This will replace all current slides with new ones from your menu items. Continue?',
+                    function() {
+                        const maxSlides = slideshowManager.settings.maxSlides;
+                        slideshowManager.clearSlides();
+                        slideshowManager.slides = slideshowManager.generateSlidesFromMenuItems(maxSlides);
+                        slideshowManager.saveSlides();
+                        loadDynamicSlidesForManager();
+                        loadMenuItemsForSlidesForManager();
+                        showAlert('All slides regenerated successfully');
+                    }
+                );
+            } else {
+                // Original function
+                showConfirm(
+                    'Regenerate Slides',
+                    'This will replace all current slideshow slides with new ones generated from your menu items. Continue?',
+                    async function() {
+                        await generateDynamicSlides();
+                        showAlert('✅ Slideshow regenerated from menu items!');
+                    }
+                );
+            }
+        }
+
+        // Clear slideshow cache
+        function clearSlideshowCache() {
+            if (slideshowManager) {
+                showConfirm(
+                    'Clear Slideshow Cache',
+                    'This will clear all slideshow data and start fresh. Continue?',
+                    function() {
+                        slideshowManager.clearSlides();
+                        slideshowManager.slides = slideshowManager.generateSlidesFromMenuItems();
+                        slideshowManager.saveSlides();
+                        loadDynamicSlidesForManager();
+                        loadMenuItemsForSlidesForManager();
+                        showAlert('Slideshow cache cleared');
+                    }
+                );
+            } else {
+                // Original function
+                showConfirm(
+                    'Clear Slideshow Cache',
+                    'This will clear the slideshow cache and regenerate slides. Continue?',
+                    async function() {
+                        allSlides = [];
+                        localStorage.removeItem('slideshowSlides');
+                        await generateDynamicSlides();
+                        showAlert('✅ Slideshow cache cleared and regenerated!');
+                    }
+                );
+            }
+        }
+
+        // Save GitHub config
+        function saveGitHubConfig() {
+            // This function is kept for backward compatibility
+            // Configuration is now handled server-side
+            const statusDiv = document.getElementById('config-status');
+            statusDiv.innerHTML = `
+                <div style="background: #d4edda; color: #155724; padding: 10px; border-radius: 5px;">
+                    <i class="fas fa-check-circle"></i> Configuration is handled server-side.
+                </div>
+            `;
+            statusDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        // Test GitHub connection
+        async function testGitHubConnection() {
+            const statusDiv = document.getElementById('config-status');
+            
+            if (!window.githubUploadService) {
+                statusDiv.innerHTML = `
+                    <div style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px;">
+                        <i class="fas fa-exclamation-circle"></i> GitHub upload service not loaded
+                    </div>
+                `;
+                statusDiv.style.display = 'block';
+                return;
+            }
+            
+            const config = window.githubUploadService.getConfig();
+            if (!config.username || !config.repo) {
+                statusDiv.innerHTML = `
+                    <div style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 5px;">
+                        <i class="fas fa-exclamation-triangle"></i> Please configure username and repository first
+                    </div>
+                `;
+                statusDiv.style.display = 'block';
+                return;
+            }
+            
+            if (!githubToken) {
+                statusDiv.innerHTML = `
+                    <div style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px;">
+                        <i class="fas fa-exclamation-circle"></i> GitHub token not found
+                        <div style="margin-top: 5px; font-size: 0.9em;">
+                            Please set GITHUB_TOKEN in your environment variables
+                        </div>
+                    </div>
+                `;
+                statusDiv.style.display = 'block';
+                return;
+            }
+            
+            statusDiv.innerHTML = `
+                <div style="background: #cce5ff; color: #004085; padding: 10px; border-radius: 5px;">
+                    <i class="fas fa-spinner fa-spin"></i> Testing connection to GitHub...
+                </div>
+            `;
+            statusDiv.style.display = 'block';
+            
+            try {
+                // Update the service with the token
+                window.githubUploadService.setToken(githubToken);
+                
+                // Test by trying to list images (requires minimal permissions)
+                const images = await window.githubUploadService.listImages();
+                
+                if (images.success === false) {
+                    throw new Error(images.error || 'Connection failed');
+                }
+                
+                statusDiv.innerHTML = `
+                    <div style="background: #d4edda; color: #155724; padding: 10px; border-radius: 5px;">
+                        <i class="fas fa-check-circle"></i> Connection successful! ✓
+                        <div style="margin-top: 10px; font-size: 0.9em;">
+                            Repository: ${config.username}/${config.repo}
+                        </div>
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('GitHub connection test failed:', error);
+                statusDiv.innerHTML = `
+                    <div style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px;">
+                        <i class="fas fa-exclamation-circle"></i> Connection failed: ${error.message}
+                        <div style="margin-top: 10px; font-size: 0.9em;">
+                            Please check your token permissions (need repo access)
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Hide status after 5 seconds
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // Handle image upload
+        function handleImageUpload(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+            
+            const queueDiv = document.getElementById('upload-queue');
+            const queueList = document.getElementById('queue-list');
+            const uploadBtn = document.getElementById('start-upload-btn');
+            
+            queueList.innerHTML = '';
+            
+            Array.from(files).forEach((file, index) => {
+                const fileSize = (file.size / 1024 / 1024).toFixed(2); // MB
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.style.cssText = `
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 10px;
+                    border-bottom: 1px solid #eee;
+                    background: #f8f9fa;
+                    border-radius: 5px;
+                    margin-bottom: 5px;
+                `;
+                fileItem.innerHTML = `
+                    <div>
+                        <i class="fas fa-image" style="color: #8b4513; margin-right: 10px;"></i>
+                        <strong>${file.name}</strong>
+                        <span style="color: #666; margin-left: 10px;">(${fileSize} MB)</span>
+                    </div>
+                    <span class="file-status" id="status-${index}">Pending</span>
+                `;
+                queueList.appendChild(fileItem);
+            });
+            
+            queueDiv.style.display = 'block';
+            
+            // Show upload button if not exists
+            if (!uploadBtn) {
+                const uploadButton = document.createElement('button');
+                uploadButton.id = 'start-upload-btn';
+                uploadButton.className = 'admin-btn admin-btn-primary';
+                uploadButton.style.marginTop = '20px';
+                uploadButton.innerHTML = '<i class="fas fa-upload"></i> Start Upload';
+                uploadButton.onclick = () => uploadImages(files);
+                queueDiv.appendChild(uploadButton);
+            } else {
+                uploadBtn.onclick = () => uploadImages(files);
+            }
+        }
+
+        // Upload images
+        async function uploadImages(files) {
+            // Check if token is available
+            if (!githubToken) {
+                const statusDiv = document.getElementById('config-status');
+                statusDiv.innerHTML = `
+                    <div style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px;">
+                        <i class="fas fa-exclamation-circle"></i> GitHub token not found
+                        <div style="margin-top: 5px; font-size: 0.9em;">
+                            Please set GITHUB_TOKEN in your environment variables
+                        </div>
+                    </div>
+                `;
+                statusDiv.style.display = 'block';
+                return;
+            }
+            
+            const progressContainer = document.getElementById('progress-container');
+            const uploadProgress = document.getElementById('upload-progress');
+            const uploadResults = document.getElementById('upload-results');
+            const resultsContainer = document.getElementById('results-container');
+            
+            // Reset displays
+            progressContainer.innerHTML = '';
+            resultsContainer.innerHTML = '';
+            uploadProgress.style.display = 'block';
+            uploadResults.style.display = 'none';
+            
+            const totalFiles = files.length;
+            let uploadedCount = 0;
+            let failedCount = 0;
+            const results = [];
+            
+            // Set token in the upload service
+            window.githubUploadService.setToken(githubToken);
+            
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                
+                // Update progress UI
+                const progressItem = document.createElement('div');
+                progressItem.className = 'progress-item';
+                progressItem.style.cssText = `
+                    margin-bottom: 10px;
+                    padding: 10px;
+                    background: #f8f9fa;
+                    border-radius: 5px;
+                    border-left: 4px solid #ffc107;
+                `;
+                progressItem.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <i class="fas fa-spinner fa-spin" style="margin-right: 10px;"></i>
+                            <strong>${file.name}</strong>
+                        </div>
+                        <span>Uploading...</span>
+                    </div>
+                `;
+                progressContainer.appendChild(progressItem);
+                
+                try {
+                    // Upload to GitHub
+                    const result = await window.githubUploadService.uploadImage(file);
+                    
+                    uploadedCount++;
+                    
+                    if (result.success) {
+                        progressItem.style.borderLeftColor = '#28a745';
+                        progressItem.innerHTML = `
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <i class="fas fa-check-circle" style="color: #28a745; margin-right: 10px;"></i>
+                                    <strong>${file.name}</strong>
+                                </div>
+                                <span style="color: #28a745;">Uploaded ✓</span>
+                            </div>
+                            ${result.githubUrl ? `
+                            <div style="margin-top: 5px; font-size: 0.9em;">
+                                <a href="${result.url}" target="_blank" style="color: #8b4513;">
+                                    <i class="fas fa-external-link-alt"></i> ${result.url.substring(0, 50)}...
+                                </a>
+                            </div>
+                            ` : ''}
+                        `;
+                        
+                        results.push({
+                            success: true,
+                            filename: file.name,
+                            url: result.url,
+                            githubUrl: result.githubUrl
+                        });
+                        
+                    } else {
+                        failedCount++;
+                        progressItem.style.borderLeftColor = '#dc3545';
+                        progressItem.innerHTML = `
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <i class="fas fa-times-circle" style="color: #dc3545; margin-right: 10px;"></i>
+                                    <strong>${file.name}</strong>
+                                </div>
+                                <span style="color: #dc3545;">Failed</span>
+                            </div>
+                            <div style="margin-top: 5px; font-size: 0.9em; color: #dc3545;">
+                                ${result.error || 'Unknown error'}
+                            </div>
+                        `;
+                        
+                        results.push({
+                            success: false,
+                            filename: file.name,
+                            error: result.error
+                        });
+                    }
+                    
+                } catch (error) {
+                    failedCount++;
+                    console.error('Upload error:', error);
+                    progressItem.style.borderLeftColor = '#dc3545';
+                    progressItem.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <i class="fas fa-times-circle" style="color: #dc3545; margin-right: 10px;"></i>
+                                <strong>${file.name}</strong>
+                            </div>
+                            <span style="color: #dc3545;">Error</span>
+                        </div>
+                        <div style="margin-top: 5px; font-size: 0.9em; color: #dc3545;">
+                            ${error.message}
+                        </div>
+                    `;
+                    
+                    results.push({
+                        success: false,
+                        filename: file.name,
+                        error: error.message
+                    });
+                }
+            }
+            
+            // Show results
+            showUploadResults(results, uploadedCount, failedCount, totalFiles);
+        }
+
+        // Show upload results
+        function showUploadResults(results, successCount, failedCount, totalCount) {
+            const uploadResults = document.getElementById('upload-results');
+            const resultsContainer = document.getElementById('results-container');
+            
+            let html = `
+                <div style="background: ${failedCount > 0 ? '#fff3cd' : '#d4edda'}; 
+                            color: ${failedCount > 0 ? '#856404' : '#155724'}; 
+                            padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <i class="fas fa-${failedCount > 0 ? 'exclamation-triangle' : 'check-circle'}"></i>
+                    Upload complete: ${successCount} successful, ${failedCount} failed (${totalCount} total)
+                </div>
+                
+                <div style="max-height: 300px; overflow-y: auto;">
+            `;
+            
+            results.forEach(result => {
+                html += `
+                    <div style="margin-bottom: 10px; padding: 10px; 
+                                background: ${result.success ? '#e8f5e9' : '#fdeaea'};
+                                border-radius: 5px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <i class="fas fa-${result.success ? 'check-circle text-success' : 'times-circle text-danger'}"></i>
+                                <strong style="margin-left: 10px;">${result.filename}</strong>
+                            </div>
+                            <span style="color: ${result.success ? '#28a745' : '#dc3545'}; font-weight: bold;">
+                                ${result.success ? '✓' : '✗'}
+                            </span>
+                        </div>
+                        
+                        ${result.success ? `
+                        <div style="margin-top: 5px; font-size: 0.9em;">
+                            <div><strong>URL:</strong> <a href="${result.url}" target="_blank" style="color: #8b4513;">${result.url}</a></div>
+                            ${result.githubUrl ? `<div><strong>GitHub:</strong> <a href="${result.githubUrl}" target="_blank" style="color: #8b4513;">View on GitHub</a></div>` : ''}
+                        </div>
+                        ` : `
+                        <div style="margin-top: 5px; font-size: 0.9em; color: #dc3545;">
+                            <strong>Error:</strong> ${result.error}
+                        </div>
+                        `}
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            resultsContainer.innerHTML = html;
+            uploadResults.style.display = 'block';
+        }
+
+        // Upload products data
+        async function uploadProductsData() {
+            const container = document.getElementById('data-upload-results');
+            
+            if (!githubToken) {
+                container.innerHTML = `
+                    <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px;">
+                        <i class="fas fa-exclamation-circle"></i> GitHub token not found
+                        <div style="margin-top: 10px; font-size: 0.9em;">
+                            Please set GITHUB_TOKEN in your environment variables
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = `
+                <div style="background: #cce5ff; color: #004085; padding: 10px; border-radius: 5px;">
+                    <i class="fas fa-spinner fa-spin"></i> Uploading products data...
+                </div>
+            `;
+            
+            try {
+                const data = {
+                    products: allProducts,
+                    timestamp: new Date().toISOString(),
+                    count: allProducts.length
+                };
+                
+                // Set token in the upload service
+                window.githubUploadService.setToken(githubToken);
+                
+                const result = await window.githubUploadService.uploadData(data, 'products');
+                
+                if (result.success) {
+                    container.innerHTML = `
+                        <div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 8px;">
+                            <i class="fas fa-check-circle"></i> Products data uploaded successfully!
+                            <div style="margin-top: 10px;">
+                                <strong>URL:</strong> <a href="${result.url}" target="_blank" style="color: #8b4513;">${result.url}</a>
+                            </div>
+                            <div style="margin-top: 5px; font-size: 0.9em;">
+                                ${allProducts.length} products uploaded
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    throw new Error(result.error || 'Upload failed');
+                }
+            } catch (error) {
+                container.innerHTML = `
+                    <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px;">
+                        <i class="fas fa-exclamation-circle"></i> Failed to upload products data
+                        <div style="margin-top: 10px; font-size: 0.9em;">
+                            Error: ${error.message}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Upload orders data
+        async function uploadOrdersData() {
+            const container = document.getElementById('data-upload-results');
+            
+            if (!githubToken) {
+                container.innerHTML = `
+                    <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px;">
+                        <i class="fas fa-exclamation-circle"></i> GitHub token not found
+                        <div style="margin-top: 10px; font-size: 0.9em;">
+                            Please set GITHUB_TOKEN in your environment variables
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = `
+                <div style="background: #cce5ff; color: #004085; padding: 10px; border-radius: 5px;">
+                    <i class="fas fa-spinner fa-spin"></i> Uploading orders data...
+                </div>
+            `;
+            
+            try {
+                const data = {
+                    orders: allOrders,
+                    timestamp: new Date().toISOString(),
+                    count: allOrders.length,
+                    stats: {
+                        totalSales: allOrders.reduce((sum, order) => sum + (order.total || 0), 0),
+                        pendingOrders: allOrders.filter(o => o.status === 'pending').length
+                    }
+                };
+                
+                // Set token in the upload service
+                window.githubUploadService.setToken(githubToken);
+                
+                const result = await window.githubUploadService.uploadData(data, 'orders');
+                
+                if (result.success) {
+                    container.innerHTML = `
+                        <div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 8px;">
+                            <i class="fas fa-check-circle"></i> Orders data uploaded successfully!
+                            <div style="margin-top: 10px;">
+                                <strong>URL:</strong> <a href="${result.url}" target="_blank" style="color: #8b4513;">${result.url}</a>
+                            </div>
+                            <div style="margin-top: 5px; font-size: 0.9em;">
+                                ${allOrders.length} orders uploaded
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    throw new Error(result.error || 'Upload failed');
+                }
+            } catch (error) {
+                container.innerHTML = `
+                    <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px;">
+                        <i class="fas fa-exclamation-circle"></i> Failed to upload orders data
+                        <div style="margin-top: 10px; font-size: 0.9em;">
+                            Error: ${error.message}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Upload slideshow data
+        async function uploadSlideshowData() {
+            const container = document.getElementById('data-upload-results');
+            
+            if (!githubToken) {
+                container.innerHTML = `
+                    <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px;">
+                        <i class="fas fa-exclamation-circle"></i> GitHub token not found
+                        <div style="margin-top: 10px; font-size: 0.9em;">
+                            Please set GITHUB_TOKEN in your environment variables
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = `
+                <div style="background: #cce5ff; color: #004085; padding: 10px; border-radius: 5px;">
+                    <i class="fas fa-spinner fa-spin"></i> Uploading slideshow data...
+                </div>
+            `;
+            
+            try {
+                const data = {
+                    slides: allSlides,
+                    timestamp: new Date().toISOString(),
+                    count: allSlides.length,
+                    activeSlides: allSlides.filter(s => s.active).length,
+                    settings: slideshowSettings
+                };
+                
+                // Set token in the upload service
+                window.githubUploadService.setToken(githubToken);
+                
+                const result = await window.githubUploadService.uploadData(data, 'slideshow');
+                
+                if (result.success) {
+                    container.innerHTML = `
+                        <div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 8px;">
+                            <i class="fas fa-check-circle"></i> Slideshow data uploaded successfully!
+                            <div style="margin-top: 10px;">
+                                <strong>URL:</strong> <a href="${result.url}" target="_blank" style="color: #8b4513;">${result.url}</a>
+                            </div>
+                            <div style="margin-top: 5px; font-size: 0.9em;">
+                                ${allSlides.length} slides uploaded (${data.activeSlides} active)
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    throw new Error(result.error || 'Upload failed');
+                }
+            } catch (error) {
+                container.innerHTML = `
+                    <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px;">
+                        <i class="fas fa-exclamation-circle"></i> Failed to upload slideshow data
+                        <div style="margin-top: 10px; font-size: 0.9em;">
+                            Error: ${error.message}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Upload all data
+        async function uploadAllData() {
+            const container = document.getElementById('data-upload-results');
+            
+            if (!githubToken) {
+                container.innerHTML = `
+                    <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px;">
+                        <i class="fas fa-exclamation-circle"></i> GitHub token not found
+                        <div style="margin-top: 10px; font-size: 0.9em;">
+                            Please set GITHUB_TOKEN in your environment variables
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = `
+                <div style="background: #cce5ff; color: #004085; padding: 10px; border-radius: 5px;">
+                    <i class="fas fa-spinner fa-spin"></i> Uploading all data to GitHub...
+                </div>
+            `;
+            
+            try {
+                const data = {
+                    store: "Ai-Maize-ing Nachos",
+                    timestamp: new Date().toISOString(),
+                    products: allProducts,
+                    orders: allOrders,
+                    slideshow: allSlides,
+                    customers: allCustomers,
+                    statistics: {
+                        totalProducts: allProducts.length,
+                        totalOrders: allOrders.length,
+                        totalSales: allOrders.reduce((sum, order) => sum + (order.total || 0), 0),
+                        activeSlides: allSlides.filter(s => s.active).length,
+                        totalCustomers: allCustomers.length
+                    }
+                };
+                
+                // Set token in the upload service
+                window.githubUploadService.setToken(githubToken);
+                
+                const result = await window.githubUploadService.uploadData(data, 'all-store-data');
+                
+                if (result.success) {
+                    container.innerHTML = `
+                        <div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 8px;">
+                            <i class="fas fa-check-circle"></i> All store data uploaded successfully!
+                            <div style="margin-top: 10px;">
+                                <strong>URL:</strong> <a href="${result.url}" target="_blank" style="color: #8b4513;">${result.url}</a>
+                            </div>
+                            <div style="margin-top: 10px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-size: 0.9em;">
+                                <div><strong>Products:</strong> ${allProducts.length}</div>
+                                <div><strong>Orders:</strong> ${allOrders.length}</div>
+                                <div><strong>Slides:</strong> ${allSlides.length}</div>
+                                <div><strong>Customers:</strong> ${allCustomers.length}</div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    throw new Error(result.error || 'Upload failed');
+                }
+            } catch (error) {
+                container.innerHTML = `
+                    <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px;">
+                        <i class="fas fa-exclamation-circle"></i> Failed to upload all data
+                        <div style="margin-top: 10px; font-size: 0.9em;">
+                            Error: ${error.message}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Show add product modal
+        function showAddProductModal() {
+            document.getElementById('product-form').reset();
+            document.getElementById('product-available').checked = true;
+            document.getElementById('add-product-modal').style.display = 'flex';
+        }
+
+        // Show update availability modal
+        function showUpdateAvailabilityModal() {
+            const modal = document.getElementById('availability-modal');
+            const list = document.getElementById('availability-list');
+            
+            let html = '<div class="availability-grid">';
+            allProducts.forEach(product => {
+                const available = product.available !== false;
+                html += `<div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #ddd;">
+                    <div>
+                        <h4 style="margin: 0; color: #333;">${product.name}</h4>
+                        <p style="margin: 5px 0 0 0; color: #666;">₱${product.price?.toFixed(2) || '0.00'} • ${product.category}</p>
+                    </div>
+                    <div>
+                        <button class="action-btn toggle-btn ${!available ? 'inactive' : ''}" 
+                                onclick="toggleProductAvailability('${product._id}', ${!available})" 
+                                style="min-width: 120px;">
+                            <i class="fas fa-toggle-${available ? 'on' : 'off'}"></i> ${available ? 'Available' : 'Unavailable'}
+                        </button>
+                    </div>
+                </div>`;
+            });
+            html += '</div>';
+            
+            list.innerHTML = html;
+            modal.style.display = 'flex';
+        }
+
+        // Save product
+        async function saveProduct(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('product-name').value;
+            const price = parseFloat(document.getElementById('product-price').value);
+            const category = document.getElementById('product-category').value;
+            const image = document.getElementById('product-image').value;
+            const description = document.getElementById('product-description').value;
+            const available = document.getElementById('product-available').checked;
+            
+            const newProduct = {
+                _id: `prod_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                name,
+                price,
+                category,
+                image: image || getDefaultImage(name),
+                description,
+                available,
+                createdAt: new Date().toISOString()
+            };
+            
+            try {
+                // Try to save to API
+                const response = await fetch('https://aifoodies.up.railway.app/api/products', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                    },
+                    body: JSON.stringify(newProduct)
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        newProduct._id = data.productId || newProduct._id;
+                    }
+                }
+            } catch (error) {
+                console.log('Using localStorage for product:', error);
+            }
+            
+            // Add to local array
+            allProducts.push(newProduct);
+            localStorage.setItem('adminProducts', JSON.stringify(allProducts));
+            
+            // Update availability in main store
+            updateGlobalAvailability();
+            
+            // Auto-add to slideshow if enabled
+            if (slideshowSettings.autoRefresh && available) {
+                const newSlide = {
+                    _id: `slide_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                    title: newProduct.name,
+                    description: `Try our new ${newProduct.name.toLowerCase()}! Only ₱${newProduct.price?.toFixed(2) || '0.00'}`,
+                    imageUrl: newProduct.image || getDefaultImage(newProduct.name),
+                    order: allSlides.length,
+                    active: true,
+                    promoBadge: 'NEW',
+                    productId: newProduct._id,
+                    createdAt: new Date().toISOString()
+                };
+                
+                allSlides.push(newSlide);
+                localStorage.setItem('slideshowSlides', JSON.stringify(allSlides));
+            }
+            
+            // Close modal and refresh
+            closeModal('add-product-modal');
+            showAlert('✅ Product added successfully!' + (slideshowSettings.autoRefresh && available ? ' (Auto-added to slideshow)' : ''));
+            
+            // Refresh displays
+            if (document.getElementById('products').classList.contains('active')) {
+                loadProducts();
+            }
+            if (document.getElementById('slideshow').classList.contains('active')) {
+                loadDynamicSlideshow();
+            }
+            updateDashboard();
+        }
+
+        // Edit product
+        function editProduct(productId) {
+            const product = allProducts.find(p => p._id === productId);
+            if (!product) return;
+            
+            document.getElementById('product-name').value = product.name;
+            document.getElementById('product-price').value = product.price;
+            document.getElementById('product-category').value = product.category;
+            document.getElementById('product-image').value = product.image || '';
+            document.getElementById('product-description').value = product.description || '';
+            document.getElementById('product-available').checked = product.available !== false;
+            
+            // Change form to update mode
+            const form = document.getElementById('product-form');
+            form.onsubmit = function(e) {
+                e.preventDefault();
+                updateProduct(productId);
+            };
+            
+            const modal = document.getElementById('add-product-modal');
+            modal.querySelector('.modal-header h3').textContent = 'Edit Product';
+            modal.style.display = 'flex';
+        }
+
+        // Update product
+        async function updateProduct(productId) {
+            const name = document.getElementById('product-name').value;
+            const price = parseFloat(document.getElementById('product-price').value);
+            const category = document.getElementById('product-category').value;
+            const image = document.getElementById('product-image').value;
+            const description = document.getElementById('product-description').value;
+            const available = document.getElementById('product-available').checked;
+            
+            const productIndex = allProducts.findIndex(p => p._id === productId);
+            if (productIndex === -1) return;
+            
+            allProducts[productIndex] = {
+                ...allProducts[productIndex],
+                name,
+                price,
+                category,
+                image: image || getDefaultImage(name),
+                description,
+                available
+            };
+            
+            try {
+                // Try to update via API
+                const response = await fetch(`https://aifoodies.up.railway.app/api/products/${productId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                    },
+                    body: JSON.stringify(allProducts[productIndex])
+                });
+                
+                // We'll continue even if API fails
+            } catch (error) {
+                console.log('Using localStorage for product update:', error);
+            }
+            
+            localStorage.setItem('adminProducts', JSON.stringify(allProducts));
+            updateGlobalAvailability();
+            
+            // Update corresponding slide if exists
+            const slideIndex = allSlides.findIndex(s => s.productId === productId);
+            if (slideIndex !== -1) {
+                allSlides[slideIndex] = {
+                    ...allSlides[slideIndex],
+                    title: name,
+                    description: `Try our delicious ${name.toLowerCase()}! Only ₱${price?.toFixed(2) || '0.00'}`,
+                    imageUrl: image || getDefaultImage(name)
+                };
+                localStorage.setItem('slideshowSlides', JSON.stringify(allSlides));
+            }
+            
+            closeModal('add-product-modal');
+            showAlert('✅ Product updated successfully!');
+            
+            // Reset form
+            const form = document.getElementById('product-form');
+            form.onsubmit = saveProduct;
+            document.getElementById('add-product-modal').querySelector('.modal-header h3').textContent = 'Add New Product';
+            
+            // Refresh displays
+            loadProducts();
+            if (document.getElementById('slideshow').classList.contains('active')) {
+                loadDynamicSlideshow();
+            }
+            updateDashboard();
+        }
+
+        // Toggle product availability
+        function toggleProductAvailability(productId, makeAvailable) {
+            const productIndex = allProducts.findIndex(p => p._id === productId);
+            if (productIndex === -1) return;
+            
+            allProducts[productIndex].available = makeAvailable;
+            localStorage.setItem('adminProducts', JSON.stringify(allProducts));
+            
+            // Update global availability
+            updateGlobalAvailability();
+            
+            // Update corresponding slide
+            const slideIndex = allSlides.findIndex(s => s.productId === productId);
+            if (slideIndex !== -1) {
+                allSlides[slideIndex].active = makeAvailable;
+                localStorage.setItem('slideshowSlides', JSON.stringify(allSlides));
+            }
+            
+            showAlert(`✅ Product ${makeAvailable ? 'marked as available' : 'marked as unavailable'}!`);
+            
+            // Refresh displays
+            if (document.getElementById('products').classList.contains('active')) {
+                loadProducts();
+            }
+            if (document.getElementById('slideshow').classList.contains('active')) {
+                loadDynamicSlideshow();
+            }
+            if (document.getElementById('availability-modal').style.display === 'flex') {
+                showUpdateAvailabilityModal();
+            }
+            updateDashboard();
+        }
+
+        // Update global availability (for main store)
+        function updateGlobalAvailability() {
+            const availability = {};
+            allProducts.forEach(product => {
+                availability[product.name] = product.available !== false;
+            });
+            
+            localStorage.setItem('itemAvailability', JSON.stringify(availability));
+            
+            // Notify other pages if they're open
+            if (typeof window.updateMenuItemsAvailability === 'function') {
+                window.updateMenuItemsAvailability();
+            }
+        }
+
+        // Toggle slide status
+        function toggleSlide(slideId, makeActive) {
+            const slideIndex = allSlides.findIndex(s => s._id === slideId);
+            if (slideIndex === -1) return;
+            
+            allSlides[slideIndex].active = makeActive;
+            localStorage.setItem('slideshowSlides', JSON.stringify(allSlides));
+            
+            showAlert(`✅ Slide ${makeActive ? 'activated' : 'deactivated'}!`);
+            loadDynamicSlides();
+        }
+
+        // View order details
+        function viewOrderDetails(orderId) {
+            const order = allOrders.find(o => o._id === orderId || o.id === orderId);
+            if (!order) {
+                showAlert('Order not found');
+                return;
+            }
+            
+            const items = order.items || [];
+            const total = order.total || 0;
+            const customerName = order.customerName || 'Unknown';
+            const customerPhone = order.customerPhone || 'N/A';
+            const pickupTime = order.pickupTime || 'ASAP';
+            const paymentMethod = order.paymentMethod || 'Cash';
+            const status = order.status || 'pending';
+            const date = new Date(order.timestamp || order.createdAt).toLocaleString();
+            
+            let html = `
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                        <div>
+                            <strong>Order ID:</strong> #${order._id?.substring(0, 8) || order.id?.substring(0, 8) || 'N/A'}<br>
+                            <strong>Date:</strong> ${date}
+                        </div>
+                        <div>
+                            <strong>Status:</strong> <span class="status-badge status-${status}">${status}</span>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <strong>Customer:</strong> ${customerName}<br>
+                        <strong>Phone:</strong> ${customerPhone}<br>
+                        <strong>Pickup Time:</strong> ${pickupTime}<br>
+                        <strong>Payment:</strong> ${paymentMethod}
+                    </div>
+                </div>
+                
+                <h4 style="color: #8b4513; margin-bottom: 15px;">Order Items</h4>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                    <thead>
+                        <tr style="background: #e9ecef;">
+                            <th style="padding: 10px; text-align: left;">Item</th>
+                            <th style="padding: 10px; text-align: center;">Qty</th>
+                            <th style="padding: 10px; text-align: right;">Price</th>
+                            <th style="padding: 10px; text-align: right;">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+            
+            items.forEach(item => {
+                const itemTotal = (item.price || 0) * (item.quantity || 1);
+                html += `<tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #ddd;">${item.name}</td>
+                    <td style="padding: 10px; text-align: center; border-bottom: 1px solid #ddd;">${item.quantity || 1}</td>
+                    <td style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;">₱${(item.price || 0).toFixed(2)}</td>
+                    <td style="padding: 10px; text-align: right; border-bottom: 1px solid #ddd;">₱${itemTotal.toFixed(2)}</td>
+                </tr>`;
+            });
+            
+            html += `<tr style="font-weight: bold;">
+                    <td colspan="3" style="padding: 10px; text-align: right;">Total:</td>
+                    <td style="padding: 10px; text-align: right;">₱${total.toFixed(2)}</td>
+                </tr>
+            </tbody></table>
+            
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="admin-btn admin-btn-primary" onclick="updateOrderStatus('${orderId}', 'preparing')">
+                    <i class="fas fa-clock"></i> Mark as Preparing
+                </button>
+                <button class="admin-btn admin-btn-warning" onclick="updateOrderStatus('${orderId}', 'ready')">
+                    <i class="fas fa-check-circle"></i> Ready for Pickup
+                </button>
+                <button class="admin-btn" style="background: #28a745; color: white;" onclick="updateOrderStatus('${orderId}', 'completed')">
+                    <i class="fas fa-check"></i> Mark Complete
+                </button>
+                <button class="admin-btn admin-btn-danger" onclick="updateOrderStatus('${orderId}', 'cancelled')">
+                    <i class="fas fa-times"></i> Cancel Order
+                </button>
+            </div>`;
+            
+            document.getElementById('order-details-content').innerHTML = html;
+            document.getElementById('order-details-modal').style.display = 'flex';
+        }
+
+        // View customer details
+        function viewCustomerDetails(customerId) {
+            const customer = allCustomers.find(c => c._id === customerId || c.id === customerId);
+            if (!customer) {
+                showAlert('Customer not found');
+                return;
+            }
+            
+            const name = customer.name || 'Unknown';
+            const phone = customer.phone || 'N/A';
+            const email = customer.email || 'N/A';
+            const totalOrders = customer.totalOrders || 0;
+            const totalSpent = customer.totalSpent || 0;
+            const loyaltyPoints = customer.loyaltyPoints || 0;
+            const firstOrder = customer.firstOrder ? new Date(customer.firstOrder).toLocaleDateString() : 'N/A';
+            const lastOrder = customer.lastOrder ? new Date(customer.lastOrder).toLocaleDateString() : 'N/A';
+            
+            // Get customer's orders
+            const customerOrders = allOrders.filter(o => 
+                o.customerName === name && (!phone || o.customerPhone === phone)
+            );
+            
+            let html = `
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                    <h4 style="color: #8b4513; margin-bottom: 15px;">Customer Information</h4>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                        <div>
+                            <strong>Name:</strong><br>${name}
+                        </div>
+                        <div>
+                            <strong>Phone:</strong><br>${phone}
+                        </div>
+                        <div>
+                            <strong>Email:</strong><br>${email}
+                        </div>
+                        <div>
+                            <strong>Loyalty Points:</strong><br>${loyaltyPoints}
+                        </div>
+                        <div>
+                            <strong>Total Orders:</strong><br>${totalOrders}
+                        </div>
+                        <div>
+                            <strong>Total Spent:</strong><br>₱${totalSpent.toFixed(2)}
+                        </div>
+                        <div>
+                            <strong>First Order:</strong><br>${firstOrder}
+                        </div>
+                        <div>
+                            <strong>Last Order:</strong><br>${lastOrder}
+                        </div>
+                    </div>
+                </div>
+                
+                <h4 style="color: #8b4513; margin-bottom: 15px;">Order History (${customerOrders.length})</h4>`;
+            
+            if (customerOrders.length === 0) {
+                html += '<p>No orders found for this customer.</p>';
+            } else {
+                html += '<table style="width: 100%; border-collapse: collapse;">';
+                html += '<thead><tr style="background: #e9ecef;"><th style="padding: 10px;">Order ID</th><th style="padding: 10px;">Date</th><th style="padding: 10px;">Total</th><th style="padding: 10px;">Status</th></tr></thead><tbody>';
+                
+                customerOrders.forEach(order => {
+                    const orderId = order._id?.substring(0, 8) || order.id?.substring(0, 8) || 'N/A';
+                    const date = new Date(order.timestamp || order.createdAt).toLocaleDateString();
+                    const total = order.total || 0;
+                    const status = order.status || 'pending';
+                    
+                    html += `<tr>
+                        <td style="padding: 10px; border-bottom: 1px solid #ddd;">#${orderId}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #ddd;">${date}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #ddd;">₱${total.toFixed(2)}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #ddd;"><span class="status-badge status-${status}">${status}</span></td>
+                    </tr>`;
+                });
+                
+                html += '</tbody></table>';
+            }
+            
+            document.getElementById('customer-details-content').innerHTML = html;
+            document.getElementById('customer-details-modal').style.display = 'flex';
+        }
+
+        // Update order status
+        function updateOrderStatus(orderId, newStatus) {
+            const orderIndex = allOrders.findIndex(o => o._id === orderId || o.id === orderId);
+            if (orderIndex === -1) return;
+            
+            allOrders[orderIndex].status = newStatus;
+            allOrders[orderIndex].updatedAt = new Date().toISOString();
+            
+            localStorage.setItem('adminOrders', JSON.stringify(allOrders));
+            
+            showAlert(`✅ Order status updated to: ${newStatus}`);
+            
+            // Refresh displays
+            loadRecentOrders();
+            if (document.getElementById('orders').classList.contains('active')) {
+                loadOrders();
+            }
+            if (document.getElementById('order-details-modal').style.display === 'flex') {
+                viewOrderDetails(orderId);
+            }
+            updateDashboard();
+        }
+
+        // Delete order
+        function deleteOrder(orderId) {
+            showConfirm(
+                'Delete Order',
+                'Are you sure you want to delete this order? This action cannot be undone.',
+                function() {
+                    const orderIndex = allOrders.findIndex(o => o._id === orderId || o.id === orderId);
+                    if (orderIndex === -1) return;
+                    
+                    allOrders.splice(orderIndex, 1);
+                    localStorage.setItem('adminOrders', JSON.stringify(allOrders));
+                    
+                    showAlert('✅ Order deleted successfully!');
+                    
+                    // Refresh displays
+                    loadRecentOrders();
+                    if (document.getElementById('orders').classList.contains('active')) {
+                        loadOrders();
+                    }
+                    updateDashboard();
+                }
+            );
+        }
+
+        // Delete product
+        function deleteProduct(productId) {
+            showConfirm(
+                'Delete Product',
+                'Are you sure you want to delete this product? This will remove it from the menu and slideshow.',
+                function() {
+                    const productIndex = allProducts.findIndex(p => p._id === productId);
+                    if (productIndex === -1) return;
+                    
+                    const productName = allProducts[productIndex].name;
+                    
+                    // Remove from products
+                    allProducts.splice(productIndex, 1);
+                    localStorage.setItem('adminProducts', JSON.stringify(allProducts));
+                    
+                    // Remove from slideshow
+                    const slideIndex = allSlides.findIndex(s => s.title === productName);
+                    if (slideIndex !== -1) {
+                        allSlides.splice(slideIndex, 1);
+                        localStorage.setItem('slideshowSlides', JSON.stringify(allSlides));
+                    }
+                    
+                    // Update availability
+                    updateGlobalAvailability();
+                    
+                    showAlert('✅ Product deleted successfully!');
+                    
+                    // Refresh displays
+                    if (document.getElementById('products').classList.contains('active')) {
+                        loadProducts();
+                    }
+                    if (document.getElementById('slideshow').classList.contains('active')) {
+                        loadDynamicSlideshow();
+                    }
+                    updateDashboard();
+                }
+            );
+        }
+
+        // Delete slide
+        function deleteSlide(slideId) {
+            showConfirm(
+                'Delete Slide',
+                'Are you sure you want to delete this slideshow slide?',
+                function() {
+                    const slideIndex = allSlides.findIndex(s => s._id === slideId);
+                    if (slideIndex === -1) return;
+                    
+                    allSlides.splice(slideIndex, 1);
+                    localStorage.setItem('slideshowSlides', JSON.stringify(allSlides));
+                    
+                    showAlert('✅ Slide deleted successfully!');
+                    
+                    if (document.getElementById('slideshow').classList.contains('active')) {
+                        loadDynamicSlideshow();
+                    }
+                }
+            );
+        }
+
+        // Show confirmation dialog
+        function showConfirm(title, message, onConfirm) {
+            document.getElementById('confirm-title').textContent = title;
+            document.getElementById('confirm-message').textContent = message;
+            
+            const confirmBtn = document.getElementById('confirm-yes');
+            confirmBtn.onclick = function() {
+                closeModal('confirm-modal');
+                onConfirm();
+            };
+            
+            document.getElementById('confirm-modal').style.display = 'flex';
+        }
+
+        // Close modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Show alert
+        function showAlert(message) {
+            if (window.showAlert) {
+                window.showAlert(message);
+            } else {
+                alert(message);
+            }
+        }
+
+        // Show loading
+        function showLoading() {
+            document.getElementById('loading-overlay').style.display = 'flex';
+        }
+
+        // Hide loading
+        function hideLoading() {
+            document.getElementById('loading-overlay').style.display = 'none';
+        }
+
+        // Refresh data
+        async function refreshData() {
+            await loadAllData();
+            showAlert('✅ Data refreshed successfully!');
+        }
+
+        // Go to store
+        function goToStore() {
+            window.location.href = 'index.html';
+        }
+
+        // Logout admin
+        function logoutAdmin() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('adminToken');
+                localStorage.removeItem('adminRole');
+                window.location.href = 'index.html';
+            }
+        }
+
+        // Export data
+        function exportData() {
+            const data = {
+                orders: allOrders,
+                products: allProducts,
+                slides: allSlides,
+                customers: allCustomers,
+                slideshowSettings: slideshowSettings,
+                exportedAt: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ai-maize-ing-data-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showAlert('✅ Data exported successfully!');
+        }
+
+        // Filter orders
+        function filterOrders(status) {
+            // This would filter the orders table when implemented
+            console.log('Filtering by status:', status);
+            // For now, just reload orders
+            loadOrders();
+        }
+
+        // Filter by date
+        function filterByDate(date) {
+            console.log('Filtering by date:', date);
+            // Implementation would filter orders by date
+        }
+
+        // Search orders
+        function searchOrders(query) {
+            console.log('Searching orders:', query);
+            // Implementation would search through orders
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Close modals when clicking outside
+            document.querySelectorAll('.modal-overlay').forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        this.style.display = 'none';
+                    }
+                });
+            });
+            
+            // Prevent form submission on Enter in search fields
+            document.querySelectorAll('input[type="text"]').forEach(input => {
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                    }
+                });
+            });
+            
+            // Add drag and drop for image upload
+            const dropArea = document.querySelector('[style*="border: 2px dashed #ddd"]');
+            if (dropArea) {
+                dropArea.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    this.classList.add('drag-over');
+                });
+                
+                dropArea.addEventListener('dragleave', function(e) {
+                    e.preventDefault();
+                    this.classList.remove('drag-over');
+                });
+                
+                dropArea.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    this.classList.remove('drag-over');
+                    
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        const input = document.getElementById('image-upload');
+                        // Create a new DataTransfer to set files
+                        const dataTransfer = new DataTransfer();
+                        for (let file of files) {
+                            dataTransfer.items.add(file);
+                        }
+                        input.files = dataTransfer.files;
+                        handleImageUpload({ target: input });
+                    }
+                });
+            }
+        }
+
+        // Make functions available globally
+        window.showAddProductModal = showAddProductModal;
+        window.addDynamicSlide = addDynamicSlide;
+        window.showUpdateAvailabilityModal = showUpdateAvailabilityModal;
+        window.closeModal = closeModal;
+        window.viewOrderDetails = viewOrderDetails;
+        window.viewCustomerDetails = viewCustomerDetails;
+        window.updateOrderStatus = updateOrderStatus;
+        window.deleteOrder = deleteOrder;
+        window.deleteProduct = deleteProduct;
+        window.deleteSlide = deleteSlide;
+        window.editProduct = editProduct;
+        window.editDynamicSlide = editDynamicSlide;
+        window.toggleProductAvailability = toggleProductAvailability;
+        window.toggleSlide = toggleSlide;
+        window.refreshData = refreshData;
+        window.goToStore = goToStore;
+        window.logoutAdmin = logoutAdmin;
+        window.exportData = exportData;
+        window.filterOrders = filterOrders;
+        window.filterByDate = filterByDate;
+        window.searchOrders = searchOrders;
+        // Slideshow functions
+        window.regenerateAllSlides = regenerateAllSlides;
+        window.clearSlideshowCache = clearSlideshowCache;
+        window.updateSlideshowSettings = updateSlideshowSettings;
+        window.filterItems = filterItems;
+        window.searchMenuItems = searchMenuItems;
+        window.selectMenuItemForSlide = selectMenuItemForSlide;
+        window.createSlideFromProduct = createSlideFromProduct;
+        // Slideshow Manager functions
+        window.addMenuItemToSlideshow = addMenuItemToSlideshow;
+        window.removeFromSlideshow = removeFromSlideshow;
+        window.toggleDynamicSlide = toggleDynamicSlide;
+        window.deleteDynamicSlide = deleteDynamicSlide;
+        window.moveSlideUp = moveSlideUp;
+        window.moveSlideDown = moveSlideDown;
+        // GitHub functions
+        window.saveGitHubConfig = saveGitHubConfig;
+        window.testGitHubConnection = testGitHubConnection;
+        window.handleImageUpload = handleImageUpload;
+        window.uploadImages = uploadImages;
+        window.uploadProductsData = uploadProductsData;
+        window.uploadOrdersData = uploadOrdersData;
+        window.uploadSlideshowData = uploadSlideshowData;
+        window.uploadAllData = uploadAllData;
+        
+        // Development helper (remove in production)
+        window.setDevGitHubToken = function(token) {
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                localStorage.setItem('dev_github_token', token);
+                githubToken = token;
+                loadGitHubConfig();
+                showAlert('Development token set (localStorage)');
+            }
+        };
+    </script>
 </body>
 </html>
